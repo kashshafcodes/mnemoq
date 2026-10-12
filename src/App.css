@@ -994,3 +994,269 @@ p {
   outline-offset: 3px;
 }
 
+/* Mnemoq brand identity */
+
+.mnemoq-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mnemoq-mark {
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.mnemoq-wordmark {
+  color: #17172a;
+  font-family: "Sora", sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -1.1px;
+  line-height: 1;
+}
+
+.mnemoq-brand-dark .mnemoq-wordmark {
+  color: #f8fafc;
+}
+
+.mnemoq-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 6px 10px;
+  background: #0b1020;
+  border-radius: 12px;
+}
+
+.mnemoq-mark {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* =========================================
+   MNEMOQ BRAND THEME — dark navy / blue / violet
+   Appended overrides keep existing layout and functionality intact.
+   ========================================= */
+:root {
+  --mnemoq-bg: #0b1020;
+  --mnemoq-surface: #111827;
+  --mnemoq-surface-raised: #172033;
+  --mnemoq-border: #263248;
+  --mnemoq-blue: #3b82f6;
+  --mnemoq-violet: #8b5cf6;
+  --mnemoq-white: #f8fafc;
+  --mnemoq-muted: #a5b4d4;
+  --mnemoq-subtle: #8290b2;
+  --mnemoq-danger: #fb7185;
+  --mnemoq-success: #34d399;
+}
+
+html, body, #root, .app {
+  min-height: 100vh;
+  background: var(--mnemoq-bg);
+  color: var(--mnemoq-white);
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 8% 0%, rgba(59, 130, 246, 0.12), transparent 36rem),
+    radial-gradient(ellipse at 92% 100%, rgba(139, 92, 246, 0.12), transparent 34rem),
+    var(--mnemoq-bg);
+  color: var(--mnemoq-white);
+}
+
+.sidebar {
+  background: rgba(11, 16, 32, 0.96);
+  border-right-color: var(--mnemoq-border);
+  color: var(--mnemoq-white);
+}
+
+.logo { color: var(--mnemoq-white); }
+.logo span { color: var(--mnemoq-violet); }
+.nav-label, .eyebrow { color: var(--mnemoq-muted); }
+
+.nav-item {
+  color: var(--mnemoq-muted);
+  transition: background 160ms ease, color 160ms ease;
+}
+.nav-item:hover {
+  background: rgba(59, 130, 246, 0.10);
+  color: var(--mnemoq-white);
+}
+.nav-item.active {
+  background: linear-gradient(110deg, rgba(59, 130, 246, 0.20), rgba(139, 92, 246, 0.20));
+  color: #c7d2fe;
+  border: 1px solid rgba(139, 92, 246, 0.28);
+}
+.sidebar-bottom { color: var(--mnemoq-subtle); }
+
+.main-content { color: var(--mnemoq-white); }
+.topbar h1, .section-heading h2, h1, h2, h3 { color: var(--mnemoq-white); }
+.subtitle { color: var(--mnemoq-muted); }
+p { color: inherit; }
+
+.avatar {
+  background: rgba(139, 92, 246, 0.18);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.32);
+}
+
+.welcome-card {
+  background:
+    radial-gradient(ellipse at 80% 10%, rgba(139, 92, 246, 0.24), transparent 55%),
+    linear-gradient(125deg, #101b35, #111827 70%);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.20);
+}
+.welcome-card .eyebrow { color: #c4b5fd; }
+.welcome-card p:not(.eyebrow) { color: #cbd5e1; }
+.welcome-card button,
+.mistake-form-card button,
+.review-section .primary-button,
+.auth-card .primary-button {
+  background: linear-gradient(115deg, var(--mnemoq-blue), var(--mnemoq-violet));
+  border-color: transparent;
+  color: #fff;
+}
+.welcome-card button:hover,
+.mistake-form-card button:hover,
+.review-section .primary-button:hover,
+.auth-card .primary-button:hover {
+  background: linear-gradient(115deg, #2563eb, #7c3aed);
+}
+.welcome-mark { color: rgba(139, 92, 246, 0.32); }
+
+.stat-card, .mistake-form-card, .mistake-card, .review-card,
+.review-section .review-card, .review-empty-state, .auth-card {
+  background: rgba(17, 24, 39, 0.92);
+  border-color: var(--mnemoq-border);
+  color: var(--mnemoq-white);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+}
+.stat-card p, .stat-card span, .mistake-card p,
+.mistake-card .explanation, .review-counter,
+.review-section .review-counter, .review-empty-state p,
+.review-section .review-empty p {
+  color: var(--mnemoq-muted);
+}
+.empty-state, .review-empty-state {
+  background: rgba(17, 24, 39, 0.82);
+  border-color: var(--mnemoq-border);
+}
+.empty-state p { color: var(--mnemoq-muted); }
+.empty-icon { color: #a78bfa; }
+
+.mistake-form-card input, .mistake-form-card select,
+.mistake-form-card textarea, .auth-card input {
+  background: #0b1222;
+  color: var(--mnemoq-white);
+  border-color: #334155;
+}
+.mistake-form-card input::placeholder,
+.mistake-form-card textarea::placeholder,
+.auth-card input::placeholder { color: #8290b2; }
+.mistake-form-card input:focus, .mistake-form-card select:focus,
+.mistake-form-card textarea:focus, .auth-card input:focus {
+  outline: none;
+  border-color: var(--mnemoq-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+}
+.mistake-form-card label { color: #e2e8f0; }
+
+.category-tag, .subject-tag, .review-section .category-badge {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.30);
+  color: #c4b5fd;
+}
+.subject-tag {
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+}
+.mistake-card .explanation { border-top-color: var(--mnemoq-border); }
+
+.mistake-actions button, .filter-button {
+  background: #141d30;
+  color: #c7d2fe;
+  border-color: #334155;
+}
+.mistake-actions button:hover, .filter-button:hover {
+  border-color: var(--mnemoq-blue);
+  background: rgba(59, 130, 246, 0.12);
+}
+.filter-button.selected {
+  background: linear-gradient(115deg, var(--mnemoq-blue), var(--mnemoq-violet));
+  border-color: transparent;
+  color: #fff;
+}
+.mistake-actions .delete-button {
+  background: rgba(251, 113, 133, 0.10);
+  border-color: rgba(251, 113, 133, 0.35);
+  color: #fda4af;
+}
+
+.review-section .review-question { color: var(--mnemoq-white); }
+.review-section .answer-block, .answer-block {
+  background: #0d1526;
+  border-color: var(--mnemoq-border);
+  color: #e2e8f0;
+}
+.review-section .answer-block .eyebrow { color: var(--mnemoq-muted); }
+.review-section .answer-block p:last-child { color: #dbe4f3; }
+.review-section .correct-answer-block {
+  background: linear-gradient(120deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+  border-color: rgba(139, 92, 246, 0.42);
+  border-left-color: var(--mnemoq-violet);
+  box-shadow: 0 6px 24px rgba(59, 130, 246, 0.08);
+}
+.review-section .correct-answer-block .eyebrow { color: #c4b5fd; }
+.review-section .correct-answer-block p:last-child { color: #f8fafc; }
+
+.review-rating-buttons .rating-button {
+  background: #111827;
+  color: #f8fafc;
+  border-color: var(--mnemoq-border);
+}
+.rating-button span { color: var(--mnemoq-muted); }
+.rating-again:hover { background: rgba(251, 113, 133, 0.12); }
+.rating-hard:hover { background: rgba(251, 191, 36, 0.12); }
+.rating-good:hover { background: rgba(52, 211, 153, 0.12); }
+.rating-easy:hover { background: rgba(139, 92, 246, 0.15); }
+
+.auth-page {
+  background:
+    radial-gradient(ellipse at 15% 10%, rgba(59, 130, 246, 0.16), transparent 30rem),
+    radial-gradient(ellipse at 90% 90%, rgba(139, 92, 246, 0.16), transparent 28rem),
+    var(--mnemoq-bg);
+}
+.auth-card { background: rgba(17, 24, 39, 0.96); }
+.auth-toggle { color: #a5b4fc; }
+.logout-button {
+  border-color: var(--mnemoq-border);
+  color: var(--mnemoq-muted);
+}
+.logout-button:hover {
+  background: rgba(139, 92, 246, 0.13);
+  color: #c4b5fd;
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+.mnemoq-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 6px 10px;
+  background: transparent;
+  border-radius: 12px;
+}
+.mnemoq-wordmark { color: var(--mnemoq-white); }
+.mnemoq-brand-dark .mnemoq-wordmark { color: var(--mnemoq-white); }
+
+@media (max-width: 800px) {
+  .sidebar {
+    background: rgba(11, 16, 32, 0.98);
+    border-bottom-color: var(--mnemoq-border);
+  }
+}

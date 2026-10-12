@@ -4,6 +4,8 @@ import './App.css';
 import { supabase } from './supabaseClient';
 import Auth from './Auth';
 
+import MnemoqLogo from './components/MnemoqLogo';
+
 const STORAGE_KEY = 'mnemoq-mistakes';
 
 const emptyForm = {
@@ -536,7 +538,7 @@ if (dataError) {
   return (
     <div className="app">
       <aside className="sidebar">
-        <h2 className="logo">mnemoq<span>.</span></h2>
+        <MnemoqLogo size={36} />
         <p className="nav-label">WORKSPACE</p>
 
         <nav>

@@ -1,10 +1,24 @@
 
 :root {
-  font-family: Inter, "Segoe UI", sans-serif;
+  font-family: "Sora", "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  color: #f8fafc;
+  background: #0b1020;
+
+  --mnemoq-blue: #3b82f6;
+  --mnemoq-violet: #8b5cf6;
+  --mnemoq-navy: #0b1020;
+  --mnemoq-white: #f8fafc;
+  --mnemoq-surface: #111827;
+  --mnemoq-border: #263248;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 html {
@@ -15,4 +29,5 @@ html {
 body {
   min-width: 320px;
   min-height: 100vh;
+  margin: 0;
 }
