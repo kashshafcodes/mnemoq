@@ -1,6 +1,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
+import { supabase } from './supabaseClient';
+import Auth from './Auth';
 
 const STORAGE_KEY = 'mnemoq-mistakes';
 
@@ -13,9 +15,29 @@ const emptyForm = {
 };
 
 function App() {
+  useEffect(() => {
+  async function testConnection() {
+    const { error } = await supabase
+      .from('mistakes')
+      .select('id')
+      .limit(1);
+
+    if (error) {
+      console.error('Supabase connection test failed:', error.message);
+    } else {
+      console.log('Supabase connection successful!');
+    }
+  }
+
+  testConnection();
+}, []);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState('');
   const answerRef = useRef(null);
   const formRef = useRef(null);
   const reviewCardRef = useRef(null);
+  const [session, setSession] = useState(null);
+const [authLoading, setAuthLoading] = useState(true);
   const [mistakes, setMistakes] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -32,9 +54,134 @@ function App() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [activeCategory, setActiveCategory] = useState('All');
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mistakes));
-  }, [mistakes]);
+  
+
+  
+useEffect(() => {
+  if (!session?.user?.id) return;
+
+  let cancelled = false;
+
+  async function loadCloudMistakes() {
+    setDataLoading(true);
+    setDataError('');
+
+    try {
+      const { data: cloudRows, error } = await supabase
+        .from('mistakes')
+        .select('*')
+        .eq('user_id', session.user.id);
+
+      if (error) throw error;
+
+      if (cloudRows.length > 0) {
+        const loadedMistakes = cloudRows.map((row) => ({
+          id: row.id,
+          subject: row.subject,
+          category: row.category,
+          question: row.question,
+          yourAnswer: row.your_answer,
+          correctAnswer: row.correct_answer,
+          explanation: row.explanation,
+          createdAt: row.created_at,
+          nextReviewAt: row.next_review_at,
+          reviewCount: row.review_count,
+          reviewIntervalDays: row.review_interval_days,
+          mastered: row.mastered,
+        }));
+
+        if (!cancelled) setMistakes(loadedMistakes);
+      } else {
+        // The account has no cloud data yet.
+        // Preserve and migrate this browser's existing mistakes.
+        let localMistakes = [];
+
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          localMistakes = saved ? JSON.parse(saved) : [];
+        } catch {
+          localMistakes = [];
+        }
+
+        if (!Array.isArray(localMistakes)) {
+          localMistakes = [];
+        }
+
+        if (localMistakes.length > 0) {
+          const rowsToInsert = localMistakes.map((mistake) => ({
+            id: mistake.id,
+            user_id: session.user.id,
+            subject: mistake.subject || 'English',
+            category: mistake.category || 'Vocabulary',
+            question: mistake.question,
+            your_answer: mistake.yourAnswer || '',
+            correct_answer: mistake.correctAnswer || '',
+            explanation: mistake.explanation || '',
+            created_at: mistake.createdAt || new Date().toISOString(),
+            next_review_at: mistake.nextReviewAt || null,
+            review_count: mistake.reviewCount || 0,
+            review_interval_days: mistake.reviewIntervalDays || 0,
+            mastered: mistake.mastered || false,
+          }));
+
+          const { error: migrationError } = await supabase
+            .from('mistakes')
+            .upsert(rowsToInsert);
+
+          if (migrationError) throw migrationError;
+        }
+
+        if (!cancelled) setMistakes(localMistakes);
+      }
+    } catch (error) {
+      console.error('Could not load cloud mistakes:', error.message);
+
+      if (!cancelled) {
+        setDataError(error.message);
+      }
+    } finally {
+      if (!cancelled) setDataLoading(false);
+    }
+  }
+
+  loadCloudMistakes();
+
+  return () => {
+    cancelled = true;
+  };
+}, [session?.user?.id]);
+
+  
+useEffect(() => {
+  let isMounted = true;
+
+  async function loadSession() {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (!isMounted) return;
+
+    if (error) {
+      console.error('Could not load session:', error.message);
+    }
+
+    setSession(data?.session ?? null);
+    setAuthLoading(false);
+  }
+
+  loadSession();
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    setSession(newSession);
+    setAuthLoading(false);
+  });
+
+  return () => {
+    isMounted = false;
+    subscription.unsubscribe();
+  };
+}, []);
 
   
 useEffect(() => {
@@ -61,8 +208,16 @@ useEffect(() => {
   }
 
   
-function handleReviewRating(rating) {
+
+async function handleReviewRating(rating) {
   if (!reviewMistake) return;
+
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    setDataError('Please log in before reviewing a mistake.');
+    return;
+  }
 
   const now = new Date();
   let nextReviewAt;
@@ -99,64 +254,150 @@ function handleReviewRating(rating) {
       return;
   }
 
-  setMistakes((currentMistakes) =>
-    currentMistakes.map((mistake) =>
-      mistake.id === reviewMistake.id
-        ? {
-            ...mistake,
-            nextReviewAt: nextReviewAt.toISOString(),
-            reviewCount: (mistake.reviewCount || 0) + 1,
-            reviewIntervalDays: nextIntervalDays,
-            mastered:
-              rating === 'good' || rating === 'easy'
-                ? (mistake.reviewCount || 0) + 1 >= 3
-                : false,
-          }
-        : mistake
-    )
-  );
+  const nextReviewAtISO = nextReviewAt.toISOString();
+  const nextReviewCount = (reviewMistake.reviewCount || 0) + 1;
+  const nextMastered =
+    rating === 'good' || rating === 'easy'
+      ? nextReviewCount >= 3
+      : false;
 
-  
-  
-setManualReviewId(null);
-setRevealedAnswer(false);
-setReviewIndex(0);
+  setDataError('');
 
-}
+  try {
+    const { error } = await supabase
+      .from('mistakes')
+      .update({
+        next_review_at: nextReviewAtISO,
+        review_count: nextReviewCount,
+        review_interval_days: nextIntervalDays,
+        mastered: nextMastered,
+      })
+      .eq('id', reviewMistake.id)
+      .eq('user_id', userId);
 
+    if (error) throw error;
 
-
-
-function handleSubmit(event) {
-  event.preventDefault();
-
-  if (editingId !== null) {
-    setMistakes((previousMistakes) =>
-      previousMistakes.map((mistake) =>
-        mistake.id === editingId
-          ? { ...mistake, ...form }
+    setMistakes((currentMistakes) =>
+      currentMistakes.map((mistake) =>
+        mistake.id === reviewMistake.id
+          ? {
+              ...mistake,
+              nextReviewAt: nextReviewAtISO,
+              reviewCount: nextReviewCount,
+              reviewIntervalDays: nextIntervalDays,
+              mastered: nextMastered,
+            }
           : mistake
       )
     );
 
-    setEditingId(null);
-  } else {
-    const newMistake = {
-      id: crypto.randomUUID(),
-      subject: 'English',
-      ...form,
-      createdAt: new Date().toISOString(),
-    };
+    setManualReviewId(null);
+    setRevealedAnswer(false);
+    setReviewIndex(0);
+  } catch (error) {
+    console.error('Could not save review rating:', error.message);
+    setDataError(error.message);
+  }
+}
 
-    setMistakes((previousMistakes) => [
-      newMistake,
-      ...previousMistakes,
-    ]);
+
+
+
+
+
+async function handleSubmit(event) {
+  event.preventDefault();
+  setDataError('');
+
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    setDataError('Please log in before saving a mistake.');
+    return;
   }
 
-  setForm(emptyForm);
-  setShowForm(false);
+  const isEditing = editingId !== null;
+  const existingMistake = isEditing
+    ? mistakes.find((mistake) => mistake.id === editingId)
+    : null;
+
+  const mistakeId = isEditing ? editingId : crypto.randomUUID();
+
+  const mistake = {
+    id: mistakeId,
+    user_id: userId,
+    subject: existingMistake?.subject || 'English',
+    category: form.category,
+    question: form.question.trim(),
+    your_answer: form.yourAnswer.trim(),
+    correct_answer: form.correctAnswer.trim(),
+    explanation: form.explanation.trim(),
+    created_at: existingMistake?.createdAt || new Date().toISOString(),
+    next_review_at: existingMistake?.nextReviewAt || null,
+    review_count: existingMistake?.reviewCount || 0,
+    review_interval_days: existingMistake?.reviewIntervalDays || 0,
+    mastered: existingMistake?.mastered || false,
+  };
+
+  try {
+    if (isEditing) {
+      const { error } = await supabase
+        .from('mistakes')
+        .update(mistake)
+        .eq('id', mistakeId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      setMistakes((current) =>
+        current.map((item) =>
+          item.id === mistakeId
+            ? {
+                ...item,
+                ...form,
+                subject: mistake.subject,
+              }
+            : item
+        )
+      );
+
+      setEditingId(null);
+    } else {
+      const { error } = await supabase
+        .from('mistakes')
+        .insert(mistake);
+
+      if (error) throw error;
+
+      const { user_id, ...savedMistake } = mistake;
+
+      setMistakes((current) => [
+        {
+          id: savedMistake.id,
+          subject: savedMistake.subject,
+          category: savedMistake.category,
+          question: savedMistake.question,
+          yourAnswer: savedMistake.your_answer,
+          correctAnswer: savedMistake.correct_answer,
+          explanation: savedMistake.explanation,
+          createdAt: savedMistake.created_at,
+          nextReviewAt: savedMistake.next_review_at,
+          reviewCount: savedMistake.review_count,
+          reviewIntervalDays: savedMistake.review_interval_days,
+          mastered: savedMistake.mastered,
+        },
+        ...current,
+      ]);
+    }
+
+    setForm(emptyForm);
+    setShowForm(false);
+  } catch (error) {
+    console.error('Could not save mistake:', error.message);
+    setDataError(error.message);
+  }
 }
+
 
 function handleEdit(mistake) {
   setForm({
@@ -177,17 +418,41 @@ function handleEdit(mistake) {
 });
 }
 
-function handleDelete(id) {
+
+async function handleDelete(id) {
   const confirmed = window.confirm(
     'Are you sure you want to delete this mistake?'
   );
 
   if (!confirmed) return;
 
-  setMistakes((previousMistakes) =>
-    previousMistakes.filter((mistake) => mistake.id !== id)
-  );
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    setDataError('Please log in before deleting a mistake.');
+    return;
+  }
+
+  setDataError('');
+
+  try {
+    const { error } = await supabase
+      .from('mistakes')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    setMistakes((current) =>
+      current.filter((mistake) => mistake.id !== id)
+    );
+  } catch (error) {
+    console.error('Could not delete mistake:', error.message);
+    setDataError(error.message);
+  }
 }
+
 
 
   const dueCount = mistakes.filter(
@@ -230,6 +495,42 @@ const reviewMistake =
       ? reviewQueue[reviewIndex % reviewQueue.length]
       : null;
 
+if (authLoading) {
+  return (
+    <main className="auth-page">
+      <p>Loading Mnemoq...</p>
+    </main>
+  );
+}
+
+if (!session) {
+  return <Auth />;
+}
+
+if (dataLoading) {
+  return (
+    <main className="auth-page">
+      <p>Loading your mistakes...</p>
+    </main>
+  );
+}
+
+if (dataError) {
+  return (
+    <main className="auth-page">
+      <div className="auth-card">
+        <h2>Couldn't load your mistakes</h2>
+        <p role="alert">{dataError}</p>
+        <button
+          className="primary-button"
+          onClick={() => window.location.reload()}
+        >
+          Try again
+        </button>
+      </div>
+    </main>
+  );
+}
 
 
   return (
@@ -250,10 +551,30 @@ const reviewMistake =
           </a>
         </nav>
 
-        <div className="sidebar-bottom">
-          <p>Small improvements.</p>
-          <p>Lasting knowledge.</p>
-        </div>
+        
+<div className="sidebar-bottom">
+  <p>Small improvements.</p>
+  <p>Lasting knowledge.</p>
+
+  <button
+    type="button"
+    className="logout-button"
+    onClick={async () => {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        setDataError(error.message);
+      } else {
+        setMistakes([]);
+        setManualReviewId(null);
+        setRevealedAnswer(false);
+      }
+    }}
+  >
+    Log out
+  </button>
+</div>
+
       </aside>
 
       <main className="main-content" id="dashboard">
