@@ -5,11 +5,15 @@ import { supabase } from './supabaseClient';
 import Auth from './Auth';
 
 import MnemoqLogo from './components/MnemoqLogo';
+import Tutorial, { RatingGuide } from './components/Tutorial';
+import { SUBJECTS, SUBJECT_NAMES, DEFAULT_SUBJECT } from './subjects';
 
 const STORAGE_KEY = 'mnemoq-mistakes';
+const COLLAPSED_COUNT = 3;
 
 const emptyForm = {
-  category: 'Vocabulary',
+  subject: DEFAULT_SUBJECT,
+  category: SUBJECTS[DEFAULT_SUBJECT][0],
   question: '',
   yourAnswer: '',
   correctAnswer: '',
@@ -55,8 +59,11 @@ const [authLoading, setAuthLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [activeSubject, setActiveSubject] = useState('All');
   const [activeCategory, setActiveCategory] = useState('All');
-  
+  const [showAll, setShowAll] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+
 
   
 useEffect(() => {
@@ -79,7 +86,7 @@ useEffect(() => {
       if (cloudRows.length > 0) {
         const loadedMistakes = cloudRows.map((row) => ({
           id: row.id,
-          subject: row.subject,
+          subject: row.subject || DEFAULT_SUBJECT,
           category: row.category,
           question: row.question,
           yourAnswer: row.your_answer,
@@ -200,8 +207,29 @@ useEffect(() => {
 }, [revealedAnswer]);
 
 
+  function selectSubject(subject) {
+    setActiveSubject(subject);
+    setActiveCategory('All');
+    setShowAll(false);
+  }
+
+  function selectCategory(category) {
+    setActiveCategory(category);
+    setShowAll(false);
+  }
+
   function handleChange(event) {
     const { name, value } = event.target;
+
+    if (name === 'subject') {
+      // Each subject has its own categories, so reset the category too.
+      setForm((previousForm) => ({
+        ...previousForm,
+        subject: value,
+        category: SUBJECTS[value][0],
+      }));
+      return;
+    }
 
     setForm((previousForm) => ({
       ...previousForm,
@@ -328,7 +356,7 @@ async function handleSubmit(event) {
   const mistake = {
     id: mistakeId,
     user_id: userId,
-    subject: existingMistake?.subject || 'English',
+    subject: form.subject || existingMistake?.subject || DEFAULT_SUBJECT,
     category: form.category,
     question: form.question.trim(),
     your_answer: form.yourAnswer.trim(),
@@ -403,6 +431,7 @@ async function handleSubmit(event) {
 
 function handleEdit(mistake) {
   setForm({
+    subject: mistake.subject || DEFAULT_SUBJECT,
     category: mistake.category,
     question: mistake.question,
     yourAnswer: mistake.yourAnswer,
@@ -461,19 +490,26 @@ async function handleDelete(id) {
     (mistake) => !mistake.mastered
   ).length;
 
-  const categories = [
-  'All',
-  'Vocabulary',
-  'Grammar',
-  'Sentence structure',
-];
+  const subjectFilters = ['All', ...SUBJECT_NAMES];
 
-const filteredMistakes =
-  activeCategory === 'All'
-    ? mistakes
-    : mistakes.filter(
-        (mistake) => mistake.category === activeCategory
-      );
+  const categoryFilters =
+    activeSubject === 'All' ? [] : ['All', ...SUBJECTS[activeSubject]];
+
+const filteredMistakes = mistakes.filter(
+  (mistake) =>
+    (activeSubject === 'All' || mistake.subject === activeSubject) &&
+    (activeCategory === 'All' || mistake.category === activeCategory)
+);
+
+const visibleMistakes = showAll
+  ? filteredMistakes
+  : filteredMistakes.slice(0, COLLAPSED_COUNT);
+
+// Keep the edit form's category list valid, even for older cards whose
+// category is not in the subject's current list.
+const categoryOptions = SUBJECTS[form.subject]?.includes(form.category)
+  ? SUBJECTS[form.subject]
+  : [form.category, ...(SUBJECTS[form.subject] || [])];
 
 
 const now = new Date();
@@ -551,6 +587,13 @@ if (dataError) {
           <a className="nav-item" href="#review">
             Review cards
           </a>
+          <button
+            type="button"
+            className="nav-item nav-button"
+            onClick={() => setShowTutorial(true)}
+          >
+            How it works
+          </button>
         </nav>
 
         
@@ -594,26 +637,65 @@ if (dataError) {
         <section className="welcome-card">
           <div>
             <p className="eyebrow">YOUR NEXT STEP</p>
-            <h2>Learn from what you missed.</h2>
-            <p>Every mistake you understand is progress you keep.</p>
-            <button
-              type="button"
-              onClick={() => setShowForm(!showForm)}
-            >
-              {showForm ? 'Close form' : '+ Add a mistake'}
-            </button>
+            <h2>Remember better, one card at a time.</h2>
+            <p>
+              Add what you want to remember, then bring it back at just the
+              right moment.
+            </p>
+            <div className="welcome-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  if (showForm) {
+                    setShowForm(false);
+                    setEditingId(null);
+                    setForm(emptyForm);
+                  } else {
+                    setShowForm(true);
+                  }
+                }}
+              >
+                {showForm ? 'Close form' : '+ Add a card'}
+              </button>
+              {dueMistakes.length > 0 && (
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={() =>
+                    document.getElementById('review')?.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'start',
+                    })
+                  }
+                >
+                  Review now ({dueMistakes.length} due)
+                </button>
+              )}
+            </div>
           </div>
           <div className="welcome-mark">m.</div>
         </section>
 
         {showForm && (
           <section ref={formRef} className="mistake-form-card">
-            <h2>{editingId !== null ? 'Edit mistake' : 'Record a mistake'}</h2>
+            <h2>{editingId !== null ? 'Edit card' : 'Add a card'}</h2>
             <p className="subtitle">
-              Capture what went wrong and what you learned.
+              Only the question and correct answer are required.
             </p>
 
             <form onSubmit={handleSubmit}>
+              <label htmlFor="subject">Subject</label>
+              <select
+                id="subject"
+                name="subject"
+                value={form.subject}
+                onChange={handleChange}
+              >
+                {SUBJECT_NAMES.map((name) => (
+                  <option key={name}>{name}</option>
+                ))}
+              </select>
+
               <label htmlFor="category">Category</label>
               <select
                 id="category"
@@ -621,9 +703,9 @@ if (dataError) {
                 value={form.category}
                 onChange={handleChange}
               >
-                <option>Vocabulary</option>
-                <option>Grammar</option>
-                <option>Sentence structure</option>
+                {categoryOptions.map((name) => (
+                  <option key={name}>{name}</option>
+                ))}
               </select>
 
               <label htmlFor="question">Question or prompt</label>
@@ -632,17 +714,7 @@ if (dataError) {
                 name="question"
                 value={form.question}
                 onChange={handleChange}
-                placeholder="What question did you get wrong?"
-                required
-              />
-
-              <label htmlFor="yourAnswer">Your incorrect answer</label>
-              <input
-                id="yourAnswer"
-                name="yourAnswer"
-                value={form.yourAnswer}
-                onChange={handleChange}
-                placeholder="What did you answer?"
+                placeholder="What do you want to remember?"
                 required
               />
 
@@ -656,19 +728,31 @@ if (dataError) {
                 required
               />
 
-              <label htmlFor="explanation">Explanation</label>
+              <label htmlFor="yourAnswer">
+                Your incorrect answer <span className="optional">(optional)</span>
+              </label>
+              <input
+                id="yourAnswer"
+                name="yourAnswer"
+                value={form.yourAnswer}
+                onChange={handleChange}
+                placeholder="If you got it wrong, what did you answer?"
+              />
+
+              <label htmlFor="explanation">
+                Memory hook <span className="optional">(optional)</span>
+              </label>
               <textarea
                 id="explanation"
                 name="explanation"
                 value={form.explanation}
                 onChange={handleChange}
-                placeholder="Why is this the correct answer?"
-                required
+                placeholder="A mnemonic, picture, or short reason that helps it stick"
               />
 
               <button type="submit">
-                {editingId !== null ? 'Save changes' : 'Save mistake'}
-              </button>  
+                {editingId !== null ? 'Save changes' : 'Save card'}
+              </button>
             </form>
           </section>
         )}
@@ -676,7 +760,7 @@ if (dataError) {
         
 <section className="stats-grid">
   <article className="stat-card">
-    <p>Total mistakes</p>
+    <p>Total cards</p>
     <h2>{mistakes.length}</h2>
     <span>Your learning library</span>
   </article>
@@ -703,29 +787,52 @@ if (dataError) {
 
         
 <section className="section-heading" id="mistakes">
-  <h2>Your mistake library</h2>
+  <h2>Your library</h2>
   <p className="subtitle">
-    Every entry is a chance to improve.
+    Everything you're learning, in one place.
   </p>
 </section>
 
-<div className="category-filters" aria-label="Filter mistakes by category">
-  {categories.map((category) => (
+<div className="category-filters" aria-label="Filter cards by subject">
+  {subjectFilters.map((subject) => (
     <button
-      key={category}
+      key={subject}
       type="button"
       className={
-        activeCategory === category
+        activeSubject === subject
           ? 'filter-button selected'
           : 'filter-button'
       }
-      aria-pressed={activeCategory === category}
-      onClick={() => setActiveCategory(category)}
+      aria-pressed={activeSubject === subject}
+      onClick={() => selectSubject(subject)}
     >
-      {category}
+      {subject}
     </button>
   ))}
 </div>
+
+{categoryFilters.length > 0 && (
+  <div
+    className="category-filters sub-filters"
+    aria-label="Filter cards by category"
+  >
+    {categoryFilters.map((category) => (
+      <button
+        key={category}
+        type="button"
+        className={
+          activeCategory === category
+            ? 'filter-button selected'
+            : 'filter-button'
+        }
+        aria-pressed={activeCategory === category}
+        onClick={() => selectCategory(category)}
+      >
+        {category}
+      </button>
+    ))}
+  </div>
+)}
 
 
         
@@ -734,18 +841,27 @@ if (dataError) {
     <div className="empty-icon">✳</div>
     <h3>
       {mistakes.length === 0
-        ? 'Your journey starts with one mistake.'
-        : 'No mistakes in this category yet.'}
+        ? 'Your journey starts with one card.'
+        : 'No cards match this filter yet.'}
     </h3>
     <p>
       {mistakes.length === 0
-        ? 'Add a vocabulary, grammar, or sentence-structure mistake to begin your learning library.'
-        : 'Choose another category or add a mistake in this category.'}
+        ? 'Add something you want to remember, or something you got wrong, to begin your library.'
+        : 'Choose another subject or category, or add a card here.'}
     </p>
+    {mistakes.length === 0 && (
+      <button
+        type="button"
+        className="text-link"
+        onClick={() => setShowTutorial(true)}
+      >
+        New here? See how it works
+      </button>
+    )}
   </section>
 ) : (
   <section className="mistake-list">
-    {filteredMistakes.map((mistake) => (
+    {visibleMistakes.map((mistake) => (
       <article className="mistake-card" key={mistake.id}>
         <div className="mistake-card-top">
           <span className="category-tag">
@@ -757,13 +873,20 @@ if (dataError) {
         </div>
 
         <h3>{mistake.question}</h3>
+        {mistake.yourAnswer && (
+          <p>
+            <strong>Your answer:</strong> {mistake.yourAnswer}
+          </p>
+        )}
         <p>
-          <strong>Your answer:</strong> {mistake.yourAnswer}
+          <strong>Correct answer:</strong>{' '}
+          <span className="correct-text">{mistake.correctAnswer}</span>
         </p>
-        <p>
-          <strong>Correct answer:</strong> {mistake.correctAnswer}
-        </p>
-        <p className="explanation">{mistake.explanation}</p>
+        {mistake.explanation && (
+          <p className="explanation">
+            <strong>Memory hook:</strong> {mistake.explanation}
+          </p>
+        )}
 
         <div className="mistake-actions">
           
@@ -797,6 +920,21 @@ if (dataError) {
         </div>
       </article>
     ))}
+
+    {filteredMistakes.length > COLLAPSED_COUNT && (
+      <div className="see-all-row">
+        <button
+          type="button"
+          className="see-all-button"
+          aria-expanded={showAll}
+          onClick={() => setShowAll(!showAll)}
+        >
+          {showAll
+            ? 'Show fewer'
+            : `See all ${filteredMistakes.length} cards`}
+        </button>
+      </div>
+    )}
   </section>
 )}
 
@@ -828,7 +966,7 @@ if (dataError) {
     <div className="review-card">
       <div className="review-card-top">
         <span className="category-badge">
-          {reviewMistake.category}
+          {reviewMistake.subject} · {reviewMistake.category}
         </span>
         <span className="review-counter">
   Card {reviewIndex + 1} of {reviewQueue.length}
@@ -859,20 +997,24 @@ if (dataError) {
 
       ) : (
         <div className="review-answer" ref={answerRef}>
-          <div className="answer-block">
-            <p className="eyebrow">YOUR ORIGINAL ANSWER</p>
-            <p>{reviewMistake.yourAnswer || "Not provided"}</p>
-          </div>
+          {reviewMistake.yourAnswer && (
+            <div className="answer-block">
+              <p className="eyebrow">YOUR ORIGINAL ANSWER</p>
+              <p>{reviewMistake.yourAnswer}</p>
+            </div>
+          )}
 
           <div className="answer-block correct-answer-block">
             <p className="eyebrow">CORRECT ANSWER</p>
             <p>{reviewMistake.correctAnswer}</p>
           </div>
 
-          <div className="answer-block">
-            <p className="eyebrow">EXPLANATION</p>
-            <p>{reviewMistake.explanation || "No explanation added."}</p>
-          </div>
+          {reviewMistake.explanation && (
+            <div className="answer-block">
+              <p className="eyebrow">MEMORY HOOK</p>
+              <p>{reviewMistake.explanation}</p>
+            </div>
+          )}
 
           
 
@@ -910,6 +1052,11 @@ if (dataError) {
   </button>
 </div>
 
+<details className="rating-help">
+  <summary>How do these work?</summary>
+  <RatingGuide />
+</details>
+
 
         </div>
       )}
@@ -918,6 +1065,8 @@ if (dataError) {
 </section>
 
       </main>
+
+      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
     </div>
   );
 }
