@@ -1492,3 +1492,166 @@ p { color: inherit; }
 .rating-help summary::before { content: "? "; }
 .rating-help summary:hover { color: #c7d2fe; }
 .rating-help .tutorial-intervals { margin-top: 10px; }
+
+/* =========================================
+   Quick add (subject -> category -> rapid card entry)
+   ========================================= */
+.quick-add {
+  margin-top: 24px;
+  padding: 26px;
+  border: 1px solid var(--mnemoq-border);
+  border-radius: 15px;
+  background: rgba(17, 24, 39, 0.92);
+  color: var(--mnemoq-white);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+  scroll-margin-top: 24px;
+}
+.quick-add h2 {
+  margin: 0 0 6px;
+}
+.quick-add .subtitle strong {
+  color: var(--mnemoq-white);
+}
+
+/* Big, easy-to-tap choices */
+.qa-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0 6px;
+}
+.qa-chip {
+  padding: 14px 22px;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #141d30;
+  color: #e2e8f0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.qa-chip:hover,
+.qa-chip:focus-visible {
+  border-color: var(--mnemoq-blue);
+  background: rgba(59, 130, 246, 0.14);
+  outline: none;
+}
+
+/* "Adding to Biology > Genetics   Change      3 added" */
+.qa-destination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--mnemoq-border);
+  border-radius: 12px;
+  background: #0d1526;
+  color: var(--mnemoq-muted);
+  font-size: 14px;
+}
+.qa-destination strong {
+  color: var(--mnemoq-white);
+}
+.qa-count {
+  margin-left: auto;
+  color: var(--mnemoq-success);
+  font-weight: 600;
+}
+
+.qa-form {
+  display: grid;
+  gap: 8px;
+}
+.qa-form label {
+  margin-top: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.qa-form .optional {
+  color: var(--mnemoq-subtle);
+  font-weight: 400;
+  font-size: 12px;
+}
+.qa-form input,
+.qa-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0b1222;
+  color: var(--mnemoq-white);
+  font: inherit;
+}
+.qa-form textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+.qa-form input::placeholder,
+.qa-form textarea::placeholder {
+  color: #8290b2;
+}
+.qa-form input:focus,
+.qa-form textarea:focus {
+  outline: none;
+  border-color: var(--mnemoq-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+}
+
+.qa-extras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 2px;
+}
+.qa-extras .text-link {
+  padding-left: 0;
+  font-size: 13px;
+}
+
+.qa-message {
+  margin: 4px 0 0;
+  color: var(--mnemoq-success);
+  font-size: 14px;
+}
+.qa-message.qa-error {
+  color: var(--mnemoq-danger);
+}
+
+.qa-actions,
+.qa-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.qa-primary {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(115deg, var(--mnemoq-blue), var(--mnemoq-violet));
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.qa-primary:hover {
+  background: linear-gradient(115deg, #2563eb, #7c3aed);
+}
+.qa-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.qa-hint {
+  margin: 6px 0 0;
+  color: var(--mnemoq-subtle);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+  .quick-add { padding: 20px 16px; }
+  .qa-chip { flex: 1 1 100%; text-align: left; }
+  .qa-count { margin-left: 0; }
+}

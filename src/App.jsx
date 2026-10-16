@@ -6,6 +6,7 @@ import Auth from './Auth';
 
 import MnemoqLogo from './components/MnemoqLogo';
 import Tutorial, { RatingGuide } from './components/Tutorial';
+import QuickAdd from './components/QuickAdd';
 import { SUBJECTS, SUBJECT_NAMES, DEFAULT_SUBJECT } from './subjects';
 
 const STORAGE_KEY = 'mnemoq-mistakes';
@@ -429,6 +430,68 @@ async function handleSubmit(event) {
 }
 
 
+// Used by the quick-add panel. Saves one card and puts it at the top of the
+// library. Returns { error } so the panel can show a message in place without
+// replacing the whole screen.
+async function addCard({
+  subject,
+  category,
+  question,
+  correctAnswer,
+  yourAnswer,
+  explanation,
+}) {
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    return { error: 'Please log in before saving a card.' };
+  }
+
+  const row = {
+    id: crypto.randomUUID(),
+    user_id: userId,
+    subject,
+    category,
+    question: question.trim(),
+    your_answer: yourAnswer.trim(),
+    correct_answer: correctAnswer.trim(),
+    explanation: explanation.trim(),
+    created_at: new Date().toISOString(),
+    next_review_at: null,
+    review_count: 0,
+    review_interval_days: 0,
+    mastered: false,
+  };
+
+  const { error } = await supabase.from('mistakes').insert(row);
+
+  if (error) {
+    console.error('Could not save card:', error.message);
+    return { error: error.message };
+  }
+
+  setMistakes((current) => [
+    {
+      id: row.id,
+      subject: row.subject,
+      category: row.category,
+      question: row.question,
+      yourAnswer: row.your_answer,
+      correctAnswer: row.correct_answer,
+      explanation: row.explanation,
+      createdAt: row.created_at,
+      nextReviewAt: row.next_review_at,
+      reviewCount: row.review_count,
+      reviewIntervalDays: row.review_interval_days,
+      mastered: row.mastered,
+    },
+    ...current,
+  ]);
+
+  return { error: '' };
+}
+
+
 function handleEdit(mistake) {
   setForm({
     subject: mistake.subject || DEFAULT_SUBJECT,
@@ -582,7 +645,7 @@ if (dataError) {
             Dashboard
           </a>
           <a className="nav-item" href="#mistakes">
-            My mistakes
+            My library
           </a>
           <a className="nav-item" href="#review">
             Review cards
@@ -676,7 +739,23 @@ if (dataError) {
           <div className="welcome-mark">m.</div>
         </section>
 
-        {showForm && (
+        {showForm && editingId === null && (
+          <QuickAdd
+            onSave={addCard}
+            onClose={() => setShowForm(false)}
+            onReviewNow={() => {
+              setShowForm(false);
+              requestAnimationFrame(() => {
+                document.getElementById('review')?.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start',
+                });
+              });
+            }}
+          />
+        )}
+
+        {showForm && editingId !== null && (
           <section ref={formRef} className="mistake-form-card">
             <h2>{editingId !== null ? 'Edit card' : 'Add a card'}</h2>
             <p className="subtitle">
