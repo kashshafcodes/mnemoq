@@ -1,0 +1,487 @@
+import { useEffect, useRef, useState } from 'react';
+import { SUBJECTS, SUBJECT_NAMES, DEFAULT_SUBJECT } from '../subjects';
+
+const DESTINATION_KEY = 'mnemoq-add-destination';
+const HIDE_WRONG_KEY = 'mnemoq-hide-wrong-answer';
+
+// The subject/category you last added to is remembered on this device, so
+// the next session can jump straight to typing cards.
+function readDestination() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(DESTINATION_KEY));
+
+    if (saved && SUBJECTS[saved.subject]?.includes(saved.category)) {
+      return { subject: saved.subject, category: saved.category };
+    }
+  } catch {
+    // Missing or unreadable: start from the subject step.
+  }
+
+  return null;
+}
+
+function saveDestination(destination) {
+  try {
+    localStorage.setItem(DESTINATION_KEY, JSON.stringify(destination));
+  } catch {
+    // Not critical if it can't be remembered.
+  }
+}
+
+function readHideWrong() {
+  try {
+    return localStorage.getItem(HIDE_WRONG_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function saveHideWrong(value) {
+  try {
+    if (value) {
+      localStorage.setItem(HIDE_WRONG_KEY, '1');
+    } else {
+      localStorage.removeItem(HIDE_WRONG_KEY);
+    }
+  } catch {
+    // Not critical if it can't be remembered.
+  }
+}
+
+export default function QuickAdd({ onSave, onClose, onReviewNow }) {
+  const [destination, setDestination] = useState(readDestination);
+  const [step, setStep] = useState(destination ? 'entry' : 'subject');
+  const [pendingSubject, setPendingSubject] = useState(
+    destination?.subject || DEFAULT_SUBJECT
+  );
+
+  const [question, setQuestion] = useState('');
+  const [correctAnswer, setCorrectAnswer] = useState('');
+  const [yourAnswer, setYourAnswer] = useState('');
+  const [hook, setHook] = useState('');
+  const [showHook, setShowHook] = useState(false);
+  const [hideWrong, setHideWrong] = useState(readHideWrong);
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [flash, setFlash] = useState('');
+  const [addedCount, setAddedCount] = useState(0);
+  // Which "Subject › Category" places cards were added to this session, so the
+  // summary stays accurate if the destination was changed along the way.
+  const [addedTo, setAddedTo] = useState([]);
+
+  const rootRef = useRef(null);
+  const questionRef = useRef(null);
+  const answerRef = useRef(null);
+  const wrongRef = useRef(null);
+  const hookRef = useRef(null);
+
+  const activeStep = step === 'entry' && !destination ? 'subject' : step;
+
+  useEffect(() => {
+    rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  useEffect(() => {
+    if (activeStep === 'entry') questionRef.current?.focus();
+  }, [activeStep]);
+
+  // The boxes currently on screen, in typing order.
+  function fieldOrder() {
+    const order = [questionRef, answerRef];
+    if (!hideWrong) order.push(wrongRef);
+    if (showHook) order.push(hookRef);
+    return order;
+  }
+
+  function enterHint(ref) {
+    const order = fieldOrder();
+    return order[order.length - 1] === ref ? 'done' : 'next';
+  }
+
+  // Enter moves to the next box; Enter in the last box saves the card.
+  // Shift+Enter keeps its normal "new line" behavior in the bigger boxes.
+  function handleKeyDown(event, currentRef) {
+    if (event.key !== 'Enter' || event.shiftKey) return;
+    if (event.nativeEvent.isComposing) return;
+
+    event.preventDefault();
+
+    const order = fieldOrder();
+    const next = order[order.indexOf(currentRef) + 1];
+
+    if (next) {
+      next.current?.focus();
+    } else {
+      handleSave();
+    }
+  }
+
+  // Returns true when the card was saved, so "Done" can wait for it.
+  async function handleSave(event) {
+    event?.preventDefault();
+
+    if (saving || !destination) return false;
+
+    if (!question.trim()) {
+      setError('Add the question first.');
+      questionRef.current?.focus();
+      return false;
+    }
+
+    if (!correctAnswer.trim()) {
+      setError('Add the correct answer.');
+      answerRef.current?.focus();
+      return false;
+    }
+
+    setSaving(true);
+    setError('');
+    setFlash('');
+
+    const result = await onSave({
+      subject: destination.subject,
+      category: destination.category,
+      question,
+      correctAnswer,
+      yourAnswer: hideWrong ? '' : yourAnswer,
+      explanation: showHook ? hook : '',
+    });
+
+    setSaving(false);
+
+    if (result?.error) {
+      setError(`Could not save: ${result.error}`);
+      return false;
+    }
+
+    setQuestion('');
+    setCorrectAnswer('');
+    setYourAnswer('');
+    setHook('');
+    setShowHook(false);
+    setAddedCount((count) => count + 1);
+    setAddedTo((labels) => {
+      const label = `${destination.subject} › ${destination.category}`;
+      return labels.includes(label) ? labels : [...labels, label];
+    });
+    setFlash('Saved. Add the next one.');
+    questionRef.current?.focus();
+    return true;
+  }
+
+  function chooseCategory(category) {
+    const next = { subject: pendingSubject, category };
+
+    setDestination(next);
+    saveDestination(next);
+    setStep('entry');
+  }
+
+  function toggleHideWrong() {
+    const next = !hideWrong;
+
+    setHideWrong(next);
+    saveHideWrong(next);
+
+    if (next) setYourAnswer('');
+
+    // Put the cursor back in the question box so typing can continue.
+    requestAnimationFrame(() => questionRef.current?.focus());
+  }
+
+  function toggleHook() {
+    const opening = !showHook;
+
+    if (!opening) setHook('');
+    setShowHook(opening);
+
+    requestAnimationFrame(() =>
+      (opening ? hookRef : questionRef).current?.focus()
+    );
+  }
+
+  async function finish() {
+    const hasText = [question, correctAnswer, yourAnswer, hook].some((value) =>
+      value.trim()
+    );
+
+    if (hasText) {
+      // Don't silently throw away what was typed: a complete card is saved
+      // first; an unfinished one asks the person to finish or clear it.
+      if (!question.trim() || !correctAnswer.trim()) {
+        setError(
+          'This card is unfinished. Add the question and correct answer, or clear the boxes, then press Done.'
+        );
+        return;
+      }
+
+      const saved = await handleSave();
+
+      if (!saved) return;
+
+      setError('');
+      setFlash('');
+      setStep('done');
+      return;
+    }
+
+    if (addedCount > 0) {
+      setError('');
+      setFlash('');
+      setStep('done');
+    } else {
+      onClose();
+    }
+  }
+
+  const destinationLabel = destination
+    ? `${destination.subject} › ${destination.category}`
+    : '';
+
+  if (activeStep === 'subject') {
+    return (
+      <section ref={rootRef} className="quick-add">
+        <h2>Add cards</h2>
+        <p className="subtitle">What are you adding to?</p>
+
+        <div className="qa-chips" role="group" aria-label="Subject">
+          {SUBJECT_NAMES.map((name) => (
+            <button
+              key={name}
+              type="button"
+              className="qa-chip"
+              onClick={() => {
+                setPendingSubject(name);
+                setStep('category');
+              }}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+
+        <div className="qa-footer">
+          {destination && (
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={() => setStep('entry')}
+            >
+              Back
+            </button>
+          )}
+          <button type="button" className="ghost-button" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  if (activeStep === 'category') {
+    return (
+      <section ref={rootRef} className="quick-add">
+        <h2>Add cards</h2>
+        <p className="subtitle">
+          <strong>{pendingSubject}</strong> › which category?
+        </p>
+
+        <div className="qa-chips" role="group" aria-label="Category">
+          {SUBJECTS[pendingSubject].map((name) => (
+            <button
+              key={name}
+              type="button"
+              className="qa-chip"
+              onClick={() => chooseCategory(name)}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+
+        <div className="qa-footer">
+          <button
+            type="button"
+            className="ghost-button"
+            onClick={() => setStep('subject')}
+          >
+            Back
+          </button>
+          <button type="button" className="ghost-button" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  if (activeStep === 'done') {
+    return (
+      <section ref={rootRef} className="quick-add">
+        <h2>Nice work.</h2>
+        <p className="subtitle">
+          You added <strong>{addedCount}</strong> card
+          {addedCount === 1 ? '' : 's'}{' '}
+          {addedTo.length === 1 ? (
+            <>
+              to <strong>{addedTo[0]}</strong>
+            </>
+          ) : (
+            <>across {addedTo.length} topics</>
+          )}
+          .
+        </p>
+        {addedTo.length > 1 && (
+          <p className="qa-hint">{addedTo.join('  ·  ')}</p>
+        )}
+
+        <div className="qa-actions">
+          <button type="button" className="qa-primary" onClick={onReviewNow}>
+            Review now
+          </button>
+          <button
+            type="button"
+            className="ghost-button"
+            onClick={() => {
+              setAddedCount(0);
+              setAddedTo([]);
+              setFlash('');
+              setStep('entry');
+            }}
+          >
+            Add more
+          </button>
+          <button type="button" className="ghost-button" onClick={onClose}>
+            Close
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section ref={rootRef} className="quick-add">
+      <h2>Add cards</h2>
+
+      <div className="qa-destination">
+        <span>
+          Adding to <strong>{destinationLabel}</strong>
+        </span>
+        <button
+          type="button"
+          className="text-link"
+          onClick={() => {
+            setPendingSubject(destination.subject);
+            setStep('subject');
+          }}
+        >
+          Change
+        </button>
+        <span className="qa-count">{addedCount} added</span>
+      </div>
+
+      <form className="qa-form" onSubmit={handleSave} noValidate>
+        <label htmlFor="qa-question">Question</label>
+        <textarea
+          id="qa-question"
+          ref={questionRef}
+          rows={2}
+          value={question}
+          onChange={(event) => setQuestion(event.target.value)}
+          onKeyDown={(event) => handleKeyDown(event, questionRef)}
+          placeholder="What do you want to remember?"
+          enterKeyHint={enterHint(questionRef)}
+        />
+
+        <label htmlFor="qa-answer">Correct answer</label>
+        <input
+          id="qa-answer"
+          ref={answerRef}
+          value={correctAnswer}
+          onChange={(event) => setCorrectAnswer(event.target.value)}
+          onKeyDown={(event) => handleKeyDown(event, answerRef)}
+          placeholder="What is the correct answer?"
+          enterKeyHint={enterHint(answerRef)}
+        />
+
+        {!hideWrong && (
+          <>
+            <label htmlFor="qa-wrong">
+              Your answer <span className="optional">(optional)</span>
+            </label>
+            <input
+              id="qa-wrong"
+              ref={wrongRef}
+              value={yourAnswer}
+              onChange={(event) => setYourAnswer(event.target.value)}
+              onKeyDown={(event) => handleKeyDown(event, wrongRef)}
+              placeholder="If you got it wrong, what did you answer?"
+              enterKeyHint={enterHint(wrongRef)}
+            />
+          </>
+        )}
+
+        {showHook && (
+          <>
+            <label htmlFor="qa-hook">
+              Memory hook <span className="optional">(optional)</span>
+            </label>
+            <textarea
+              id="qa-hook"
+              ref={hookRef}
+              rows={2}
+              value={hook}
+              onChange={(event) => setHook(event.target.value)}
+              onKeyDown={(event) => handleKeyDown(event, hookRef)}
+              placeholder="A mnemonic, picture, or short reason that helps it stick"
+              enterKeyHint={enterHint(hookRef)}
+            />
+          </>
+        )}
+
+        <div className="qa-extras">
+          <button
+            type="button"
+            className="text-link"
+            onClick={toggleHook}
+          >
+            {showHook ? '− Remove memory hook' : '+ Add a memory hook'}
+          </button>
+          <button
+            type="button"
+            className="text-link"
+            onClick={toggleHideWrong}
+          >
+            {hideWrong ? '+ Show "your answer" box' : 'Hide "your answer" box'}
+          </button>
+        </div>
+
+        {error && (
+          <p className="qa-message qa-error" role="alert">
+            {error}
+          </p>
+        )}
+        {!error && flash && (
+          <p className="qa-message" role="status">
+            {flash}
+          </p>
+        )}
+
+        <div className="qa-actions">
+          <button type="submit" className="qa-primary" disabled={saving}>
+            {saving ? 'Saving...' : 'Save & add next'}
+          </button>
+          <button type="button" className="ghost-button" onClick={finish}>
+            Done
+          </button>
+        </div>
+
+        <p className="qa-hint">
+          Press Enter to move to the next box. Enter in the last box saves the
+          card. Shift+Enter starts a new line.
+        </p>
+      </form>
+    </section>
+  );
+}

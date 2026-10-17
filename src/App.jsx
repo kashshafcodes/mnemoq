@@ -5,7 +5,8 @@ import { supabase } from './supabaseClient';
 import Auth from './Auth';
 
 import MnemoqLogo from './components/MnemoqLogo';
-import Tutorial, { RatingGuide } from './components/Tutorial';
+import Tutorial from './components/Tutorial';
+import ReviewCard from './components/ReviewCard';
 import QuickAdd from './components/QuickAdd';
 import { SUBJECTS, SUBJECT_NAMES, DEFAULT_SUBJECT } from './subjects';
 
@@ -40,9 +41,7 @@ function App() {
 }, []);
   const [dataLoading, setDataLoading] = useState(true);
   const [dataError, setDataError] = useState('');
-  const answerRef = useRef(null);
   const formRef = useRef(null);
-  const reviewCardRef = useRef(null);
   const [session, setSession] = useState(null);
 const [authLoading, setAuthLoading] = useState(true);
   const [mistakes, setMistakes] = useState(() => {
@@ -56,7 +55,6 @@ const [authLoading, setAuthLoading] = useState(true);
   
   const [reviewIndex, setReviewIndex] = useState(0);
   const [manualReviewId, setManualReviewId] = useState(null);
-  const [revealedAnswer, setRevealedAnswer] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -194,18 +192,7 @@ useEffect(() => {
 }, []);
 
   
-useEffect(() => {
-  if (!revealedAnswer) return;
 
-  const frame = requestAnimationFrame(() => {
-    answerRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  });
-
-  return () => cancelAnimationFrame(frame);
-}, [revealedAnswer]);
 
 
   function selectSubject(subject) {
@@ -323,7 +310,6 @@ async function handleReviewRating(rating) {
     );
 
     setManualReviewId(null);
-    setRevealedAnswer(false);
     setReviewIndex(0);
   } catch (error) {
     console.error('Could not save review rating:', error.message);
@@ -675,7 +661,6 @@ if (dataError) {
       } else {
         setMistakes([]);
         setManualReviewId(null);
-        setRevealedAnswer(false);
       }
     }}
   >
@@ -973,7 +958,6 @@ if (dataError) {
   className="secondary-button"
   onClick={() => {
     setManualReviewId(mistake.id);
-    setRevealedAnswer(false);
     document.getElementById('review')?.scrollIntoView({
       behavior: 'smooth',
       block: 'start',
@@ -1021,8 +1005,8 @@ if (dataError) {
   <div className="section-heading">
     <div>
       <p className="eyebrow">ACTIVE RECALL</p>
-      <h2>Review your mistakes</h2>
-      <p>Try to remember the answer before revealing it.</p>
+      <h2>Review your cards</h2>
+      <p>Pick or type your answer first. Recalling it beats re-reading it.</p>
     </div>
   </div>
 
@@ -1032,114 +1016,26 @@ if (dataError) {
 <div className="review-empty-state">
   <h3>You're all caught up!</h3>
   <p>
-    No mistakes are due for review right now.
+    No cards are due for review right now.
   </p>
   <p>
-    You have {mistakes.length} saved mistakes in your library.
+    You have {mistakes.length} saved card{mistakes.length === 1 ? '' : 's'} in your library.
     They'll return to your review queue when they're due.
   </p>
 </div>
 
 ) : (
 
-    <div className="review-card">
-      <div className="review-card-top">
-        <span className="category-badge">
-          {reviewMistake.subject} · {reviewMistake.category}
-        </span>
-        <span className="review-counter">
-  Card {reviewIndex + 1} of {reviewQueue.length}
-</span>
-      </div>
-
-      <h3 className="review-question">
-        {reviewMistake.question}
-      </h3>
-
-      {!revealedAnswer ? (
-        
-<button
-  className="primary-button"
-  onClick={() => {
-    setRevealedAnswer(true);
-
-    setTimeout(() => {
-      reviewCardRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    }, 50);
-  }}
->
-  Reveal answer
-</button>
-
-      ) : (
-        <div className="review-answer" ref={answerRef}>
-          {reviewMistake.yourAnswer && (
-            <div className="answer-block">
-              <p className="eyebrow">YOUR ORIGINAL ANSWER</p>
-              <p>{reviewMistake.yourAnswer}</p>
-            </div>
-          )}
-
-          <div className="answer-block correct-answer-block">
-            <p className="eyebrow">CORRECT ANSWER</p>
-            <p>{reviewMistake.correctAnswer}</p>
-          </div>
-
-          {reviewMistake.explanation && (
-            <div className="answer-block">
-              <p className="eyebrow">MEMORY HOOK</p>
-              <p>{reviewMistake.explanation}</p>
-            </div>
-          )}
-
-          
-
-<div className="review-rating-buttons">
-  <button
-    className="rating-button rating-again"
-    onClick={() => handleReviewRating('again')}
-  >
-    Again
-    <span>10 minutes</span>
-  </button>
-
-  <button
-    className="rating-button rating-hard"
-    onClick={() => handleReviewRating('hard')}
-  >
-    Hard
-    <span>1 day</span>
-  </button>
-
-  <button
-    className="rating-button rating-good"
-    onClick={() => handleReviewRating('good')}
-  >
-    Good
-    <span>1+ days</span>
-  </button>
-
-  <button
-    className="rating-button rating-easy"
-    onClick={() => handleReviewRating('easy')}
-  >
-    Easy
-    <span>3+ days</span>
-  </button>
-</div>
-
-<details className="rating-help">
-  <summary>How do these work?</summary>
-  <RatingGuide />
-</details>
-
-
-        </div>
-      )}
-    </div>
+    <ReviewCard
+      key={`${reviewMistake.id}-${reviewMistake.reviewCount || 0}`}
+      card={reviewMistake}
+      cards={mistakes}
+      position={{
+        index: manualReviewId !== null ? 0 : reviewIndex % reviewQueue.length,
+        total: manualReviewId !== null ? 1 : reviewQueue.length,
+      }}
+      onRate={handleReviewRating}
+    />
   )}
 </section>
 
