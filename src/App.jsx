@@ -7,6 +7,7 @@ import Auth from './Auth';
 import MnemoqLogo from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
+import Dashboard from './components/Dashboard';
 import { SessionStart, SessionSummary } from './components/SessionPanels';
 import { SESSION_SIZE, pickSessionCards } from './quiz';
 import QuickAdd from './components/QuickAdd';
@@ -67,6 +68,9 @@ const [authLoading, setAuthLoading] = useState(true);
   
   // A short review session: the card ids picked at the start, plus how each went.
   const [reviewSession, setReviewSession] = useState(null);
+  // Every rating ever given, newest last. It feeds the dashboard.
+  const [reviewLog, setReviewLog] = useState([]);
+  const historySavingOk = useRef(true);
   const [manualReviewId, setManualReviewId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
@@ -173,6 +177,57 @@ useEffect(() => {
   };
 }, [session?.user?.id]);
 
+
+// Review history for the dashboard. If the table isn't set up yet, the
+// dashboard still works from the cards themselves.
+useEffect(() => {
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    setReviewLog([]);
+    return undefined;
+  }
+
+  let cancelled = false;
+
+  async function loadReviewLog() {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('id, mistake_id, subject, category, rating, recalled, interval_days, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true })
+      .limit(5000);
+
+    if (cancelled) return;
+
+    if (error) {
+      historySavingOk.current = false;
+      console.warn('Review history is not available yet:', error.message);
+      return;
+    }
+
+    historySavingOk.current = true;
+    setReviewLog(
+      (data || []).map((row) => ({
+        id: String(row.id),
+        cardId: String(row.mistake_id),
+        subject: row.subject,
+        category: row.category,
+        rating: row.rating,
+        recalled: Boolean(row.recalled),
+        intervalDays: row.interval_days || 0,
+        at: new Date(row.created_at),
+      }))
+    );
+  }
+
+  loadReviewLog();
+
+  return () => {
+    cancelled = true;
+  };
+}, [session?.user?.id]);
+
   
 useEffect(() => {
   let isMounted = true;
@@ -253,6 +308,34 @@ useEffect(() => {
   }
 
   
+
+// Adds one rating to the history. The dashboard updates straight away; saving
+// to the database happens in the background and never blocks reviewing.
+async function recordReview(entry) {
+  const at = new Date();
+
+  setReviewLog((current) => [
+    ...current,
+    { ...entry, id: `local-${at.getTime()}-${current.length}`, at },
+  ]);
+
+  if (!historySavingOk.current) return;
+
+  const { error } = await supabase.from('reviews').insert({
+    user_id: session.user.id,
+    mistake_id: String(entry.cardId),
+    subject: entry.subject,
+    category: entry.category,
+    rating: entry.rating,
+    recalled: entry.recalled,
+    interval_days: entry.intervalDays,
+  });
+
+  if (error) {
+    historySavingOk.current = false;
+    console.warn('Could not save review history:', error.message);
+  }
+}
 
 async function handleReviewRating(rating, result) {
   if (!reviewMistake) return;
@@ -335,6 +418,17 @@ async function handleReviewRating(rating, result) {
           : mistake
       )
     );
+
+    recordReview({
+      cardId: reviewMistake.id,
+      subject: reviewMistake.subject,
+      category: reviewMistake.category,
+      rating,
+      recalled: result
+        ? result === 'correct' || result === 'close'
+        : rating === 'good' || rating === 'easy',
+      intervalDays: nextIntervalDays,
+    });
 
     if (manualReviewId !== null) {
       setManualReviewId(null);
@@ -601,10 +695,6 @@ async function handleDelete(id) {
 
 
 
-  const dueCount = mistakes.filter(
-    (mistake) => !mistake.mastered
-  ).length;
-
   // Built-in subjects plus any the person added themselves (read from their
   // cards). If the chosen filter no longer exists, fall back to "All".
   const subjectNames = getSubjectNames(mistakes);
@@ -772,6 +862,7 @@ if (dataError) {
         setMistakes([]);
         setManualReviewId(null);
         setReviewSession(null);
+        setReviewLog([]);
       }
     }}
   >
@@ -793,42 +884,22 @@ if (dataError) {
           <div className="avatar">M</div>
         </header>
 
-        <section className="welcome-card">
-          <div>
-            <p className="eyebrow">YOUR NEXT STEP</p>
-            <h2>Remember better, one card at a time.</h2>
-            <p>
-              Add what you want to remember, then bring it back at just the
-              right moment.
-            </p>
-            <div className="welcome-actions">
-              <button
-                type="button"
-                onClick={() => {
-                  if (showForm) {
-                    setShowForm(false);
-                    setEditingId(null);
-                    setForm(emptyForm);
-                  } else {
-                    setShowForm(true);
-                  }
-                }}
-              >
-                {showForm ? 'Close form' : '+ Add a card'}
-              </button>
-              {dueMistakes.length > 0 && (
-                <button
-                  type="button"
-                  className="ghost-button"
-                  onClick={goToReview}
-                >
-                  Review now ({dueMistakes.length} due)
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="welcome-mark">m.</div>
-        </section>
+        <Dashboard
+          cards={mistakes}
+          reviews={reviewLog}
+          dueCount={dueMistakes.length}
+          showForm={showForm}
+          onToggleAdd={() => {
+            if (showForm) {
+              setShowForm(false);
+              setEditingId(null);
+              setForm(emptyForm);
+            } else {
+              setShowForm(true);
+            }
+          }}
+          onReview={goToReview}
+        />
 
         {showForm && editingId === null && (
           <QuickAdd
@@ -944,31 +1015,7 @@ if (dataError) {
         )}
 
         
-<section className="stats-grid">
-  <article className="stat-card">
-    <p>Total cards</p>
-    <h2>{mistakes.length}</h2>
-    <span>Your learning library</span>
-  </article>
 
-  <article className="stat-card">
-    <p>Due today</p>
-    <h2>{dueMistakes.length}</h2>
-    <span>Ready for active recall</span>
-  </article>
-
-  <article className="stat-card">
-    <p>To review</p>
-    <h2>{dueCount}</h2>
-    <span>Items not yet mastered</span>
-  </article>
-
-  <article className="stat-card">
-    <p>Mastered</p>
-    <h2>{mistakes.filter((m) => m.mastered).length}</h2>
-    <span>Knowledge reinforced</span>
-  </article>
-</section>
 
 
         
