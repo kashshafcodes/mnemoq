@@ -144,3 +144,18 @@ export function buildChoices(card, allCards, rand = Math.random, maxWrong = 3) {
 
   return { options, available: wrong.length >= 2 };
 }
+
+export const SESSION_SIZE = 10;
+
+// Picks the cards for one short session: the most overdue ones first (new
+// cards count as overdue), then shuffled so subjects are mixed together.
+export function pickSessionCards(dueCards, size = SESSION_SIZE, rand = Math.random) {
+  const overdueFirst = [...dueCards].sort((a, b) => {
+    const aTime = a.nextReviewAt ? new Date(a.nextReviewAt).getTime() : 0;
+    const bTime = b.nextReviewAt ? new Date(b.nextReviewAt).getTime() : 0;
+
+    return aTime - bTime;
+  });
+
+  return shuffle(overdueFirst.slice(0, size), rand);
+}

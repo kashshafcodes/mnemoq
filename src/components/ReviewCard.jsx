@@ -139,7 +139,7 @@ export default function ReviewCard({ card, cards, position, onRate }) {
     if (saving) return;
 
     setSaving(true);
-    await onRate(rating);
+    await onRate(rating, result);
     setSaving(false);
   }
 

@@ -7,6 +7,8 @@ import Auth from './Auth';
 import MnemoqLogo from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
+import { SessionStart, SessionSummary } from './components/SessionPanels';
+import { SESSION_SIZE, pickSessionCards } from './quiz';
 import QuickAdd from './components/QuickAdd';
 import {
   SUBJECTS,
@@ -63,7 +65,8 @@ const [authLoading, setAuthLoading] = useState(true);
     }
   });
   
-  const [reviewIndex, setReviewIndex] = useState(0);
+  // A short review session: the card ids picked at the start, plus how each went.
+  const [reviewSession, setReviewSession] = useState(null);
   const [manualReviewId, setManualReviewId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
@@ -251,7 +254,7 @@ useEffect(() => {
 
   
 
-async function handleReviewRating(rating) {
+async function handleReviewRating(rating, result) {
   if (!reviewMistake) return;
 
   const userId = session?.user?.id;
@@ -333,8 +336,25 @@ async function handleReviewRating(rating) {
       )
     );
 
-    setManualReviewId(null);
-    setReviewIndex(0);
+    if (manualReviewId !== null) {
+      setManualReviewId(null);
+    } else if (reviewSession) {
+      setReviewSession((current) =>
+        current
+          ? {
+              ...current,
+              results: [
+                ...current.results,
+                {
+                  id: reviewMistake.id,
+                  rating,
+                  recalled: result === 'correct' || result === 'close',
+                },
+              ],
+            }
+          : current
+      );
+    }
   } catch (error) {
     console.error('Could not save review rating:', error.message);
     setDataError(error.message);
@@ -621,7 +641,46 @@ const dueMistakes = mistakes.filter((mistake) => {
   return new Date(mistake.nextReviewAt) <= now;
 });
 
-const reviewQueue = dueMistakes;
+// ---- Short review sessions ----
+// The next card of the session is the first picked card that hasn't been rated
+// yet (and still exists, in case it was deleted meanwhile).
+const ratedInSession = new Set(reviewSession ? reviewSession.results.map((entry) => entry.id) : []);
+const nextSessionId = reviewSession
+  ? reviewSession.ids.find(
+      (id) => !ratedInSession.has(id) && mistakes.some((mistake) => mistake.id === id)
+    )
+  : undefined;
+const sessionRunning = manualReviewId === null && nextSessionId !== undefined;
+const sessionFinished = manualReviewId === null && reviewSession !== null && !sessionRunning;
+
+function startSession() {
+  const picked = pickSessionCards(dueMistakes, SESSION_SIZE);
+
+  if (picked.length === 0) return;
+
+  setManualReviewId(null);
+  setReviewSession({ ids: picked.map((card) => card.id), results: [] });
+}
+
+function endSession() {
+  // Stop early: whatever was already rated goes into the summary.
+  setReviewSession((current) =>
+    current && current.results.length > 0
+      ? { ...current, ids: current.results.map((entry) => entry.id) }
+      : null
+  );
+}
+
+function goToReview() {
+  if (!sessionRunning) startSession();
+
+  requestAnimationFrame(() => {
+    document.getElementById('review')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  });
+}
 
 
 
@@ -629,8 +688,8 @@ const reviewQueue = dueMistakes;
 const reviewMistake =
   manualReviewId !== null
     ? mistakes.find((mistake) => mistake.id === manualReviewId) || null
-    : reviewQueue.length > 0
-      ? reviewQueue[reviewIndex % reviewQueue.length]
+    : sessionRunning
+      ? mistakes.find((mistake) => mistake.id === nextSessionId) || null
       : null;
 
 if (authLoading) {
@@ -712,6 +771,7 @@ if (dataError) {
       } else {
         setMistakes([]);
         setManualReviewId(null);
+        setReviewSession(null);
       }
     }}
   >
@@ -760,12 +820,7 @@ if (dataError) {
                 <button
                   type="button"
                   className="ghost-button"
-                  onClick={() =>
-                    document.getElementById('review')?.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'start',
-                    })
-                  }
+                  onClick={goToReview}
                 >
                   Review now ({dueMistakes.length} due)
                 </button>
@@ -782,12 +837,7 @@ if (dataError) {
             onClose={() => setShowForm(false)}
             onReviewNow={() => {
               setShowForm(false);
-              requestAnimationFrame(() => {
-                document.getElementById('review')?.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'start',
-                });
-              });
+              goToReview();
             }}
           />
         )}
@@ -1094,32 +1144,51 @@ if (dataError) {
   </div>
 
   
-{!reviewMistake ? (
-  
-<div className="review-empty-state">
-  <h3>You're all caught up!</h3>
-  <p>
-    No cards are due for review right now.
-  </p>
-  <p>
-    You have {mistakes.length} saved card{mistakes.length === 1 ? '' : 's'} in your library.
-    They'll return to your review queue when they're due.
-  </p>
-</div>
-
-) : (
-
+{reviewMistake ? (
+  <>
+    {sessionRunning && (
+      <div className="session-bar">
+        <span>Short session</span>
+        <button type="button" className="text-link" onClick={endSession}>
+          End session
+        </button>
+      </div>
+    )}
     <ReviewCard
       key={`${reviewMistake.id}-${reviewMistake.reviewCount || 0}`}
       card={reviewMistake}
       cards={mistakes}
       position={{
-        index: manualReviewId !== null ? 0 : reviewIndex % reviewQueue.length,
-        total: manualReviewId !== null ? 1 : reviewQueue.length,
+        index: manualReviewId !== null ? 0 : reviewSession.results.length,
+        total: manualReviewId !== null ? 1 : reviewSession.ids.length,
       }}
       onRate={handleReviewRating}
     />
-  )}
+  </>
+) : sessionFinished ? (
+  <SessionSummary
+    results={reviewSession.results}
+    cards={mistakes}
+    moreDue={dueMistakes.length}
+    onAgain={startSession}
+    onDone={() => setReviewSession(null)}
+  />
+) : dueMistakes.length > 0 ? (
+  <SessionStart
+    dueCards={dueMistakes}
+    sessionSize={SESSION_SIZE}
+    onStart={startSession}
+  />
+) : (
+  <div className="review-empty-state">
+    <h3>You're all caught up!</h3>
+    <p>No cards are due for review right now.</p>
+    <p>
+      You have {mistakes.length} saved card{mistakes.length === 1 ? '' : 's'} in your library.
+      They'll return to your review queue when they're due.
+    </p>
+  </div>
+)}
 </section>
 
       </main>
