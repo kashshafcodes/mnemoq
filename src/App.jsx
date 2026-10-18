@@ -8,7 +8,17 @@ import MnemoqLogo from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import QuickAdd from './components/QuickAdd';
-import { SUBJECTS, SUBJECT_NAMES, DEFAULT_SUBJECT } from './subjects';
+import {
+  SUBJECTS,
+  DEFAULT_SUBJECT,
+  canonicalCategory,
+  canonicalSubject,
+  getCategories,
+  getSubjectNames,
+  isReservedName,
+  sameName,
+  subjectAccent,
+} from './subjects';
 
 const STORAGE_KEY = 'mnemoq-mistakes';
 const COLLAPSED_COUNT = 3;
@@ -58,6 +68,7 @@ const [authLoading, setAuthLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [formError, setFormError] = useState('');
   const [activeSubject, setActiveSubject] = useState('All');
   const [activeCategory, setActiveCategory] = useState('All');
   const [showAll, setShowAll] = useState(false);
@@ -210,12 +221,25 @@ useEffect(() => {
     const { name, value } = event.target;
 
     if (name === 'subject') {
-      // Each subject has its own categories, so reset the category too.
-      setForm((previousForm) => ({
-        ...previousForm,
-        subject: value,
-        category: SUBJECTS[value][0],
-      }));
+      // The subject box is "pick or type". When it becomes a known subject
+      // and the current category doesn't belong to it, start from that
+      // subject's first category. A brand-new subject keeps what's typed.
+      setForm((previousForm) => {
+        const known = getSubjectNames(mistakes).find((existing) =>
+          sameName(existing, value)
+        );
+        const categories = known ? getCategories(known, mistakes) : [];
+        const categoryFits = categories.some((existing) =>
+          sameName(existing, previousForm.category)
+        );
+
+        return {
+          ...previousForm,
+          subject: value,
+          category:
+            known && !categoryFits ? categories[0] : previousForm.category,
+        };
+      });
       return;
     }
 
@@ -325,6 +349,7 @@ async function handleReviewRating(rating) {
 async function handleSubmit(event) {
   event.preventDefault();
   setDataError('');
+  setFormError('');
 
   const userId = session?.user?.id;
 
@@ -340,11 +365,27 @@ async function handleSubmit(event) {
 
   const mistakeId = isEditing ? editingId : crypto.randomUUID();
 
+  // Subject and category can be typed freely. Reuse the spelling of an
+  // existing one so "chemistry" and "Chemistry" don't become two subjects.
+  const subjectName =
+    canonicalSubject(form.subject, mistakes) ||
+    existingMistake?.subject ||
+    DEFAULT_SUBJECT;
+  const categoryName =
+    canonicalCategory(subjectName, form.category, mistakes) ||
+    getCategories(subjectName, mistakes)[0];
+
+  // "All" is the name of the filter chip, so it can't also be a subject.
+  if (isReservedName(subjectName) || isReservedName(categoryName)) {
+    setFormError('"All" is used by the filters. Please choose a different name.');
+    return;
+  }
+
   const mistake = {
     id: mistakeId,
     user_id: userId,
-    subject: form.subject || existingMistake?.subject || DEFAULT_SUBJECT,
-    category: form.category,
+    subject: subjectName,
+    category: categoryName,
     question: form.question.trim(),
     your_answer: form.yourAnswer.trim(),
     correct_answer: form.correctAnswer.trim(),
@@ -371,8 +412,12 @@ async function handleSubmit(event) {
           item.id === mistakeId
             ? {
                 ...item,
-                ...form,
                 subject: mistake.subject,
+                category: mistake.category,
+                question: mistake.question,
+                yourAnswer: mistake.your_answer,
+                correctAnswer: mistake.correct_answer,
+                explanation: mistake.explanation,
               }
             : item
         )
@@ -489,6 +534,7 @@ function handleEdit(mistake) {
   });
 
   setEditingId(mistake.id);
+  setFormError('');
   setShowForm(true);
   requestAnimationFrame(() => {
   formRef.current?.scrollIntoView({
@@ -539,26 +585,31 @@ async function handleDelete(id) {
     (mistake) => !mistake.mastered
   ).length;
 
-  const subjectFilters = ['All', ...SUBJECT_NAMES];
+  // Built-in subjects plus any the person added themselves (read from their
+  // cards). If the chosen filter no longer exists, fall back to "All".
+  const subjectNames = getSubjectNames(mistakes);
+  const subjectFilters = ['All', ...subjectNames];
+  const subjectNow =
+    subjectFilters.find((name) => sameName(name, activeSubject)) || 'All';
 
   const categoryFilters =
-    activeSubject === 'All' ? [] : ['All', ...SUBJECTS[activeSubject]];
+    subjectNow === 'All' ? [] : ['All', ...getCategories(subjectNow, mistakes)];
+  const categoryNow =
+    categoryFilters.find((name) => sameName(name, activeCategory)) || 'All';
 
 const filteredMistakes = mistakes.filter(
   (mistake) =>
-    (activeSubject === 'All' || mistake.subject === activeSubject) &&
-    (activeCategory === 'All' || mistake.category === activeCategory)
+    (subjectNow === 'All' ||
+      sameName(mistake.subject || DEFAULT_SUBJECT, subjectNow)) &&
+    (categoryNow === 'All' || sameName(mistake.category, categoryNow))
 );
 
 const visibleMistakes = showAll
   ? filteredMistakes
   : filteredMistakes.slice(0, COLLAPSED_COUNT);
 
-// Keep the edit form's category list valid, even for older cards whose
-// category is not in the subject's current list.
-const categoryOptions = SUBJECTS[form.subject]?.includes(form.category)
-  ? SUBJECTS[form.subject]
-  : [form.category, ...(SUBJECTS[form.subject] || [])];
+// Suggestions for the edit form's "pick or type" boxes.
+const categorySuggestions = getCategories(form.subject, mistakes);
 
 
 const now = new Date();
@@ -726,6 +777,7 @@ if (dataError) {
 
         {showForm && editingId === null && (
           <QuickAdd
+            cards={mistakes}
             onSave={addCard}
             onClose={() => setShowForm(false)}
             onReviewNow={() => {
@@ -748,29 +800,43 @@ if (dataError) {
             </p>
 
             <form onSubmit={handleSubmit}>
-              <label htmlFor="subject">Subject</label>
-              <select
+              <label htmlFor="subject">
+                Subject <span className="optional">(pick one or type your own)</span>
+              </label>
+              <input
                 id="subject"
                 name="subject"
+                list="subject-suggestions"
                 value={form.subject}
                 onChange={handleChange}
-              >
-                {SUBJECT_NAMES.map((name) => (
-                  <option key={name}>{name}</option>
+                maxLength={40}
+                autoComplete="off"
+                required
+              />
+              <datalist id="subject-suggestions">
+                {subjectNames.map((name) => (
+                  <option key={name} value={name} />
                 ))}
-              </select>
+              </datalist>
 
-              <label htmlFor="category">Category</label>
-              <select
+              <label htmlFor="category">
+                Category <span className="optional">(pick one or type your own)</span>
+              </label>
+              <input
                 id="category"
                 name="category"
+                list="category-suggestions"
                 value={form.category}
                 onChange={handleChange}
-              >
-                {categoryOptions.map((name) => (
-                  <option key={name}>{name}</option>
+                maxLength={40}
+                autoComplete="off"
+                required
+              />
+              <datalist id="category-suggestions">
+                {categorySuggestions.map((name) => (
+                  <option key={name} value={name} />
                 ))}
-              </select>
+              </datalist>
 
               <label htmlFor="question">Question or prompt</label>
               <textarea
@@ -813,6 +879,12 @@ if (dataError) {
                 onChange={handleChange}
                 placeholder="A mnemonic, picture, or short reason that helps it stick"
               />
+
+              {formError && (
+                <p className="qa-message qa-error" role="alert">
+                  {formError}
+                </p>
+              )}
 
               <button type="submit">
                 {editingId !== null ? 'Save changes' : 'Save card'}
@@ -863,13 +935,19 @@ if (dataError) {
       key={subject}
       type="button"
       className={
-        activeSubject === subject
+        subjectNow === subject
           ? 'filter-button selected'
           : 'filter-button'
       }
-      aria-pressed={activeSubject === subject}
+      style={
+        subject === 'All' ? undefined : { '--accent': subjectAccent(subject) }
+      }
+      aria-pressed={subjectNow === subject}
       onClick={() => selectSubject(subject)}
     >
+      {subject !== 'All' && (
+        <span className="subject-dot" aria-hidden="true" />
+      )}
       {subject}
     </button>
   ))}
@@ -885,11 +963,11 @@ if (dataError) {
         key={category}
         type="button"
         className={
-          activeCategory === category
+          categoryNow === category
             ? 'filter-button selected'
             : 'filter-button'
         }
-        aria-pressed={activeCategory === category}
+        aria-pressed={categoryNow === category}
         onClick={() => selectCategory(category)}
       >
         {category}
@@ -926,13 +1004,18 @@ if (dataError) {
 ) : (
   <section className="mistake-list">
     {visibleMistakes.map((mistake) => (
-      <article className="mistake-card" key={mistake.id}>
+      <article
+        className="mistake-card accented"
+        key={mistake.id}
+        style={{ '--accent': subjectAccent(mistake.subject) }}
+      >
         <div className="mistake-card-top">
+          <span className="subject-tag">
+            <span className="subject-dot" aria-hidden="true" />
+            {mistake.subject}
+          </span>
           <span className="category-tag">
             {mistake.category}
-          </span>
-          <span className="subject-tag">
-            {mistake.subject}
           </span>
         </div>
 

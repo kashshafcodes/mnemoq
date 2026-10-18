@@ -1,5 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { SUBJECTS, SUBJECT_NAMES, DEFAULT_SUBJECT } from '../subjects';
+import {
+  DEFAULT_SUBJECT,
+  canonicalCategory,
+  canonicalSubject,
+  cleanName,
+  getCategories,
+  getSubjectNames,
+  isReservedName,
+  subjectAccent,
+  subjectHints,
+} from '../subjects';
 
 const DESTINATION_KEY = 'mnemoq-add-destination';
 const HIDE_WRONG_KEY = 'mnemoq-hide-wrong-answer';
@@ -9,10 +19,11 @@ const HIDE_WRONG_KEY = 'mnemoq-hide-wrong-answer';
 function readDestination() {
   try {
     const saved = JSON.parse(localStorage.getItem(DESTINATION_KEY));
+    const subject = cleanName(saved?.subject);
+    const category = cleanName(saved?.category);
 
-    if (saved && SUBJECTS[saved.subject]?.includes(saved.category)) {
-      return { subject: saved.subject, category: saved.category };
-    }
+    // Custom subjects and categories are allowed, so any non-empty pair works.
+    if (subject && category) return { subject, category };
   } catch {
     // Missing or unreadable: start from the subject step.
   }
@@ -48,7 +59,7 @@ function saveHideWrong(value) {
   }
 }
 
-export default function QuickAdd({ onSave, onClose, onReviewNow }) {
+export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
   const [destination, setDestination] = useState(readDestination);
   const [step, setStep] = useState(destination ? 'entry' : 'subject');
   const [pendingSubject, setPendingSubject] = useState(
@@ -70,7 +81,13 @@ export default function QuickAdd({ onSave, onClose, onReviewNow }) {
   // summary stays accurate if the destination was changed along the way.
   const [addedTo, setAddedTo] = useState([]);
 
+  // "Add your own" subject or category: which one is being typed, and what.
+  const [adding, setAdding] = useState(null); // null | 'subject' | 'category'
+  const [ownName, setOwnName] = useState('');
+  const [ownError, setOwnError] = useState('');
+
   const rootRef = useRef(null);
+  const ownRef = useRef(null);
   const questionRef = useRef(null);
   const answerRef = useRef(null);
   const wrongRef = useRef(null);
@@ -85,6 +102,10 @@ export default function QuickAdd({ onSave, onClose, onReviewNow }) {
   useEffect(() => {
     if (activeStep === 'entry') questionRef.current?.focus();
   }, [activeStep]);
+
+  useEffect(() => {
+    if (adding) ownRef.current?.focus();
+  }, [adding]);
 
   // The boxes currently on screen, in typing order.
   function fieldOrder() {
@@ -175,7 +196,80 @@ export default function QuickAdd({ onSave, onClose, onReviewNow }) {
 
     setDestination(next);
     saveDestination(next);
+    stopAdding();
     setStep('entry');
+  }
+
+  function startAdding(kind) {
+    setAdding(kind);
+    setOwnName('');
+    setOwnError('');
+  }
+
+  function stopAdding() {
+    setAdding(null);
+    setOwnName('');
+    setOwnError('');
+  }
+
+  // A typed subject or category: reuse an existing one if it matches
+  // ignoring capital letters, otherwise it becomes a new one.
+  function submitOwn(event, kind) {
+    event.preventDefault();
+
+    const name = cleanName(ownName);
+
+    if (!name) {
+      setOwnError('Type a name first.');
+      return;
+    }
+
+    if (isReservedName(name)) {
+      setOwnError('Please choose a different name.');
+      return;
+    }
+
+    if (kind === 'subject') {
+      setPendingSubject(canonicalSubject(name, cards));
+      stopAdding();
+      setStep('category');
+    } else {
+      chooseCategory(canonicalCategory(pendingSubject, name, cards));
+    }
+  }
+
+  function renderOwnForm(kind) {
+    const isSubject = kind === 'subject';
+
+    return (
+      <form className="qa-own" onSubmit={(event) => submitOwn(event, kind)}>
+        <label htmlFor="qa-own-name">
+          {isSubject ? 'Name your subject' : 'Name your category'}
+        </label>
+        <div className="qa-own-row">
+          <input
+            id="qa-own-name"
+            ref={ownRef}
+            value={ownName}
+            maxLength={40}
+            onChange={(event) => setOwnName(event.target.value)}
+            placeholder={isSubject ? 'e.g. Chemistry' : 'e.g. Organic chemistry'}
+            autoComplete="off"
+          />
+          <button type="submit" className="qa-primary">
+            {isSubject ? 'Next' : 'Start adding'}
+          </button>
+          <button type="button" className="ghost-button" onClick={stopAdding}>
+            Cancel
+          </button>
+        </div>
+        {ownError && (
+          <p className="qa-message qa-error" role="alert">
+            {ownError}
+          </p>
+        )}
+      </form>
+    );
   }
 
   function toggleHideWrong() {
@@ -246,20 +340,35 @@ export default function QuickAdd({ onSave, onClose, onReviewNow }) {
         <p className="subtitle">What are you adding to?</p>
 
         <div className="qa-chips" role="group" aria-label="Subject">
-          {SUBJECT_NAMES.map((name) => (
+          {getSubjectNames(cards).map((name) => (
             <button
               key={name}
               type="button"
               className="qa-chip"
+              style={{ '--accent': subjectAccent(name) }}
               onClick={() => {
                 setPendingSubject(name);
+                stopAdding();
                 setStep('category');
               }}
             >
+              <span className="subject-dot" aria-hidden="true" />
               {name}
             </button>
           ))}
+          <button
+            type="button"
+            className="qa-chip qa-chip-add"
+            aria-expanded={adding === 'subject'}
+            onClick={() =>
+              adding === 'subject' ? stopAdding() : startAdding('subject')
+            }
+          >
+            + Your own
+          </button>
         </div>
+
+        {adding === 'subject' && renderOwnForm('subject')}
 
         <div className="qa-footer">
           {destination && (
@@ -281,14 +390,19 @@ export default function QuickAdd({ onSave, onClose, onReviewNow }) {
 
   if (activeStep === 'category') {
     return (
-      <section ref={rootRef} className="quick-add">
+      <section
+        ref={rootRef}
+        className="quick-add"
+        style={{ '--accent': subjectAccent(pendingSubject) }}
+      >
         <h2>Add cards</h2>
         <p className="subtitle">
+          <span className="subject-dot" aria-hidden="true" />
           <strong>{pendingSubject}</strong> › which category?
         </p>
 
         <div className="qa-chips" role="group" aria-label="Category">
-          {SUBJECTS[pendingSubject].map((name) => (
+          {getCategories(pendingSubject, cards).map((name) => (
             <button
               key={name}
               type="button"
@@ -298,13 +412,28 @@ export default function QuickAdd({ onSave, onClose, onReviewNow }) {
               {name}
             </button>
           ))}
+          <button
+            type="button"
+            className="qa-chip qa-chip-add"
+            aria-expanded={adding === 'category'}
+            onClick={() =>
+              adding === 'category' ? stopAdding() : startAdding('category')
+            }
+          >
+            + Your own
+          </button>
         </div>
+
+        {adding === 'category' && renderOwnForm('category')}
 
         <div className="qa-footer">
           <button
             type="button"
             className="ghost-button"
-            onClick={() => setStep('subject')}
+            onClick={() => {
+              stopAdding();
+              setStep('subject');
+            }}
           >
             Back
           </button>
@@ -360,12 +489,19 @@ export default function QuickAdd({ onSave, onClose, onReviewNow }) {
     );
   }
 
+  const hints = subjectHints(destination?.subject);
+
   return (
-    <section ref={rootRef} className="quick-add">
+    <section
+      ref={rootRef}
+      className="quick-add"
+      style={{ '--accent': subjectAccent(destination?.subject) }}
+    >
       <h2>Add cards</h2>
 
       <div className="qa-destination">
         <span>
+          <span className="subject-dot" aria-hidden="true" />
           Adding to <strong>{destinationLabel}</strong>
         </span>
         <button
@@ -390,7 +526,7 @@ export default function QuickAdd({ onSave, onClose, onReviewNow }) {
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
           onKeyDown={(event) => handleKeyDown(event, questionRef)}
-          placeholder="What do you want to remember?"
+          placeholder={hints.question}
           enterKeyHint={enterHint(questionRef)}
         />
 
@@ -401,7 +537,7 @@ export default function QuickAdd({ onSave, onClose, onReviewNow }) {
           value={correctAnswer}
           onChange={(event) => setCorrectAnswer(event.target.value)}
           onKeyDown={(event) => handleKeyDown(event, answerRef)}
-          placeholder="What is the correct answer?"
+          placeholder={hints.answer}
           enterKeyHint={enterHint(answerRef)}
         />
 
@@ -434,7 +570,7 @@ export default function QuickAdd({ onSave, onClose, onReviewNow }) {
               value={hook}
               onChange={(event) => setHook(event.target.value)}
               onKeyDown={(event) => handleKeyDown(event, hookRef)}
-              placeholder="A mnemonic, picture, or short reason that helps it stick"
+              placeholder={hints.hook}
               enterKeyHint={enterHint(hookRef)}
             />
           </>

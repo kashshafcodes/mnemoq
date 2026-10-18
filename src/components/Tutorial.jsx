@@ -59,12 +59,13 @@ const STEPS = [
       <>
         <p>
           In <strong>Review your cards</strong>, you see only the question.
-          Try to remember the answer first, then press{' '}
-          <strong>Reveal answer</strong>.
+          Answer it before you see the solution: <strong>Choose</strong> from
+          options made from your own cards (including the wrong answer you
+          gave before), or <strong>Type</strong> it yourself.
         </p>
         <p>
-          Trying to recall before looking is what builds memory. Re-reading
-          the answer does much less.
+          Not sure? Press <strong>Show answer</strong>. Trying to recall
+          first is what builds memory. Re-reading the answer does much less.
         </p>
       </>
     ),

@@ -1,21 +1,34 @@
 import { useEffect, useRef, useState } from 'react';
 import { buildChoices, checkTypedAnswer, normalizeText } from '../quiz';
+import { subjectAccent } from '../subjects';
 import { RatingGuide } from './Tutorial';
 
 const MODE_KEY = 'mnemoq-review-mode';
 const LETTERS = ['A', 'B', 'C', 'D'];
 
-function readMode() {
+// The answer style is remembered per subject, so someone can choose from
+// options for General Knowledge but type their English answers.
+function modeKey(subject) {
+  return `${MODE_KEY}:${String(subject || '').toLocaleLowerCase()}`;
+}
+
+function readMode(subject) {
   try {
+    const own = localStorage.getItem(modeKey(subject));
+
+    if (own === 'type' || own === 'choose') return own;
+
+    // Nothing saved for this subject yet: start from the old all-subjects
+    // choice, so nobody loses the style they already picked.
     return localStorage.getItem(MODE_KEY) === 'type' ? 'type' : 'choose';
   } catch {
     return 'choose';
   }
 }
 
-function saveMode(mode) {
+function saveMode(subject, mode) {
   try {
-    localStorage.setItem(MODE_KEY, mode);
+    localStorage.setItem(modeKey(subject), mode);
   } catch {
     // Not critical if it can't be remembered.
   }
@@ -40,7 +53,7 @@ const RATINGS = [
 // One card being reviewed. App gives it a new `key` for every card, so all of
 // its state starts fresh each time.
 export default function ReviewCard({ card, cards, position, onRate }) {
-  const [preferredMode, setPreferredMode] = useState(readMode);
+  const [preferredMode, setPreferredMode] = useState(() => readMode(card.subject));
   const [choices] = useState(() => buildChoices(card, cards));
   const [typed, setTyped] = useState('');
   const [pickedIndex, setPickedIndex] = useState(null);
@@ -67,7 +80,7 @@ export default function ReviewCard({ card, cards, position, onRate }) {
 
   function chooseMode(next) {
     setPreferredMode(next);
-    saveMode(next);
+    saveMode(card.subject, next);
     setHint('');
   }
 
@@ -158,7 +171,7 @@ export default function ReviewCard({ card, cards, position, onRate }) {
       title: 'Not quite.',
       body: repeatedOldMistake
         ? 'That is the same answer you gave before. Here is the fix.'
-                : mode === 'choose'
+        : mode === 'choose'
           ? 'The correct answer is highlighted in green.'
           : 'The correct answer is below.',
     };
@@ -173,9 +186,13 @@ export default function ReviewCard({ card, cards, position, onRate }) {
   const suggested = SUGGESTED[result];
 
   return (
-    <div className="review-card">
+    <div
+      className="review-card accented"
+      style={{ '--accent': subjectAccent(card.subject) }}
+    >
       <div className="review-card-top">
         <span className="category-badge">
+          <span className="subject-dot" aria-hidden="true" />
           {card.subject} · {card.category}
         </span>
         <span className="review-counter">
@@ -310,7 +327,7 @@ export default function ReviewCard({ card, cards, position, onRate }) {
 
       {answered && (
         <div className="review-answer">
-                   {mode === 'type' && (
+          {mode === 'type' && (
             <>
               {card.yourAnswer && (
                 <div className="answer-block">

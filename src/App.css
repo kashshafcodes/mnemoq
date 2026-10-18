@@ -1884,3 +1884,160 @@ p { color: inherit; }
   .type-answer .primary-button { width: 100%; }
   .review-result .text-link { margin-left: 0; }
 }
+
+/* =========================================
+   v3: subject colours, "+ Your own", phone log out
+   Each subject sets --accent on its own element (see subjectAccent in
+   subjects.js). color-mix() lines come second so older browsers keep the
+   plain fallback above them.
+   ========================================= */
+
+/* The small coloured dot that carries a subject's colour. */
+.subject-dot {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--accent, #8b5cf6);
+  vertical-align: middle;
+}
+
+/* ---- Add-card flow ---- */
+.quick-add[style*="--accent"] {
+  border-top: 3px solid var(--accent);
+}
+.quick-add .qa-chip {
+  display: inline-flex;
+  align-items: center;
+}
+.quick-add .qa-chip[style*="--accent"] {
+  border-color: #334155;
+  border-color: color-mix(in srgb, var(--accent) 45%, #334155);
+}
+.quick-add .qa-chip:hover,
+.quick-add .qa-chip:focus-visible {
+  border-color: var(--accent, #3b82f6);
+  background: rgba(59, 130, 246, 0.14);
+  background: color-mix(in srgb, var(--accent, #3b82f6) 16%, transparent);
+}
+.quick-add .qa-chip.qa-chip-add {
+  border-style: dashed;
+  background: transparent;
+  color: var(--mnemoq-muted);
+}
+.quick-add .qa-chip.qa-chip-add:hover,
+.quick-add .qa-chip.qa-chip-add[aria-expanded="true"] {
+  color: var(--mnemoq-white);
+  border-color: #a5b4fc;
+}
+.qa-destination .subject-dot,
+.quick-add .subtitle .subject-dot {
+  margin-right: 8px;
+}
+
+/* "Name your subject / category" box */
+.qa-own {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px dashed #334155;
+  border-radius: 12px;
+  background: #0d1526;
+}
+.qa-own label {
+  display: block;
+  margin-bottom: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.qa-own-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.qa-own-row input {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0b1222;
+  color: var(--mnemoq-white);
+  font: inherit;
+}
+.qa-own-row input::placeholder {
+  color: #8290b2;
+}
+.qa-own-row input:focus {
+  outline: none;
+  border-color: var(--mnemoq-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+}
+
+/* ---- Library ---- */
+.filter-button[style*="--accent"] {
+  display: inline-flex;
+  align-items: center;
+}
+.filter-button[style*="--accent"].selected {
+  background: var(--accent);
+  border-color: transparent;
+  color: #0b1020;
+}
+.filter-button[style*="--accent"].selected .subject-dot {
+  background: #0b1020;
+}
+
+.mistake-card.accented {
+  border-left: 4px solid var(--accent, #8b5cf6);
+}
+.mistake-card .subject-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--accent, #cbd5e1);
+}
+@supports (color: color-mix(in srgb, red, blue)) {
+  .mistake-card .subject-tag {
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+}
+
+/* ---- Review ---- */
+.review-section .review-card.accented {
+  border-top: 3px solid var(--accent, var(--mnemoq-violet));
+}
+.review-section .category-badge {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ---- Phones: keep Log out reachable ----
+   The sidebar's bottom block (tagline + Log out) used to be hidden below
+   800px, which removed Log out. Show just the button, top-right. */
+@media (max-width: 800px) {
+  .sidebar {
+    position: relative;
+  }
+  .sidebar-bottom {
+    display: block;
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    margin: 0;
+  }
+  .sidebar-bottom p {
+    display: none;
+  }
+  .sidebar-bottom .logout-button {
+    width: auto;
+    min-height: 40px;
+    margin: 0;
+    padding: 8px 16px;
+    text-align: center;
+  }
+}
