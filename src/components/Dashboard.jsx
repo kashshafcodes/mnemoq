@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { computeAnalytics, formatDays, formatGap, headline } from '../analytics';
 import { subjectAccent } from '../subjects';
 
@@ -11,12 +11,15 @@ const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const shortDate = (date) =>
   date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
 
-function Panel({ title, note, wide, children }) {
+function Panel({ title, note, wide, action, children }) {
   return (
     <section className={wide ? 'dash-panel wide' : 'dash-panel'}>
       <header>
-        <h3>{title}</h3>
-        {note && <p>{note}</p>}
+        <div>
+          <h3>{title}</h3>
+          {note && <p>{note}</p>}
+        </div>
+        {action}
       </header>
       {children}
     </section>
@@ -179,24 +182,32 @@ function ActivityBars({ days }) {
   );
 }
 
-// Recall rate by week as a line. Only weeks that have reviews get a point.
-function RecallTrend({ weeks }) {
+// Recall rate as a line, by day or by week. Only buckets that have reviews get a point.
+function RecallTrend({ buckets, unit }) {
   const width = 360;
   const height = 150;
   const pad = { left: 34, right: 18, top: 14, bottom: 26 };
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;
-  const x = (i) => pad.left + (weeks.length === 1 ? innerW / 2 : (i / (weeks.length - 1)) * innerW);
+  const x = (i) => pad.left + (buckets.length === 1 ? innerW / 2 : (i / (buckets.length - 1)) * innerW);
   const y = (rate) => pad.top + (1 - rate) * innerH;
-  const points = weeks
-    .map((week, i) => ({ ...week, i }))
-    .filter((week) => week.rate !== null);
+  const daily = unit === 'days';
+  const points = buckets
+    .map((bucket, i) => ({ ...bucket, i }))
+    .filter((bucket) => bucket.rate !== null);
   const path = points.map((p, k) => `${k === 0 ? 'M' : 'L'}${x(p.i)},${y(p.rate)}`).join(' ');
   const last = points[points.length - 1];
+  const shortMonthDay = (date) => date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  const labelFor = (bucket, i) => {
+    if (i === buckets.length - 1) return daily ? 'Today' : 'This week';
+    return shortMonthDay(daily ? bucket.from : bucket.to);
+  };
+  const tipFor = (p) =>
+    `${daily ? shortDate(p.from) : `${shortDate(p.from)} to ${shortDate(p.to)}`}: ${percent(p.rate)} recalled (${p.recalled} of ${p.total})`;
 
   return (
     <div className="dash-line">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Recall rate by week">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Recall rate by ${daily ? 'day' : 'week'}`}>
         {[0, 0.5, 1].map((tick) => (
           <g key={tick}>
             <line x1={pad.left} x2={width - pad.right} y1={y(tick)} y2={y(tick)} className="grid" />
@@ -205,46 +216,69 @@ function RecallTrend({ weeks }) {
             </text>
           </g>
         ))}
-        {weeks.map((week, i) =>
-          i === 0 || i === weeks.length - 1 || i === Math.floor(weeks.length / 2) ? (
+        {buckets.map((bucket, i) =>
+          i === 0 || i === buckets.length - 1 || i === Math.floor(buckets.length / 2) ? (
             <text key={i} x={x(i)} y={height - 6} textAnchor="middle" className="axis">
-              {i === weeks.length - 1
-                ? 'This week'
-                : week.to.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+              {labelFor(bucket, i)}
             </text>
           ) : null
         )}
         {points.length > 1 && <path d={path} className="line-path" fill="none" />}
         {points.map((p) => {
-          const tip = `${shortDate(p.from)} to ${shortDate(p.to)}: ${percent(p.rate)} recalled (${p.recalled} of ${p.total})`;
+          const tip = tipFor(p);
           return (
             <g key={p.i} className="pt" tabIndex={0} aria-label={tip}>
               <circle cx={x(p.i)} cy={y(p.rate)} r="14" className="pt-hit" />
-              <circle cx={x(p.i)} cy={y(p.rate)} r="5" className="pt-dot" />
+              <circle cx={x(p.i)} cy={y(p.rate)} r={daily ? 4 : 5} className="pt-dot" />
               <text
                 x={Math.min(Math.max(x(p.i), 90), width - 90)}
                 y={Math.max(y(p.rate) - 12, 12)}
                 textAnchor="middle"
                 className="pt-tip"
               >
-                {tip.split(': ')[1]}
+                {tip}
               </text>
             </g>
           );
         })}
         {last && (
-          <text x={x(last.i)} y={y(last.rate) + 20} textAnchor="middle" className="end-label">
+          <text x={x(last.i)} y={last.rate < 0.3 ? y(last.rate) - 12 : y(last.rate) + 20} textAnchor="middle" className="end-label">
             {percent(last.rate)}
           </text>
         )}
       </svg>
       <SrTable
-        caption="Recall rate by week"
-        head={['Week ending', 'Reviews', 'Recalled']}
-        rows={weeks.map((week) => [shortDate(week.to), week.total, week.rate === null ? '-' : percent(week.rate)])}
+        caption={`Recall rate by ${daily ? 'day' : 'week'}`}
+        head={[daily ? 'Day' : 'Week ending', 'Reviews', 'Recalled']}
+        rows={buckets.map((bucket) => [shortDate(bucket.to), bucket.total, bucket.rate === null ? '-' : percent(bucket.rate)])}
       />
     </div>
   );
+}
+
+function TrendToggle({ unit, onChange }) {
+  return (
+    <div className="seg-toggle" role="group" aria-label="Chart range">
+      {[
+        ['days', 'Days'],
+        ['weeks', 'Weeks'],
+      ].map(([id, label]) => (
+        <button key={id} type="button" aria-pressed={unit === id} className={unit === id ? 'on' : ''} onClick={() => onChange(id)}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const TREND_KEY = 'mnemoq-trend-unit';
+
+function readTrendUnit() {
+  try {
+    return localStorage.getItem(TREND_KEY) === 'weeks' ? 'weeks' : 'days';
+  } catch {
+    return 'days';
+  }
 }
 
 function SubjectBars({ subjects }) {
@@ -462,7 +496,19 @@ export default function Dashboard({ cards, reviews, dueCount, showForm, onToggle
   const message = headline(stats);
 
   const recentTotal = data.days.reduce((sum, day) => sum + day.total, 0);
-  const hasTrend = data.weeks.filter((week) => week.rate !== null).length >= 1;
+  const [trendUnit, setTrendUnit] = useState(readTrendUnit);
+  const trendBuckets = trendUnit === 'days' ? data.daily : data.weeks;
+  const hasTrend = trendBuckets.some((bucket) => bucket.rate !== null);
+
+  function changeTrendUnit(unit) {
+    setTrendUnit(unit);
+
+    try {
+      localStorage.setItem(TREND_KEY, unit);
+    } catch {
+      // Not critical if it can't be remembered.
+    }
+  }
 
   return (
     <div className="dash">
@@ -573,11 +619,15 @@ export default function Dashboard({ cards, reviews, dueCount, showForm, onToggle
               )}
             </Panel>
 
-            <Panel title="Recall rate" note="Share of answers you got right, week by week.">
+            <Panel
+              title="Recall rate"
+              note={`Share of answers you got right, ${trendUnit === 'days' ? 'last 30 days' : 'week by week'}.`}
+              action={<TrendToggle unit={trendUnit} onChange={changeTrendUnit} />}
+            >
               {hasTrend ? (
-                <RecallTrend weeks={data.weeks} />
+                <RecallTrend buckets={trendBuckets} unit={trendUnit} />
               ) : (
-                <Empty>Your weekly recall rate appears after your first review session.</Empty>
+                <Empty>{trendUnit === 'days' ? 'Your daily recall rate appears after your first review session.' : 'Your weekly recall rate appears after your first review session.'}</Empty>
               )}
             </Panel>
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { buildChoices, checkTypedAnswer, normalizeText } from '../quiz';
+import { buildChoices, checkTypedAnswer, normalizeText, scheduleNext } from '../quiz';
+import { formatDays } from '../analytics';
 import { subjectAccent } from '../subjects';
 import { RatingGuide } from './Tutorial';
 
@@ -44,11 +45,25 @@ const SUGGESTED = {
 };
 
 const RATINGS = [
-  { id: 'again', label: 'Again', hint: '10 minutes' },
-  { id: 'hard', label: 'Hard', hint: '1 day' },
-  { id: 'good', label: 'Good', hint: '1+ days' },
-  { id: 'easy', label: 'Easy', hint: '3+ days' },
+  { id: 'again', label: 'Again', key: '1' },
+  { id: 'hard', label: 'Hard', key: '2' },
+  { id: 'good', label: 'Good', key: '3' },
+  { id: 'easy', label: 'Easy', key: '4' },
 ];
+
+// "10 minutes", "1 day", "3 weeks": when the card comes back after a rating.
+function comesBack(rating, intervalDays) {
+  const next = scheduleNext(rating, intervalDays);
+
+  return next.intervalDays === 0 ? '10 minutes' : formatDays(next.intervalDays);
+}
+
+// Keys that should never count as "any key".
+const IGNORED_KEYS = new Set(['Tab', 'Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Escape', 'OS', 'ContextMenu']);
+
+// Ignore keys for a moment after the answer appears, so the Enter that checked
+// an answer can't also continue to the next card.
+const KEY_GRACE_MS = 450;
 
 // One card being reviewed. App gives it a new `key` for every card, so all of
 // its state starts fresh each time.
@@ -60,6 +75,9 @@ export default function ReviewCard({ card, cards, position, onRate }) {
   const [result, setResult] = useState(null); // null while still asking
   const [hint, setHint] = useState('');
   const [saving, setSaving] = useState(false);
+  const [manual, setManual] = useState(false);
+  const answeredAt = useRef(0);
+  const savingRef = useRef(false);
 
   const inputRef = useRef(null);
   const resultRef = useRef(null);
@@ -74,6 +92,7 @@ export default function ReviewCard({ card, cards, position, onRate }) {
 
   useEffect(() => {
     if (answered) {
+      answeredAt.current = Date.now();
       resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [answered]);
@@ -136,12 +155,51 @@ export default function ReviewCard({ card, cards, position, onRate }) {
   }
 
   async function rate(rating) {
-    if (saving) return;
+    if (savingRef.current) return;
 
+    savingRef.current = true;
     setSaving(true);
     await onRate(rating, result);
+    savingRef.current = false;
     setSaving(false);
   }
+
+  // After answering: any key accepts the suggested rating and moves on, and
+  // 1-4 pick a rating directly. Once "choose myself" is open, only 1-4 work.
+  useEffect(() => {
+    if (!answered) return undefined;
+
+    function handleKey(event) {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+      if (event.isComposing || IGNORED_KEYS.has(event.key) || /^F\d+$/.test(event.key)) return;
+      if (Date.now() - answeredAt.current < KEY_GRACE_MS) return;
+
+      const direct = RATINGS.find((rating) => rating.key === event.key);
+
+      // On a focused button, link or the "How do these work?" toggle, keys keep
+      // their normal job. Only 1-4 still pick a rating from there.
+      const tag = event.target?.tagName;
+      const onControl = ['BUTTON', 'A', 'SUMMARY', 'INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
+
+      if (onControl && !(direct && tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT')) return;
+
+      if (direct) {
+        event.preventDefault();
+        rate(direct.id);
+        return;
+      }
+
+      if (manual) return;
+
+      event.preventDefault();
+      rate(SUGGESTED[result]);
+    }
+
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+    // rate only reads refs and the props covered here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answered, manual, result, onRate]);
 
   const repeatedOldMistake =
     result === 'wrong' &&
@@ -184,6 +242,7 @@ export default function ReviewCard({ card, cards, position, onRate }) {
   }
 
   const suggested = SUGGESTED[result];
+  const suggestedRating = RATINGS.find((rating) => rating.id === suggested) || RATINGS[2];
 
   return (
     <div
@@ -340,6 +399,11 @@ export default function ReviewCard({ card, cards, position, onRate }) {
                 <p className="eyebrow">CORRECT ANSWER</p>
                 <p>{card.correctAnswer}</p>
               </div>
+
+              <details className="rating-help">
+            <summary>How do these work?</summary>
+            <RatingGuide />
+          </details>
             </>
           )}
 
@@ -350,32 +414,64 @@ export default function ReviewCard({ card, cards, position, onRate }) {
             </div>
           )}
 
-          <p className="rating-prompt">How did that feel?</p>
+          <div className="quick-next">
+            <button
+              type="button"
+              className="primary-button continue-button"
+              disabled={saving}
+              onClick={() => rate(suggestedRating.id)}
+            >
+              <strong>Continue</strong>
+              <span>
+                {suggestedRating.label} · back in {comesBack(suggestedRating.id, card.reviewIntervalDays)}
+              </span>
+            </button>
 
-          <div className="review-rating-buttons">
-            {RATINGS.map((rating) => (
-              <button
-                key={rating.id}
-                type="button"
-                className={`rating-button rating-${rating.id}${
-                  suggested === rating.id ? ' suggested' : ''
-                }`}
-                disabled={saving}
-                onClick={() => rate(rating.id)}
-              >
-                {rating.label}
-                <span>{rating.hint}</span>
-                {suggested === rating.id && (
-                  <em className="suggest-tag">Suggested</em>
-                )}
-              </button>
-            ))}
+            <p className="press-any-key">
+              Press <kbd>any key</kbd> to continue
+            </p>
           </div>
 
-          <details className="rating-help">
-            <summary>How do these work?</summary>
-            <RatingGuide />
-          </details>
+          <button
+            type="button"
+            className="text-link manual-toggle"
+            aria-expanded={manual}
+            onClick={() => setManual((open) => !open)}
+          >
+            {manual ? 'Hide ratings' : 'Rate it yourself'}
+          </button>
+
+          {manual && (
+            <>
+              <p className="rating-prompt">How did that feel?</p>
+
+              <div className="review-rating-buttons">
+                {RATINGS.map((rating) => (
+                  <button
+                    key={rating.id}
+                    type="button"
+                    className={`rating-button rating-${rating.id}${
+                      suggested === rating.id ? ' suggested' : ''
+                    }`}
+                    disabled={saving}
+                    onClick={() => rate(rating.id)}
+                  >
+                    {rating.label}
+                    <span>{comesBack(rating.id, card.reviewIntervalDays)}</span>
+                    <kbd aria-hidden="true">{rating.key}</kbd>
+                    {suggested === rating.id && (
+                      <em className="suggest-tag">Suggested</em>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <details className="rating-help">
+                <summary>How do these work?</summary>
+                <RatingGuide />
+              </details>
+            </>
+          )}
         </div>
       )}
     </div>

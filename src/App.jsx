@@ -9,7 +9,7 @@ import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
 import { SessionStart, SessionSummary } from './components/SessionPanels';
-import { SESSION_SIZE, pickSessionCards } from './quiz';
+import { SESSION_SIZE, pickSessionCards, scheduleNext } from './quiz';
 import QuickAdd from './components/QuickAdd';
 import {
   SUBJECTS,
@@ -348,39 +348,12 @@ async function handleReviewRating(rating, result) {
   }
 
   const now = new Date();
-  let nextReviewAt;
-  let nextIntervalDays = reviewMistake.reviewIntervalDays || 0;
+  const scheduled = scheduleNext(rating, reviewMistake.reviewIntervalDays, now);
 
-  switch (rating) {
-    case 'again':
-      nextIntervalDays = 0;
-      nextReviewAt = new Date(now.getTime() + 10 * 60 * 1000);
-      break;
+  if (!scheduled) return;
 
-    case 'hard':
-      nextIntervalDays = Math.max(1, nextIntervalDays);
-      nextReviewAt = new Date(
-        now.getTime() + nextIntervalDays * 24 * 60 * 60 * 1000
-      );
-      break;
-
-    case 'good':
-      nextIntervalDays = Math.max(1, nextIntervalDays * 2 || 1);
-      nextReviewAt = new Date(
-        now.getTime() + nextIntervalDays * 24 * 60 * 60 * 1000
-      );
-      break;
-
-    case 'easy':
-      nextIntervalDays = Math.max(3, nextIntervalDays * 3 || 3);
-      nextReviewAt = new Date(
-        now.getTime() + nextIntervalDays * 24 * 60 * 60 * 1000
-      );
-      break;
-
-    default:
-      return;
-  }
+  const nextReviewAt = scheduled.nextReviewAt;
+  const nextIntervalDays = scheduled.intervalDays;
 
   const nextReviewAtISO = nextReviewAt.toISOString();
   const nextReviewCount = (reviewMistake.reviewCount || 0) + 1;

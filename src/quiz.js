@@ -159,3 +159,36 @@ export function pickSessionCards(dueCards, size = SESSION_SIZE, rand = Math.rand
 
   return shuffle(overdueFirst.slice(0, size), rand);
 }
+
+// ---- Scheduling ----
+// What happens to a card after a rating. Used for the real save and for the
+// "back in 3 days" hints, so they can never disagree.
+//   again: 10 minutes, hard: same gap (at least 1 day),
+//   good: double the gap (at least 1 day), easy: triple (at least 3 days).
+export function scheduleNext(rating, currentIntervalDays = 0, now = new Date()) {
+  const current = currentIntervalDays || 0;
+  let intervalDays;
+  let delayMs;
+
+  switch (rating) {
+    case 'again':
+      intervalDays = 0;
+      delayMs = 10 * 60 * 1000;
+      break;
+    case 'hard':
+      intervalDays = Math.max(1, current);
+      break;
+    case 'good':
+      intervalDays = Math.max(1, current * 2 || 1);
+      break;
+    case 'easy':
+      intervalDays = Math.max(3, current * 3 || 3);
+      break;
+    default:
+      return null;
+  }
+
+  if (delayMs === undefined) delayMs = intervalDays * 24 * 60 * 60 * 1000;
+
+  return { intervalDays, nextReviewAt: new Date(now.getTime() + delayMs) };
+}

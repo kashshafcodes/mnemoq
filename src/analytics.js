@@ -159,6 +159,18 @@ export function weeklyRecall(reviews, weeks = 8, now = new Date()) {
   return out;
 }
 
+// Recall rate for each of the last `count` days (oldest first). Days with no
+// reviews have rate null.
+export function dailyRecall(reviews, count = 30, now = new Date()) {
+  return lastDays(reviews, count, now).map((day) => ({
+    from: day.date,
+    to: day.date,
+    total: day.total,
+    recalled: day.recalled,
+    rate: day.total > 0 ? day.recalled / day.total : null,
+  }));
+}
+
 // How many cards come due on each of the next `count` days. Overdue cards and
 // brand-new cards count as today.
 export function forecast(cards, count = 7, now = new Date()) {
@@ -374,6 +386,7 @@ export function computeAnalytics(cards, reviews, now = new Date()) {
     stages: STAGES.map((stage) => ({ ...stage, count: stageCounts[stage.id] })),
     days: lastDays(sortedReviews, 14, now),
     weeks: weeklyRecall(sortedReviews, 8, now),
+    daily: dailyRecall(sortedReviews, 30, now),
     upcoming: forecast(cards, 7, now),
     subjects: bySubject(cards, sortedReviews, now),
     journeys,
