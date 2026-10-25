@@ -8,6 +8,7 @@ import MnemoqLogo from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
+import { DashboardIcon, HelpIcon, LibraryIcon, ReviewIcon } from './components/NavIcons';
 import { SessionStart, SessionSummary } from './components/SessionPanels';
 import { SESSION_SIZE, pickSessionCards, scheduleNext } from './quiz';
 import QuickAdd from './components/QuickAdd';
@@ -801,20 +802,24 @@ if (dataError) {
 
         <nav>
           <a className="nav-item active" href="#dashboard">
-            Dashboard
+            <DashboardIcon />
+            <span>Dashboard</span>
           </a>
           <a className="nav-item" href="#mistakes">
-            My library
+            <LibraryIcon />
+            <span>My library</span>
           </a>
           <a className="nav-item" href="#review">
-            Review cards
+            <ReviewIcon />
+            <span>Review cards</span>
           </a>
           <button
             type="button"
             className="nav-item nav-button"
             onClick={() => setShowTutorial(true)}
           >
-            How it works
+            <HelpIcon />
+            <span>How it works</span>
           </button>
         </nav>
 

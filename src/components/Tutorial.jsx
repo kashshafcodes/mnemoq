@@ -61,7 +61,8 @@ const STEPS = [
           In <strong>Review your cards</strong>, you see only the question.
           Answer it before you see the solution: <strong>Choose</strong> from
           options made from your own cards (including the wrong answer you
-          gave before), or <strong>Type</strong> it yourself.
+          gave before; on a computer, press A, B, C or D), or{' '}
+          <strong>Type</strong> it yourself.
         </p>
         <p>
           Not sure? Press <strong>Show answer</strong>. Trying to recall

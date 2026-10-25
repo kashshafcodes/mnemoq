@@ -110,7 +110,8 @@ export default function ReviewCard({ card, cards, position, onRate }) {
     setResult(choices.options[index].isCorrect ? 'correct' : 'wrong');
   }
 
-  // Number keys 1-4 pick an option, as long as nobody is typing in a box.
+  // Letter keys A-D pick an option, as long as nobody is typing in a box.
+  // (After answering, the number keys 1-4 are for rating.)
   useEffect(() => {
     if (mode !== 'choose' || answered) return undefined;
 
@@ -120,9 +121,11 @@ export default function ReviewCard({ card, cards, position, onRate }) {
       const tag = event.target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
-      const index = Number(event.key) - 1;
+      // A, B, C, D (any case) pick the option with that letter.
+      const index = event.key.length === 1 ? LETTERS.indexOf(event.key.toUpperCase()) : -1;
 
-      if (Number.isInteger(index) && index >= 0 && index < choices.options.length) {
+      if (index >= 0 && index < choices.options.length) {
+        event.preventDefault();
         pickOption(index);
       }
     }
@@ -322,6 +325,12 @@ export default function ReviewCard({ card, cards, position, onRate }) {
             );
           })}
         </div>
+      )}
+
+      {mode === 'choose' && !answered && (
+        <p className="choose-hint">
+          Press <kbd>A</kbd> to <kbd>{LETTERS[choices.options.length - 1]}</kbd> to answer
+        </p>
       )}
 
       {mode === 'type' && !answered && (
