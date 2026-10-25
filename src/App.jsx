@@ -110,6 +110,7 @@ useEffect(() => {
           yourAnswer: row.your_answer,
           correctAnswer: row.correct_answer,
           explanation: row.explanation,
+          distractors: Array.isArray(row.distractors) ? row.distractors : [],
           createdAt: row.created_at,
           nextReviewAt: row.next_review_at,
           reviewCount: row.review_count,
@@ -559,6 +560,7 @@ async function addCard({
   correctAnswer,
   yourAnswer,
   explanation,
+  distractors = [],
 }) {
   const userId = session?.user?.id;
 
@@ -582,6 +584,10 @@ async function addCard({
     mastered: false,
   };
 
+  // Only sent when there are some, so normal cards keep saving even before
+  // the optional "distractors" column exists in the database.
+  if (distractors.length > 0) row.distractors = distractors;
+
   const { error } = await supabase.from('mistakes').insert(row);
 
   if (error) {
@@ -598,6 +604,7 @@ async function addCard({
       yourAnswer: row.your_answer,
       correctAnswer: row.correct_answer,
       explanation: row.explanation,
+      distractors: row.distractors || [],
       createdAt: row.created_at,
       nextReviewAt: row.next_review_at,
       reviewCount: row.review_count,

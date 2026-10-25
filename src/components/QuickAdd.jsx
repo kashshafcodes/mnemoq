@@ -10,6 +10,7 @@ import {
   subjectAccent,
   subjectHints,
 } from '../subjects';
+import AiSuggestPanel, { SparkIcon } from './AiSuggestPanel';
 
 const DESTINATION_KEY = 'mnemoq-add-destination';
 const HIDE_WRONG_KEY = 'mnemoq-hide-wrong-answer';
@@ -72,6 +73,9 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
   const [hook, setHook] = useState('');
   const [showHook, setShowHook] = useState(false);
   const [hideWrong, setHideWrong] = useState(readHideWrong);
+
+  // AI suggestions: null when closed, otherwise the card text they were asked for.
+  const [aiInput, setAiInput] = useState(null);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -181,6 +185,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
     setYourAnswer('');
     setHook('');
     setShowHook(false);
+    setAiInput(null);
     setAddedCount((count) => count + 1);
     setAddedTo((labels) => {
       const label = `${destination.subject} › ${destination.category}`;
@@ -189,6 +194,46 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
     setFlash('Saved. Add the next one.');
     questionRef.current?.focus();
     return true;
+  }
+
+  function openAi() {
+    if (!question.trim() || !correctAnswer.trim() || !destination) return;
+
+    setAiInput({
+      question: question.trim(),
+      answer: correctAnswer.trim(),
+      hook: showHook ? hook.trim() : '',
+      subject: destination.subject,
+      category: destination.category,
+    });
+  }
+
+  function useAiHook(text) {
+    setHook(text);
+    setShowHook(true);
+  }
+
+  // Saves one AI-written question as its own card, in the same place.
+  async function addAiCard({ question: aiQuestion, correctAnswer: aiAnswer, distractors }) {
+    const result = await onSave({
+      subject: destination.subject,
+      category: destination.category,
+      question: aiQuestion,
+      correctAnswer: aiAnswer,
+      yourAnswer: '',
+      explanation: '',
+      distractors,
+    });
+
+    if (!result?.error) {
+      setAddedCount((count) => count + 1);
+      setAddedTo((labels) => {
+        const label = `${destination.subject} › ${destination.category}`;
+        return labels.includes(label) ? labels : [...labels, label];
+      });
+    }
+
+    return result;
   }
 
   function chooseCategory(category) {
@@ -592,6 +637,28 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
             {hideWrong ? '+ Show "your answer" box' : 'Hide "your answer" box'}
           </button>
         </div>
+
+        {!aiInput && (
+          <button
+            type="button"
+            className="qa-ai-button"
+            disabled={!question.trim() || !correctAnswer.trim()}
+            onClick={openAi}
+          >
+            <SparkIcon /> Suggest with AI
+            <span>memory hook, concept and similar questions</span>
+          </button>
+        )}
+
+        {aiInput && (
+          <AiSuggestPanel
+            input={aiInput}
+            hookIsEmpty={!hook.trim()}
+            onUseHook={useAiHook}
+            onAddCard={addAiCard}
+            onClose={() => setAiInput(null)}
+          />
+        )}
 
         {error && (
           <p className="qa-message qa-error" role="alert">

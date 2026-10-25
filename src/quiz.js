@@ -80,6 +80,7 @@ function shuffle(list, rand) {
 //
 // Wrong choices come from the person's own library, no AI needed:
 //   1. the wrong answer they originally gave (the mistake they really made),
+//      then any wrong options saved with the card (AI-written questions),
 //   2. correct answers of other cards in the same subject and category,
 //   3. then the same subject, then anything else.
 // Within each group, answers of a similar length are preferred so the right
@@ -97,6 +98,17 @@ export function buildChoices(card, allCards, rand = Math.random, maxWrong = 3) {
   if (ownMistake && !seen.has(normalizeText(ownMistake))) {
     wrong.push(ownMistake);
     seen.add(normalizeText(ownMistake));
+  }
+
+  // Wrong options that came with the card itself (written by the AI helper).
+  for (const option of Array.isArray(card.distractors) ? card.distractors : []) {
+    const text = String(option || '').trim();
+    const key = normalizeText(text);
+
+    if (!text || seen.has(key) || wrong.length >= maxWrong) continue;
+
+    wrong.push(text);
+    seen.add(key);
   }
 
   const others = allCards.filter((other) => other.id !== card.id);
