@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { supabase } from './supabaseClient';
 import { LanguageToggle, useI18n } from './i18n';
+import { trackEvent } from "./googleAnalytics";
+
 
 export default function Auth({ onLogin }) {
   const { t } = useI18n();
@@ -25,6 +27,7 @@ async function handleSubmit(event) {
       });
 
       if (error) throw error;
+      trackEvent("sign_up", { method: "email" });
 
       if (data.session) {
         setMessage('Account created successfully!');
@@ -40,6 +43,7 @@ async function handleSubmit(event) {
       });
 
       if (error) throw error;
+      trackEvent("login", { method: "email" });
 
       setMessage('Login successful!');
     }

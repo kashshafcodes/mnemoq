@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { supabase } from './supabaseClient';
 import Auth from './Auth';
+import { trackEvent } from "./googleAnalytics";
+
 
 import MnemoqLogo from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
@@ -434,6 +436,9 @@ async function handleReviewRating(rating, result) {
     if (manualReviewId !== null) {
       setManualReviewId(null);
     } else if (reviewSession) {
+      if (reviewSession.results.length + 1 >= reviewSession.ids.length) {
+  trackEvent("review_completed");
+}
       setReviewSession((current) =>
         current
           ? {
@@ -620,6 +625,7 @@ async function addCard({
     console.error('Could not save card:', error.message);
     return { error: error.message };
   }
+  trackEvent("question_saved");
 
   setMistakes((current) => [
     {
@@ -776,6 +782,8 @@ function startSession() {
   const picked = pickSessionCards(scopedDue, SESSION_SIZE);
 
   if (picked.length === 0) return;
+
+  trackEvent("review_started");
 
   setManualReviewId(null);
   setReviewSession({ ids: picked.map((card) => card.id), results: [] });
