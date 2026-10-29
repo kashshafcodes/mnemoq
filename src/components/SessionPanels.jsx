@@ -1,7 +1,41 @@
 import { subjectAccent } from '../subjects';
 
+// One tab per subject, plus "All". Each shows how many cards are due.
+// Hidden when there is only one subject, since there is nothing to choose.
+export function ReviewSubjectTabs({ tabs, active, totalDue, onChange }) {
+  if (tabs.length < 2) return null;
+
+  return (
+    <div className="review-tabs" role="group" aria-label="Review subject">
+      <button
+        type="button"
+        className="review-tab"
+        aria-pressed={active === null}
+        onClick={() => onChange(null)}
+      >
+        All
+        <span className="review-tab-count">{totalDue}</span>
+      </button>
+      {tabs.map((tab) => (
+        <button
+          key={tab.name}
+          type="button"
+          className="review-tab"
+          style={{ '--accent': subjectAccent(tab.name) }}
+          aria-pressed={active === tab.name}
+          onClick={() => onChange(tab.name)}
+        >
+          <span className="subject-dot" aria-hidden="true" />
+          {tab.name}
+          <span className="review-tab-count">{tab.due}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // Shown before a session starts: how many cards are due and what a session is.
-export function SessionStart({ dueCards, sessionSize, onStart }) {
+export function SessionStart({ dueCards, subject, sessionSize, onStart }) {
   const count = Math.min(sessionSize, dueCards.length);
   const subjects = [];
 
@@ -11,16 +45,17 @@ export function SessionStart({ dueCards, sessionSize, onStart }) {
 
   return (
     <div className="session-start">
-      <p className="eyebrow">SHORT SESSION</p>
+      <p className="eyebrow">{subject ? subject.toUpperCase() : 'SHORT SESSION'}</p>
       <h3>
         {count} card{count === 1 ? '' : 's'} ready
       </h3>
       <p>
-        A quick round, mixed from your subjects. It takes a few minutes, and
-        you get a summary at the end.
+        {subject
+          ? `A quick round of ${subject} only. It takes a few minutes, and you get a summary at the end.`
+          : 'A quick round, mixed from your subjects. It takes a few minutes, and you get a summary at the end.'}
       </p>
 
-      {subjects.length > 1 && (
+      {!subject && subjects.length > 1 && (
         <p className="session-subjects">
           {subjects.map((subject) => (
             <span

@@ -2683,3 +2683,49 @@ html[lang="bn"] textarea {
 }
 .pilot-card .primary-button:disabled { opacity: 0.45; cursor: not-allowed; }
 .pilot-card .pilot-link:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Review: one tab per subject */
+.review-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.review-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #334155;
+  border-color: color-mix(in srgb, var(--accent, #3b82f6) 45%, #334155);
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.review-tab:hover,
+.review-tab:focus-visible {
+  border-color: var(--accent, #3b82f6);
+  outline: none;
+}
+
+.review-tab[aria-pressed="true"] {
+  border-color: var(--accent, #3b82f6);
+  background: rgba(59, 130, 246, 0.16);
+  background: color-mix(in srgb, var(--accent, #3b82f6) 20%, transparent);
+  color: #f8fafc;
+}
+
+.review-tab-count {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+  font-size: 0.78rem;
+  text-align: center;
+}

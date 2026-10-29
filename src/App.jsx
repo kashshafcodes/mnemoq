@@ -9,7 +9,7 @@ import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
 import { DashboardIcon, HelpIcon, LibraryIcon, ReviewIcon } from './components/NavIcons';
-import { SessionStart, SessionSummary } from './components/SessionPanels';
+import { ReviewSubjectTabs, SessionStart, SessionSummary } from './components/SessionPanels';
 import { SESSION_SIZE, pickSessionCards, scheduleNext } from './quiz';
 import QuickAdd from './components/QuickAdd';
 import Pilot, { RecoveryPlan } from './components/Pilot';
@@ -76,6 +76,8 @@ const [authLoading, setAuthLoading] = useState(true);
   const [reviewLog, setReviewLog] = useState([]);
   const historySavingOk = useRef(true);
   const [manualReviewId, setManualReviewId] = useState(null);
+  // Which subject the review section is showing (null = all subjects mixed).
+  const [reviewSubject, setReviewSubject] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -748,13 +750,41 @@ const nextSessionId = reviewSession
 const sessionRunning = manualReviewId === null && nextSessionId !== undefined;
 const sessionFinished = manualReviewId === null && reviewSession !== null && !sessionRunning;
 
+// ---- Review sections per subject ----
+// One tab per subject that has cards, each with its own due count. A subject
+// that no longer has any cards falls back to "all subjects".
+const cardSubject = (mistake) => mistake.subject || DEFAULT_SUBJECT;
+
+const reviewTabs = getSubjectNames(mistakes)
+  .map((name) => ({
+    name,
+    total: mistakes.filter((mistake) => sameName(cardSubject(mistake), name)).length,
+    due: dueMistakes.filter((mistake) => sameName(cardSubject(mistake), name)).length,
+  }))
+  .filter((tab) => tab.total > 0);
+
+const activeReviewSubject =
+  reviewSubject && reviewTabs.some((tab) => sameName(tab.name, reviewSubject))
+    ? reviewSubject
+    : null;
+
+const scopedDue = activeReviewSubject
+  ? dueMistakes.filter((mistake) => sameName(cardSubject(mistake), activeReviewSubject))
+  : dueMistakes;
+
 function startSession() {
-  const picked = pickSessionCards(dueMistakes, SESSION_SIZE);
+  const picked = pickSessionCards(scopedDue, SESSION_SIZE);
 
   if (picked.length === 0) return;
 
   setManualReviewId(null);
   setReviewSession({ ids: picked.map((card) => card.id), results: [] });
+}
+
+function chooseReviewSubject(name) {
+  setReviewSubject(name);
+  setReviewSession(null);
+  setManualReviewId(null);
 }
 
 function endSession() {
@@ -767,7 +797,19 @@ function endSession() {
 }
 
 function goToReview() {
-  if (!sessionRunning) startSession();
+  if (!sessionRunning) {
+    // Coming from the dashboard or "Review now" after adding: if the chosen
+    // subject has nothing due, review everything that is due instead.
+    if (scopedDue.length === 0 && dueMistakes.length > 0) {
+      const picked = pickSessionCards(dueMistakes, SESSION_SIZE);
+
+      setReviewSubject(null);
+      setManualReviewId(null);
+      setReviewSession({ ids: picked.map((card) => card.id), results: [] });
+    } else {
+      startSession();
+    }
+  }
 
   requestAnimationFrame(() => {
     document.getElementById('review')?.scrollIntoView({
@@ -1262,12 +1304,22 @@ if (dataError) {
     </div>
   </div>
 
-  
+  {!reviewMistake && !sessionFinished && (
+    <ReviewSubjectTabs
+      tabs={reviewTabs}
+      active={activeReviewSubject}
+      totalDue={dueMistakes.length}
+      onChange={chooseReviewSubject}
+    />
+  )}
+
 {reviewMistake ? (
   <>
     {sessionRunning && (
       <div className="session-bar">
-        <span>Short session</span>
+        <span>
+          {activeReviewSubject ? `${activeReviewSubject} session` : 'Short session'}
+        </span>
         <button type="button" className="text-link" onClick={endSession}>
           End session
         </button>
@@ -1288,23 +1340,35 @@ if (dataError) {
   <SessionSummary
     results={reviewSession.results}
     cards={mistakes}
-    moreDue={dueMistakes.length}
+    moreDue={scopedDue.length}
     onAgain={startSession}
     onDone={() => setReviewSession(null)}
   />
-) : dueMistakes.length > 0 ? (
+) : scopedDue.length > 0 ? (
   <SessionStart
-    dueCards={dueMistakes}
+    dueCards={scopedDue}
+    subject={activeReviewSubject}
     sessionSize={SESSION_SIZE}
     onStart={startSession}
   />
 ) : (
   <div className="review-empty-state">
-    <h3>You're all caught up!</h3>
-    <p>No cards are due for review right now.</p>
+    <h3>
+      {activeReviewSubject
+        ? `${activeReviewSubject} is all caught up!`
+        : "You're all caught up!"}
+    </h3>
     <p>
-      You have {mistakes.length} saved card{mistakes.length === 1 ? '' : 's'} in your library.
-      They'll return to your review queue when they're due.
+      {activeReviewSubject
+        ? `No ${activeReviewSubject} cards are due right now.`
+        : 'No cards are due for review right now.'}
+    </p>
+    <p>
+      {activeReviewSubject
+        ? dueMistakes.length > 0
+          ? 'Pick another subject above to keep going.'
+          : "They'll return to your review queue when they're due."
+        : `You have ${mistakes.length} saved card${mistakes.length === 1 ? '' : 's'} in your library. They'll return to your review queue when they're due.`}
     </p>
   </div>
 )}
