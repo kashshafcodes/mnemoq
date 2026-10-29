@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  CUSTOM_DEFAULT_CATEGORY,
   DEFAULT_SUBJECT,
   canonicalCategory,
   canonicalSubject,
@@ -11,6 +12,10 @@ import {
   subjectHints,
 } from '../subjects';
 import AiSuggestPanel, { SparkIcon } from './AiSuggestPanel';
+import { csvToCards } from '../csvImport';
+
+// Keeps a bulk import quick; cards are saved one after another.
+const MAX_CSV_CARDS = 300;
 
 const DESTINATION_KEY = 'mnemoq-add-destination';
 const HIDE_WRONG_KEY = 'mnemoq-hide-wrong-answer';
@@ -96,6 +101,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
   const answerRef = useRef(null);
   const wrongRef = useRef(null);
   const hookRef = useRef(null);
+  const csvRef = useRef(null);
 
   const activeStep = step === 'entry' && !destination ? 'subject' : step;
 
@@ -234,6 +240,88 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
     }
 
     return result;
+  }
+
+  // Bulk add from a CSV file. Each row goes to its own subject/category when
+  // the file has those columns, otherwise to the current destination.
+  async function handleCsvFile(event) {
+    const file = event.target.files?.[0];
+
+    event.target.value = ''; // lets the same file be chosen again later
+
+    if (!file || !destination || saving) return;
+
+    setSaving(true);
+    setError('');
+    setFlash('');
+
+    try {
+      const { cards: rows, skipped } = csvToCards(await file.text());
+
+      if (rows.length === 0) {
+        setError('No complete rows found. Each row needs a question and an answer.');
+        return;
+      }
+
+      if (rows.length > MAX_CSV_CARDS) {
+        setError(`That file has ${rows.length} cards. Please import up to ${MAX_CSV_CARDS} at a time.`);
+        return;
+      }
+
+      let added = 0;
+      let failure = '';
+
+      for (const row of rows) {
+        const rowSubject = cleanName(row.subject);
+        const rowCategory = cleanName(row.category);
+        const useRowSubject = rowSubject && !isReservedName(rowSubject);
+
+        const subject = useRowSubject
+          ? canonicalSubject(rowSubject, cards)
+          : destination.subject;
+
+        let category = destination.category;
+
+        if (rowCategory && !isReservedName(rowCategory)) {
+          category = canonicalCategory(subject, rowCategory, cards);
+        } else if (useRowSubject) {
+          category = CUSTOM_DEFAULT_CATEGORY;
+        }
+
+        const result = await onSave({
+          subject,
+          category,
+          question: row.question,
+          correctAnswer: row.correctAnswer,
+          yourAnswer: row.yourAnswer,
+          explanation: row.explanation,
+        });
+
+        if (result?.error) {
+          failure = result.error;
+          break;
+        }
+
+        added++;
+        const label = `${subject} › ${category}`;
+        setAddedTo((labels) => (labels.includes(label) ? labels : [...labels, label]));
+      }
+
+      if (added > 0) setAddedCount((count) => count + added);
+
+      if (failure) {
+        setError(`Added ${added} of ${rows.length}, then stopped: ${failure}`);
+      } else {
+        setFlash(
+          `Imported ${added} card${added === 1 ? '' : 's'}` +
+            (skipped ? ` (skipped ${skipped} incomplete row${skipped === 1 ? '' : 's'}).` : '.')
+        );
+      }
+    } catch (csvError) {
+      setError(csvError.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function chooseCategory(category) {
@@ -644,6 +732,22 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
           >
             {hideWrong ? '+ Show "your answer" box' : 'Hide "your answer" box'}
           </button>
+          <button
+            type="button"
+            className="text-link"
+            disabled={saving}
+            title="Columns: question, answer (required); wrong, hook, subject, category (optional)"
+            onClick={() => csvRef.current?.click()}
+          >
+            Import CSV
+          </button>
+          <input
+            ref={csvRef}
+            type="file"
+            accept=".csv,text/csv"
+            hidden
+            onChange={handleCsvFile}
+          />
         </div>
 
         {!aiInput && (
