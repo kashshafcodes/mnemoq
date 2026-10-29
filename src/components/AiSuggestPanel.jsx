@@ -1,46 +1,24 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { requestSuggestions } from '../aiSuggest';
 
 // "Suggest with AI" for one card: a memory-hook draft, the concept being
 // tested, and similar multiple-choice questions. Everything is a draft. Nothing
 // is saved unless the person taps Use or Add.
 
-// A "memory trace": three linked nodes bending like a hook, with a small spark
-// on the last one. Gradient-filled so it reads as its own mark, not a stock
-// sparkle.
 export function SparkIcon() {
-  const gradId = useId();
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id={gradId} x1="3" y1="21" x2="21" y2="3" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#38bdf8" />
-          <stop offset="1" stopColor="#c084fc" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M5.5 17.5 11 12.5l4.5 2 3-6"
-        stroke={`url(#${gradId})`}
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="5.5" cy="17.5" r="2.2" fill={`url(#${gradId})`} />
-      <circle cx="11" cy="12.5" r="1.8" fill={`url(#${gradId})`} />
-      <circle cx="15.5" cy="14.5" r="1.4" fill={`url(#${gradId})`} />
-      <path
-        d="M18.5 2.5v6M15.5 5.5h6"
-        stroke={`url(#${gradId})`}
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <path d="M12 3.5 13.9 9l5.6 1.9-5.6 1.9L12 18.5l-1.9-5.7L4.5 10.9 10.1 9 12 3.5Z" />
+      <path d="M19 3v3M17.5 4.5h3" />
     </svg>
   );
 }
 
 export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCard, onClose }) {
   const [status, setStatus] = useState('loading'); // loading | done | error
-  const [data, setData] = useState(null);
+  // Parts arrive one at a time: the hook first, then the questions.
+  const [data, setData] = useState({ concept: '', hook: '', similar: [], remaining: null, missing: [] });
+  const [got, setGot] = useState({ hook: false, similar: false });
   const [error, setError] = useState(null);
   const [added, setAdded] = useState(() => new Set());
   const [busyIndex, setBusyIndex] = useState(null);
@@ -51,10 +29,23 @@ export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCar
   async function run() {
     setStatus('loading');
     setError(null);
+    setGot({ hook: false, similar: false });
+    setData({ concept: '', hook: '', similar: [], remaining: null, missing: [] });
+    setAdded(new Set());
+    setHookUsed(false);
 
     try {
-      const result = await requestSuggestions(input);
-      setData(result);
+      const final = await requestSuggestions(input, (part) => {
+        if (part.type === 'hook') {
+          setData((current) => ({ ...current, concept: part.concept, hook: part.hook }));
+          setGot((current) => ({ ...current, hook: true }));
+        } else if (part.type === 'similar') {
+          setData((current) => ({ ...current, similar: part.similar }));
+          setGot((current) => ({ ...current, similar: true }));
+        }
+      });
+
+      setData((current) => ({ ...current, remaining: final.remaining, missing: final.missing || [] }));
       setStatus('done');
     } catch (caught) {
       setError({ message: caught?.message || 'Something went wrong.', code: caught?.code });
@@ -119,7 +110,7 @@ export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCar
         </button>
       </header>
 
-      {status === 'loading' && (
+      {status === 'loading' && !got.hook && !got.similar && (
         <p className="ai-loading" role="status">
           <span className="ai-dots" aria-hidden="true">
             <i /><i /><i />
@@ -139,9 +130,15 @@ export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCar
         </div>
       )}
 
-      {status === 'done' && (
+      {(status === 'done' || got.hook || got.similar) && (
         <>
           <p className="ai-note">AI draft. It can be wrong, so check it before you save.</p>
+
+          {!input.wrong && got.hook && (
+            <p className="ai-tip">
+              Tip: next time add what you answered. The hook can then explain why it was not that.
+            </p>
+          )}
 
           {data.concept && (
             <p className="ai-concept">
@@ -167,6 +164,15 @@ export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCar
             </div>
           )}
 
+          {status === 'loading' && got.hook && !got.similar && (
+            <p className="ai-loading" role="status">
+              <span className="ai-dots" aria-hidden="true">
+                <i /><i /><i />
+              </span>
+              Writing practice questions...
+            </p>
+          )}
+
           {similar.length > 0 && (
             <div className="ai-block">
               <div className="ai-block-head">
@@ -181,6 +187,7 @@ export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCar
               <ul className="ai-similar">
                 {similar.map((item, index) => (
                   <li key={item.question} className={added.has(index) ? 'is-added' : ''}>
+                    <p className="ai-kind">{item.kind === 'related' ? 'Related topic' : 'Same idea, new angle'}</p>
                     <p className="ai-q">{item.question}</p>
                     <p className="ai-answer">
                       <span aria-hidden="true">✓</span> {item.correctAnswer}
@@ -199,6 +206,13 @@ export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCar
               </ul>
               {addError && <p className="qa-message qa-error" role="alert">{addError}</p>}
             </div>
+          )}
+
+          {status === 'done' && data.missing.length > 0 && (
+            <p className="ai-note">
+              {data.missing.includes('hook') ? 'The memory hook' : 'The practice questions'} could not be written this
+              time. Tap Suggest again to retry.
+            </p>
           )}
 
           {typeof data.remaining === 'number' && (

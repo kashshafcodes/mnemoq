@@ -44,114 +44,337 @@ function formatDate(date, locale) {
 
 // ---------------------------------------------------------------------------
 // Step 2: the forgetting-curve toy
+//
+// It plays by itself first (a short demo with reviews on days 1, 3 and 7), then
+// the person can try it: time keeps running and they just tap "Review".
 // ---------------------------------------------------------------------------
 const CHART = { w: 560, h: 240, left: 44, right: 12, top: 12, bottom: 34, days: 14 };
+const DEMO_REVIEWS = [1, 3, 7];
+const PLAY_SPEED = 0.8;
+// The demo is a short script. Each beat sets a caption, runs time forward to a
+// day (at `speed` days per second), optionally reviews there, then holds so the
+// caption can be read. Nothing moves while a caption is being read.
+const BEATS = [
+  { cap: 'd1', to: 0, speed: 1, hold: 3800 },
+  { cap: 'd2', to: 1, speed: 0.4, after: 'd3', hold: 4600 },
+  { cap: 'd4', to: 1, speed: 1, review: true, hold: 4200 },
+  { cap: 'd5', to: 3, speed: 0.45, review: true, after: 'd6', hold: 4600 },
+  { cap: 'd7', to: 7, speed: 0.6, review: true, after: 'd8', hold: 5200 },
+  { cap: 'd9', to: 14, speed: 0.9, hold: 0 },
+];
+const MIN_GAP_DAYS = 1; // a review button cooldown, so tapping repeatedly is not the whole game
+const NUDGE_BELOW = 60; // "good moment to review" under this percentage
+
+function prefersReducedMotion() {
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+}
 
 function CurveToy() {
   const { t } = useI18n();
-  const [day, setDay] = useState(0);
-  const [reviews, setReviews] = useState([]);
+  const reduced = useMemo(prefersReducedMotion, []);
+  // demo (playing by itself) -> demoDone -> play (their turn) -> ended
+  const [mode, setMode] = useState(reduced ? 'demoDone' : 'intro');
+  const [time, setTime] = useState(reduced ? CHART.days : 0);
+  const [reviews, setReviews] = useState(reduced ? DEMO_REVIEWS : []);
+  const [running, setRunning] = useState(false);
+  const [demoCap, setDemoCap] = useState('d1');
+  const beatRef = useRef({ i: 0, entered: false, arrived: false, holdUntil: 0, holdLeft: 0 });
+  const timeRef = useRef(reduced ? CHART.days : 0);
+  const reviewsRef = useRef(reduced ? DEMO_REVIEWS : []);
 
   const x = (d) => CHART.left + (d / CHART.days) * (CHART.w - CHART.left - CHART.right);
   const y = (pct) => CHART.top + ((100 - pct) / 100) * (CHART.h - CHART.top - CHART.bottom);
 
+  function setAll(nextTime, nextReviews) {
+    timeRef.current = nextTime;
+    reviewsRef.current = nextReviews;
+    setTime(nextTime);
+    setReviews(nextReviews);
+  }
+
+  // The clock. One loop for the scripted demo and for the person's turn.
+  useEffect(() => {
+    if (!running) return undefined;
+
+    const beat = beatRef.current;
+    let frameId;
+    let last = performance.now();
+
+    // Resuming after a pause: give the current caption the time it had left.
+    if (mode === 'demo' && beat.arrived) beat.holdUntil = last + beat.holdLeft;
+
+    function frame(now) {
+      const dt = Math.min(0.1, (now - last) / 1000);
+
+      last = now;
+
+      if (mode === 'demo') {
+        const b = BEATS[beat.i];
+
+        if (!beat.entered) {
+          setDemoCap(b.cap);
+          beat.entered = true;
+        }
+
+        if (!beat.arrived) {
+          if (timeRef.current < b.to) {
+            timeRef.current = Math.min(b.to, timeRef.current + dt * b.speed);
+            setTime(timeRef.current);
+          }
+
+          if (timeRef.current >= b.to) {
+            beat.arrived = true;
+
+            if (b.review && !reviewsRef.current.includes(b.to)) {
+              reviewsRef.current = [...reviewsRef.current, b.to];
+              setReviews(reviewsRef.current);
+            }
+
+            if (b.after) setDemoCap(b.after);
+            beat.holdUntil = now + b.hold;
+          }
+        } else if (now >= beat.holdUntil) {
+          beat.i += 1;
+          beat.entered = false;
+          beat.arrived = false;
+
+          if (beat.i >= BEATS.length) {
+            setRunning(false);
+            setMode('demoDone');
+            return;
+          }
+        }
+
+        frameId = requestAnimationFrame(frame);
+        return;
+      }
+
+      // Their turn: time just keeps flowing.
+      const next = timeRef.current + dt * PLAY_SPEED;
+
+      if (next >= CHART.days) {
+        timeRef.current = CHART.days;
+        setTime(CHART.days);
+        setRunning(false);
+        setMode('ended');
+        return;
+      }
+
+      timeRef.current = next;
+      setTime(next);
+      frameId = requestAnimationFrame(frame);
+    }
+
+    frameId = requestAnimationFrame(frame);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      beat.holdLeft = Math.max(0, beat.holdUntil - performance.now());
+    };
+  }, [running, mode]);
+
+  function startDemo() {
+    beatRef.current = { i: 0, entered: false, arrived: false, holdUntil: 0, holdLeft: 0 };
+    setDemoCap('d1');
+    setAll(0, []);
+    setMode('demo');
+    setRunning(true);
+  }
+
+  function startPlay() {
+    setAll(0, []);
+    setMode('play');
+    setRunning(!reduced);
+  }
+
+  function reviewNow() {
+    const day = Math.round(timeRef.current * 10) / 10;
+    const lastReview = reviewsRef.current[reviewsRef.current.length - 1];
+
+    if (day < 0.3 || (lastReview !== undefined && day - lastReview < MIN_GAP_DAYS)) return;
+
+    setAll(timeRef.current, [...reviewsRef.current, day]);
+  }
+
+  function scrub(value) {
+    setRunning(false);
+    setAll(value, reviewsRef.current.filter((day) => day <= value));
+  }
+
+  const withNow = retentionAt(time, reviews);
+  const plainNow = retentionAt(time, []);
+
   const paths = useMemo(() => {
     function build(reviewDays) {
       const points = [];
+      const stop = Math.round(time * 10) / 10;
 
-      for (let d = 0; d <= CHART.days + 0.0001; d += 0.1) {
+      for (let d = 0; d <= stop + 0.0001; d += 0.1) {
         const rounded = Math.round(d * 10) / 10;
-        // Draw the reset as a vertical jump at the review moment.
-        if (reviewDays.includes(rounded)) points.push([rounded, retentionAt(rounded - 0.0001, reviewDays.filter((r) => r < rounded))]);
+
+        // Draw each reset as a vertical jump at the review moment.
+        if (reviewDays.includes(rounded)) {
+          points.push([rounded, retentionAt(rounded - 0.0001, reviewDays.filter((r) => r < rounded))]);
+        }
+
         points.push([rounded, retentionAt(rounded, reviewDays)]);
       }
 
-      return points.map(([d, pct], i) => `${i === 0 ? 'M' : 'L'}${x(d).toFixed(1)},${y(pct).toFixed(1)}`).join(' ');
+      if (time > stop) points.push([time, retentionAt(time, reviewDays)]);
+
+      return points
+        .map(([d, pct], i) => `${i === 0 ? 'M' : 'L'}${x(d).toFixed(1)},${y(pct).toFixed(1)}`)
+        .join(' ');
     }
 
     return { plain: build([]), withReviews: build(reviews) };
-  }, [reviews]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [time, reviews]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const nowPct = retentionAt(day, reviews);
+  // What the caption says. It changes only at the key moments, so a screen
+  // reader is not interrupted on every frame.
+  const pct = (value) => (value < 1 ? '<1' : Math.round(value));
+  const vars = { with: pct(withNow), without: pct(plainNow), n: reviews.length };
+  let caption;
+
+  if (mode === 'demo' || mode === 'demoDone') {
+    caption = mode === 'demoDone' ? t('pilot.curve.s5', vars) : t(`pilot.curve.${demoCap}`);
+  } else if (mode === 'ended') {
+    caption =
+      reviews.length === 0
+        ? t('pilot.curve.endedNone', vars)
+        : t(reviews.length === 1 ? 'pilot.curve.endedOne' : 'pilot.curve.endedSome', vars);
+  } else if (!running && time > 0 && !reduced) {
+    caption = t('pilot.curve.paused');
+  } else if (running && withNow < NUDGE_BELOW) {
+    caption = t('pilot.curve.playNudge');
+  } else {
+    caption = t('pilot.curve.play1');
+  }
+
+  const lastReviewDay = reviews[reviews.length - 1];
+  const cooling = lastReviewDay !== undefined && time - lastReviewDay < MIN_GAP_DAYS;
+  const nudge = mode === 'play' && withNow < NUDGE_BELOW;
+  const demoLike = mode === 'demo' || mode === 'demoDone';
+  const showExplain = mode === 'intro' || (reduced && mode === 'demoDone');
 
   return (
     <div className="pilot-curve">
-      <svg
-        viewBox={`0 0 ${CHART.w} ${CHART.h}`}
-        role="img"
-        aria-label={t('pilot.curve.title')}
-        className="pilot-curve-svg"
-      >
+      {showExplain && (
+        <div className="pilot-explain">
+          <p>{t('pilot.curve.introWho')}</p>
+          <p>{t('pilot.curve.introFix')}</p>
+          {mode === 'intro' && (
+            <button type="button" className="primary-button" onClick={startDemo}>
+              {t('pilot.curve.introGo')}
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="pilot-readout" aria-hidden="true">
+        <span className="pilot-readout-item">
+          <i className="pilot-swatch pilot-swatch-plain" /> {t('pilot.curve.noReview')}
+          <strong>{pct(plainNow)}%</strong>
+        </span>
+        <span className="pilot-readout-item">
+          <i className="pilot-swatch pilot-swatch-review" /> {t('pilot.curve.withReview')}
+          <strong className="pilot-readout-good">{pct(withNow)}%</strong>
+        </span>
+        <span className="pilot-readout-day">{t('pilot.curve.day', { n: Math.floor(time) })}</span>
+      </div>
+
+      <svg viewBox={`0 0 ${CHART.w} ${CHART.h}`} role="img" aria-label={t('pilot.curve.title')} className="pilot-curve-svg">
         {[0, 50, 100].map((pct) => (
           <g key={pct}>
             <line x1={CHART.left} x2={CHART.w - CHART.right} y1={y(pct)} y2={y(pct)} className="pilot-grid" />
-            <text x={CHART.left - 6} y={y(pct) + 4} textAnchor="end" className="pilot-axis">
-              {pct}%
-            </text>
+            <text x={CHART.left - 6} y={y(pct) + 4} textAnchor="end" className="pilot-axis">{pct}%</text>
           </g>
         ))}
         {[0, 7, 14].map((d) => (
-          <text key={d} x={x(d)} y={CHART.h - 12} textAnchor="middle" className="pilot-axis">
-            {d}
-          </text>
+          <text key={d} x={x(d)} y={CHART.h - 12} textAnchor="middle" className="pilot-axis">{d}</text>
         ))}
-        <text x={(CHART.left + CHART.w - CHART.right) / 2} y={CHART.h - 0} textAnchor="middle" className="pilot-axis">
+        <text x={(CHART.left + CHART.w - CHART.right) / 2} y={CHART.h} textAnchor="middle" className="pilot-axis">
           {t('pilot.curve.axisX')}
         </text>
 
         <path d={paths.plain} className="pilot-line pilot-line-plain" />
         <path d={paths.withReviews} className="pilot-line pilot-line-review" />
 
-        {reviews.map((r) => (
-          <circle key={r} cx={x(r)} cy={y(100)} r="4" className="pilot-review-dot" />
+        {reviews.filter((day) => day <= time).map((day) => (
+          <g key={day}>
+            <circle cx={x(day)} cy={y(100)} r="4" className="pilot-review-dot" />
+            <circle cx={x(day)} cy={y(100)} r="4" className="pilot-ripple" />
+          </g>
         ))}
 
-        <line x1={x(day)} x2={x(day)} y1={CHART.top} y2={CHART.h - CHART.bottom} className="pilot-now" />
-        <circle cx={x(day)} cy={y(nowPct)} r="5" className="pilot-now-dot" />
+        <circle cx={x(time)} cy={y(plainNow)} r="4" className="pilot-now-dot pilot-now-plain" />
+        <circle cx={x(time)} cy={y(withNow)} r="5" className="pilot-now-dot" />
       </svg>
 
-      <div className="pilot-legend">
-        <span><i className="pilot-swatch pilot-swatch-plain" /> {t('pilot.curve.noReview')}</span>
-        <span><i className="pilot-swatch pilot-swatch-review" /> {t('pilot.curve.withReview')}</span>
-      </div>
+      {mode !== 'intro' && (
+      <p className={`pilot-caption${nudge ? ' pilot-caption-nudge' : ''}`} role="status" aria-live="polite">
+        {demoLike && <span className="pilot-badge-demo">{t('pilot.curve.demo')}</span>}
+        {caption}
+      </p>
+      )}
 
-      <label className="pilot-slider-label" htmlFor="pilot-day">
-        {t('pilot.curve.slider')}: <strong>{t('pilot.curve.day', { n: day })}</strong>
-        {' · '}
-        {t('pilot.curve.axisY')}: <strong>{Math.round(nowPct)}%</strong>
-      </label>
-      <input
-        id="pilot-day"
-        type="range"
-        min="0"
-        max={CHART.days}
-        step="1"
-        value={day}
-        onChange={(event) => setDay(Number(event.target.value))}
-        className="pilot-slider"
-      />
+      {mode === 'demo' && (
+        <div className="pilot-curve-actions">
+          <button type="button" className="pilot-link" onClick={() => setRunning((current) => !current)}>
+            {running ? t('pilot.curve.pause') : t('pilot.curve.resume')}
+          </button>
+          <button type="button" className="pilot-link" onClick={() => { setRunning(false); setAll(CHART.days, DEMO_REVIEWS); setMode('demoDone'); }}>
+            {t('pilot.curve.skip')}
+          </button>
+        </div>
+      )}
 
-      <div className="pilot-curve-actions">
-        <button
-          type="button"
-          className="primary-button"
-          disabled={day === 0 || reviews.includes(day)}
-          onClick={() => setReviews((current) => [...current, day])}
-        >
-          {t('pilot.curve.review')}
-        </button>
-        <button
-          type="button"
-          className="pilot-link"
-          onClick={() => {
-            setReviews([]);
-            setDay(0);
-          }}
-        >
-          {t('pilot.curve.reset')}
-        </button>
-        <span className="pilot-muted">{t('pilot.curve.reviews', { n: reviews.length })}</span>
-      </div>
+      {mode === 'demoDone' && (
+        <div className="pilot-curve-actions">
+          <button type="button" className="primary-button" onClick={startPlay}>{t('pilot.curve.tryIt')}</button>
+          {!reduced && (
+            <button type="button" className="pilot-link" onClick={startDemo}>{t('pilot.curve.replay')}</button>
+          )}
+        </div>
+      )}
+
+      {(mode === 'play' || mode === 'ended') && (
+        <>
+          <div className="pilot-curve-actions">
+            <button
+              type="button"
+              className={`primary-button pilot-review-btn${nudge ? ' nudge' : ''}`}
+              disabled={mode === 'ended' || time < 0.3 || cooling}
+              onClick={reviewNow}
+            >
+              {t('pilot.curve.review')}
+            </button>
+            {mode === 'play' && (
+              <button type="button" className="pilot-link" onClick={() => setRunning((current) => !current)}>
+                {running ? t('pilot.curve.pause') : t('pilot.curve.resume')}
+              </button>
+            )}
+            <button type="button" className="pilot-link" onClick={startPlay}>{t('pilot.curve.reset')}</button>
+            <span className="pilot-muted">{t('pilot.curve.reviews', { n: reviews.length })}</span>
+          </div>
+
+          <label className="pilot-slider-label" htmlFor="pilot-day">{t('pilot.curve.slider')}</label>
+          <input
+            id="pilot-day"
+            type="range"
+            min="0"
+            max={CHART.days}
+            step="0.1"
+            value={time}
+            onChange={(event) => scrub(Number(event.target.value))}
+            className="pilot-slider"
+          />
+        </>
+      )}
 
       <p className="pilot-muted">{t('pilot.curve.note')}</p>
     </div>

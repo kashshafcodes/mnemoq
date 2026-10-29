@@ -19,7 +19,11 @@ const MESSAGES = {
   input: 'Add a question and its correct answer first.',
 };
 
-export async function requestSuggestions({ question, answer, hook, subject, category }, signal) {
+// Streams the answer: `onPart` is called as each finished part arrives
+// ({ type: 'hook', concept, hook } then { type: 'similar', similar }), so the
+// hook can show before the questions are ready. Resolves with the final
+// { remaining, missing } line.
+export async function requestSuggestions({ question, answer, hook, wrong, subject, category }, onPart, signal) {
   const { data } = await supabase.auth.getSession();
   const token = data?.session?.access_token;
 
@@ -32,22 +36,72 @@ export async function requestSuggestions({ question, answer, hook, subject, cate
       method: 'POST',
       signal,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ question, answer, hook, subject, category }),
+      body: JSON.stringify({ question, answer, hook, wrong, subject, category, stream: true }),
     });
   } catch (error) {
     if (error?.name === 'AbortError') throw error;
     throw new AiError('Could not reach the AI. Check your connection and try again.', 'network');
   }
 
-  // The site's own page comes back instead of JSON when the function isn't
-  // deployed (for example when running only `npm run dev`).
-  const body = await response.json().catch(() => null);
+  const type = response.headers.get('content-type') || '';
 
-  if (!body) throw new AiError(MESSAGES.config, 'config');
+  // Errors found before any writing starts (login, daily limit, not set up)
+  // come back as ordinary JSON. The site's own page comes back instead of JSON
+  // when the function isn't deployed (for example with only `npm run dev`).
+  if (!response.ok || !type.includes('ndjson')) {
+    const body = await response.json().catch(() => null);
 
-  if (!response.ok) {
+    if (!body) throw new AiError(MESSAGES.config, 'config');
+
     throw new AiError(body.error || MESSAGES[body.code] || MESSAGES.failed, body.code || 'failed');
   }
 
-  return body;
+  let final = null;
+
+  function handle(line) {
+    if (!line.trim()) return;
+
+    let message;
+
+    try {
+      message = JSON.parse(line);
+    } catch {
+      return;
+    }
+
+    if (message.type === 'error') {
+      throw new AiError(message.error || MESSAGES[message.code] || MESSAGES.failed, message.code || 'failed');
+    }
+
+    if (message.type === 'done') final = message;
+    else onPart?.(message);
+  }
+
+  if (response.body?.getReader) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    for (;;) {
+      // eslint-disable-next-line no-await-in-loop
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      const pieces = buffer.split('\n');
+
+      buffer = pieces.pop();
+      pieces.forEach(handle);
+    }
+
+    handle(buffer + decoder.decode());
+  } else {
+    (await response.text()).split('\n').forEach(handle);
+  }
+
+  if (!final) throw new AiError(MESSAGES.failed, 'failed');
+
+  return final;
 }

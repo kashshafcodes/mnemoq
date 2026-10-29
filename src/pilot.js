@@ -53,10 +53,22 @@ export function isLockedIn(card) {
 const BASE_STABILITY_DAYS = 1.5;
 const STABILITY_GROWTH = 2.2;
 
+// A review helps most when memory has already faded a bit. Reviewing while it
+// is still strong (spamming the button) barely lengthens the next gap.
+const EARLY_RECALL_ABOVE = 0.85;
+const EARLY_GROWTH = 1.1;
+
 export function retentionAt(day, reviewDays) {
   const past = reviewDays.filter((r) => r <= day).sort((a, b) => a - b);
-  const last = past.length ? past[past.length - 1] : 0;
-  const stability = BASE_STABILITY_DAYS * STABILITY_GROWTH ** past.length;
+  let last = 0;
+  let stability = BASE_STABILITY_DAYS;
+
+  for (const reviewDay of past) {
+    const before = Math.exp(-(reviewDay - last) / stability);
+
+    stability *= before > EARLY_RECALL_ABOVE ? EARLY_GROWTH : STABILITY_GROWTH;
+    last = reviewDay;
+  }
 
   return Math.exp(-(day - last) / stability) * 100;
 }
