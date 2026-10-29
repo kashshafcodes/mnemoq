@@ -12,6 +12,9 @@ import { DashboardIcon, HelpIcon, LibraryIcon, ReviewIcon } from './components/N
 import { SessionStart, SessionSummary } from './components/SessionPanels';
 import { SESSION_SIZE, pickSessionCards, scheduleNext } from './quiz';
 import QuickAdd from './components/QuickAdd';
+import Pilot, { RecoveryPlan } from './components/Pilot';
+import { LanguageToggle, useI18n } from './i18n';
+import { loadPilot, savePilot } from './pilot';
 import {
   SUBJECTS,
   DEFAULT_SUBJECT,
@@ -81,6 +84,27 @@ const [authLoading, setAuthLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [showAll, setShowAll] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const { t } = useI18n();
+  // First-run "Exam Debrief" pilot. `pilot` is the saved result (or null).
+  const [pilot, setPilot] = useState(null);
+  const [pilotOpen, setPilotOpen] = useState(false);
+  const pilotChecked = useRef(null);
+
+  // Decide once per account: brand-new people (no cards yet, pilot never seen)
+  // get the guided first run. Everyone else just keeps their saved state.
+  useEffect(() => {
+    const userId = session?.user?.id;
+
+    if (!userId || dataLoading || pilotChecked.current === userId) return;
+
+    pilotChecked.current = userId;
+
+    const saved = loadPilot(userId);
+
+    setPilot(saved);
+
+    if (!saved && mistakes.length === 0) setPilotOpen(true);
+  }, [session, dataLoading, mistakes.length]);
 
 
   
@@ -614,7 +638,7 @@ async function addCard({
     ...current,
   ]);
 
-  return { error: '' };
+  return { error: '', id: row.id };
 }
 
 
@@ -801,24 +825,59 @@ if (dataError) {
 }
 
 
+  function finishPilot(result, thenReview) {
+    const next = { status: 'done', ...result, hidden: false };
+
+    savePilot(session.user.id, next);
+    setPilot(next);
+    setPilotOpen(false);
+
+    if (thenReview) goToReview();
+  }
+
+  function leavePilot(status, openAdd) {
+    const next = { status, cardIds: [], startedAt: new Date().toISOString(), hidden: true };
+
+    // Never overwrite a finished debrief with a "skipped" one.
+    if (!(pilot && pilot.status === 'done')) {
+      savePilot(session.user.id, next);
+      setPilot(next);
+    }
+
+    setPilotOpen(false);
+    if (openAdd) setShowForm(true);
+  }
+
+  if (pilotOpen) {
+    return (
+      <Pilot
+        cards={mistakes}
+        addCard={addCard}
+        onSkip={() => leavePilot('skipped', false)}
+        onChooseOther={() => leavePilot('skipped', true)}
+        onFinish={finishPilot}
+      />
+    );
+  }
+
   return (
     <div className="app">
       <aside className="sidebar">
         <MnemoqLogo size={36} />
-        <p className="nav-label">WORKSPACE</p>
+        <p className="nav-label">{t('nav.workspace')}</p>
 
         <nav>
           <a className="nav-item active" href="#dashboard">
             <DashboardIcon />
-            <span>Dashboard</span>
+            <span>{t('nav.dashboard')}</span>
           </a>
           <a className="nav-item" href="#mistakes">
             <LibraryIcon />
-            <span>My library</span>
+            <span>{t('nav.library')}</span>
           </a>
           <a className="nav-item" href="#review">
             <ReviewIcon />
-            <span>Review cards</span>
+            <span>{t('nav.review')}</span>
           </a>
           <button
             type="button"
@@ -826,14 +885,24 @@ if (dataError) {
             onClick={() => setShowTutorial(true)}
           >
             <HelpIcon />
-            <span>How it works</span>
+            <span>{t('nav.how')}</span>
+          </button>
+          <button
+            type="button"
+            className="nav-item nav-button"
+            onClick={() => setPilotOpen(true)}
+          >
+            <ReviewIcon />
+            <span>{t('nav.debrief')}</span>
           </button>
         </nav>
 
         
 <div className="sidebar-bottom">
-  <p>Small improvements.</p>
-  <p>Lasting knowledge.</p>
+  <p>{t('side.line1')}</p>
+  <p>{t('side.line2')}</p>
+
+  <LanguageToggle />
 
   <button
     type="button"
@@ -848,10 +917,13 @@ if (dataError) {
         setManualReviewId(null);
         setReviewSession(null);
         setReviewLog([]);
+        setPilot(null);
+        setPilotOpen(false);
+        pilotChecked.current = null;
       }
     }}
   >
-    Log out
+    {t('nav.logout')}
   </button>
 </div>
 
@@ -860,14 +932,29 @@ if (dataError) {
       <main className="main-content" id="dashboard">
         <header className="topbar">
           <div>
-            <p className="eyebrow">YOUR LEARNING SPACE</p>
-            <h1>Good to see you.</h1>
+            <p className="eyebrow">{t('top.eyebrow')}</p>
+            <h1>{t('top.title')}</h1>
             <p className="subtitle">
-              Turn today's mistakes into tomorrow's strengths.
+              {t('top.subtitle')}
             </p>
           </div>
           <div className="avatar">M</div>
         </header>
+
+        {pilot && pilot.status === 'done' && !pilot.hidden && (
+          <RecoveryPlan
+            pilot={pilot}
+            cards={mistakes}
+            dueCount={dueMistakes.length}
+            onReview={goToReview}
+            onHide={() => {
+              const next = { ...pilot, hidden: true };
+
+              savePilot(session.user.id, next);
+              setPilot(next);
+            }}
+          />
+        )}
 
         <Dashboard
           cards={mistakes}

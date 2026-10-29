@@ -1,8 +1,10 @@
 
 import { useState } from 'react';
 import { supabase } from './supabaseClient';
+import { LanguageToggle, useI18n } from './i18n';
 
 export default function Auth({ onLogin }) {
+  const { t } = useI18n();
   const [isSignup, setIsSignup] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,11 +54,12 @@ async function handleSubmit(event) {
   return (
     <main className="auth-page">
       <form className="auth-card" onSubmit={handleSubmit}>
+        <LanguageToggle />
         <p className="eyebrow">MNEMOQ</p>
-        <h1>{isSignup ? 'Create your account' : 'Welcome back'}</h1>
-        <p>Build stronger recall, one mistake at a time.</p>
+        <h1>{isSignup ? t('auth.signupTitle') : t('auth.loginTitle')}</h1>
+        <p>{t('auth.tagline')}</p>
 
-        <label htmlFor="auth-email">Email</label>
+        <label htmlFor="auth-email">{t('auth.email')}</label>
         <input
           id="auth-email"
           type="email"
@@ -66,7 +69,7 @@ async function handleSubmit(event) {
           required
         />
 
-        <label htmlFor="auth-password">Password</label>
+        <label htmlFor="auth-password">{t('auth.password')}</label>
         <input
           id="auth-password"
           type="password"
@@ -78,7 +81,7 @@ async function handleSubmit(event) {
         />
 
         <button className="primary-button" type="submit" disabled={loading}>
-          {loading ? 'Please wait...' : isSignup ? 'Create account' : 'Log in'}
+          {loading ? t('auth.wait') : isSignup ? t('auth.createBtn') : t('auth.loginBtn')}
         </button>
 
         {message && <p role="status">{message}</p>}
@@ -91,9 +94,7 @@ async function handleSubmit(event) {
             setMessage('');
           }}
         >
-          {isSignup
-            ? 'Already have an account? Log in'
-            : "Don't have an account? Sign up"}
+          {isSignup ? t('auth.haveAccount') : t('auth.noAccount')}
         </button>
       </form>
     </main>

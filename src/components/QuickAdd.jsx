@@ -584,6 +584,10 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
           onKeyDown={(event) => handleKeyDown(event, answerRef)}
           placeholder={hints.answer}
           enterKeyHint={enterHint(answerRef)}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
         />
 
         {!hideWrong && (
@@ -599,6 +603,10 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
               onKeyDown={(event) => handleKeyDown(event, wrongRef)}
               placeholder="If you got it wrong, what did you answer?"
               enterKeyHint={enterHint(wrongRef)}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
             />
           </>
         )}

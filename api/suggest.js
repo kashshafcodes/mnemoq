@@ -54,7 +54,7 @@ const RESPONSE_SCHEMA = {
 
 // ---- small helpers (exported so they can be tested) ------------------------
 
-function clean(value, max) {
+export function clean(value, max) {
   return String(value ?? '')
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
     .replace(/\s+/g, ' ')
@@ -62,7 +62,7 @@ function clean(value, max) {
     .slice(0, max);
 }
 
-function norm(value) {
+export function norm(value) {
   return String(value ?? '')
     .normalize('NFKC')
     .toLocaleLowerCase()
@@ -146,14 +146,14 @@ export function sanitizeResult(raw, input) {
 
 // ---- Supabase checks -------------------------------------------------------
 
-function supabaseConfig(env) {
+export function supabaseConfig(env) {
   const url = (env.SUPABASE_URL || env.VITE_SUPABASE_URL || '').replace(/\/+$/, '');
   const key = env.SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || '';
 
   return url && key ? { url, key } : null;
 }
 
-async function getUser(cfg, token) {
+export async function getUser(cfg, token) {
   const res = await fetch(`${cfg.url}/auth/v1/user`, {
     headers: { apikey: cfg.key, Authorization: `Bearer ${token}` },
   });
@@ -165,7 +165,7 @@ async function getUser(cfg, token) {
 }
 
 // Rows in the last 24 hours (RLS means the user can only see their own).
-async function countRecentUse(cfg, token) {
+export async function countRecentUse(cfg, token) {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const res = await fetch(
     `${cfg.url}/rest/v1/ai_usage?select=id&created_at=gte.${encodeURIComponent(since)}`,
@@ -186,7 +186,7 @@ async function countRecentUse(cfg, token) {
   return Number.isFinite(total) ? total : null;
 }
 
-async function recordUse(cfg, token) {
+export async function recordUse(cfg, token) {
   const res = await fetch(`${cfg.url}/rest/v1/ai_usage`, {
     method: 'POST',
     headers: {
@@ -203,7 +203,7 @@ async function recordUse(cfg, token) {
 
 // ---- AI providers ----------------------------------------------------------
 
-class ProviderError extends Error {
+export class ProviderError extends Error {
   constructor(message, status) {
     super(message);
     this.status = status;

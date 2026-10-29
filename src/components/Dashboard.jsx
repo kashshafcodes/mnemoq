@@ -184,9 +184,9 @@ function ActivityBars({ days }) {
 
 // Recall rate as a line, by day or by week. Only buckets that have reviews get a point.
 function RecallTrend({ buckets, unit }) {
-  const width = 360;
-  const height = 150;
-  const pad = { left: 34, right: 18, top: 14, bottom: 26 };
+  const width = 480;
+  const height = 210;
+  const pad = { left: 42, right: 28, top: 22, bottom: 44 };
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;
   const x = (i) => pad.left + (buckets.length === 1 ? innerW / 2 : (i / (buckets.length - 1)) * innerW);
@@ -202,6 +202,12 @@ function RecallTrend({ buckets, unit }) {
     if (i === buckets.length - 1) return daily ? 'Today' : 'This week';
     return shortMonthDay(daily ? bucket.from : bucket.to);
   };
+  // Evenly spaced x labels, counted back from the newest bucket so "Today" is
+  // always shown and no two labels crowd each other.
+  const stepPx = buckets.length > 1 ? innerW / (buckets.length - 1) : innerW;
+  const labelStep = Math.max(1, Math.ceil(76 / stepPx));
+  const labelIndexes = [];
+  for (let i = buckets.length - 1; i >= 0; i -= labelStep) labelIndexes.unshift(i);
   const tipFor = (p) =>
     `${daily ? shortDate(p.from) : `${shortDate(p.from)} to ${shortDate(p.to)}`}: ${percent(p.rate)} recalled (${p.recalled} of ${p.total})`;
 
@@ -216,13 +222,14 @@ function RecallTrend({ buckets, unit }) {
             </text>
           </g>
         ))}
-        {buckets.map((bucket, i) =>
-          i === 0 || i === buckets.length - 1 || i === Math.floor(buckets.length / 2) ? (
-            <text key={i} x={x(i)} y={height - 6} textAnchor="middle" className="axis">
-              {labelFor(bucket, i)}
+        {labelIndexes.map((i) => (
+          <g key={i}>
+            <line x1={x(i)} x2={x(i)} y1={pad.top + innerH} y2={pad.top + innerH + 6} className="tick" />
+            <text x={x(i)} y={height - 14} textAnchor="middle" className="axis axis-x">
+              {labelFor(buckets[i], i)}
             </text>
-          ) : null
-        )}
+          </g>
+        ))}
         {points.length > 1 && <path d={path} className="line-path" fill="none" />}
         {points.map((p) => {
           const tip = tipFor(p);
@@ -231,7 +238,7 @@ function RecallTrend({ buckets, unit }) {
               <circle cx={x(p.i)} cy={y(p.rate)} r="14" className="pt-hit" />
               <circle cx={x(p.i)} cy={y(p.rate)} r={daily ? 4 : 5} className="pt-dot" />
               <text
-                x={Math.min(Math.max(x(p.i), 90), width - 90)}
+                x={Math.min(Math.max(x(p.i), 110), width - 110)}
                 y={Math.max(y(p.rate) - 12, 12)}
                 textAnchor="middle"
                 className="pt-tip"

@@ -1,15 +1,39 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { requestSuggestions } from '../aiSuggest';
 
 // "Suggest with AI" for one card: a memory-hook draft, the concept being
 // tested, and similar multiple-choice questions. Everything is a draft. Nothing
 // is saved unless the person taps Use or Add.
 
+// A "memory trace": three linked nodes bending like a hook, with a small spark
+// on the last one. Gradient-filled so it reads as its own mark, not a stock
+// sparkle.
 export function SparkIcon() {
+  const gradId = useId();
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      <path d="M12 3.5 13.9 9l5.6 1.9-5.6 1.9L12 18.5l-1.9-5.7L4.5 10.9 10.1 9 12 3.5Z" />
-      <path d="M19 3v3M17.5 4.5h3" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id={gradId} x1="3" y1="21" x2="21" y2="3" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#38bdf8" />
+          <stop offset="1" stopColor="#c084fc" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M5.5 17.5 11 12.5l4.5 2 3-6"
+        stroke={`url(#${gradId})`}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="5.5" cy="17.5" r="2.2" fill={`url(#${gradId})`} />
+      <circle cx="11" cy="12.5" r="1.8" fill={`url(#${gradId})`} />
+      <circle cx="15.5" cy="14.5" r="1.4" fill={`url(#${gradId})`} />
+      <path
+        d="M18.5 2.5v6M15.5 5.5h6"
+        stroke={`url(#${gradId})`}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
