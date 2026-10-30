@@ -1,6 +1,5 @@
 import { supabase } from './supabaseClient';
 import { AiError } from './aiSuggest';
-import { trackEvent } from './googleAnalytics';
 
 // Asks the server (api/generate.js) for a starter set on one topic.
 // Throws an AiError whose message is safe to show to the person.
@@ -30,6 +29,5 @@ export async function requestStarterSet({ subject, topic, notes, count, language
 
   if (!response.ok) throw new AiError(body.error || 'The AI could not write that set. Try again.', body.code || 'failed');
 
-  trackEvent('ai_generation', { feature: 'starter_set' });
   return body;
 }
