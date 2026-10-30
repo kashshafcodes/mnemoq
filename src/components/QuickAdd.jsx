@@ -11,6 +11,7 @@ import {
   subjectHints,
 } from '../subjects';
 import AiSuggestPanel, { SparkIcon } from './AiSuggestPanel';
+import { NO_SUGGEST } from '../noSuggest';
 
 const DESTINATION_KEY = 'mnemoq-add-destination';
 const HIDE_WRONG_KEY = 'mnemoq-hide-wrong-answer';
@@ -574,6 +575,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
           onKeyDown={(event) => handleKeyDown(event, questionRef)}
           placeholder={hints.question}
           enterKeyHint={enterHint(questionRef)}
+          {...NO_SUGGEST}
         />
 
         <label htmlFor="qa-answer">Correct answer</label>
@@ -585,6 +587,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
           onKeyDown={(event) => handleKeyDown(event, answerRef)}
           placeholder={hints.answer}
           enterKeyHint={enterHint(answerRef)}
+          {...NO_SUGGEST}
         />
 
         {!hideWrong && (
@@ -600,6 +603,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
               onKeyDown={(event) => handleKeyDown(event, wrongRef)}
               placeholder="If you got it wrong, what did you answer?"
               enterKeyHint={enterHint(wrongRef)}
+              {...NO_SUGGEST}
             />
           </>
         )}
@@ -618,6 +622,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
               onKeyDown={(event) => handleKeyDown(event, hookRef)}
               placeholder={hints.hook}
               enterKeyHint={enterHint(hookRef)}
+              {...NO_SUGGEST}
             />
           </>
         )}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import MnemoqLogo from './MnemoqLogo';
 import { LanguageToggle, useI18n } from '../i18n';
 import { checkTypedAnswer } from '../quiz';
+import { NO_SUGGEST } from '../noSuggest';
 import {
   CHECKPOINTS,
   PILOT_MAX_CARDS,
@@ -487,6 +488,7 @@ function LogStep({ cards, addCard, logged, setLogged, onDone }) {
             onChange={(event) => setQuestion(event.target.value)}
             placeholder={t('pilot.log.questionPh')}
             rows={2}
+            {...NO_SUGGEST}
           />
 
           <label htmlFor="pilot-correct">{t('pilot.log.correct')}</label>
@@ -495,7 +497,7 @@ function LogStep({ cards, addCard, logged, setLogged, onDone }) {
             value={correctAnswer}
             onChange={(event) => setCorrectAnswer(event.target.value)}
             placeholder={t('pilot.log.correctPh')}
-            autoComplete="off"
+            {...NO_SUGGEST}
           />
 
           <label htmlFor="pilot-wrong">{t('pilot.log.wrong')}</label>
@@ -504,7 +506,7 @@ function LogStep({ cards, addCard, logged, setLogged, onDone }) {
             value={yourAnswer}
             onChange={(event) => setYourAnswer(event.target.value)}
             placeholder={t('pilot.log.wrongPh')}
-            autoComplete="off"
+            {...NO_SUGGEST}
           />
 
           <label htmlFor="pilot-hook">{t('pilot.log.hook')}</label>
@@ -513,7 +515,7 @@ function LogStep({ cards, addCard, logged, setLogged, onDone }) {
             value={explanation}
             onChange={(event) => setExplanation(event.target.value)}
             placeholder={t('pilot.log.hookPh')}
-            autoComplete="off"
+            {...NO_SUGGEST}
           />
 
           {error && <p className="qa-message qa-error" role="alert">{error}</p>}
@@ -599,6 +601,7 @@ function AskStep({ cards, request, setRequest, examDate, setExamDate, onGenerate
         onChange={(event) => update('topic', event.target.value)}
         placeholder={t('pilot.ai.topicPh')}
         maxLength={120}
+        {...NO_SUGGEST}
       />
 
       <label htmlFor="pilot-ai-notes">{t('pilot.ai.notes')}</label>
@@ -608,7 +611,7 @@ function AskStep({ cards, request, setRequest, examDate, setExamDate, onGenerate
         onChange={(event) => update('notes', event.target.value)}
         placeholder={t('pilot.ai.notesPh')}
         maxLength={200}
-        autoComplete="off"
+        {...NO_SUGGEST}
       />
 
       <p className="pilot-topics-label" id="pilot-ai-count-label">{t('pilot.ai.count')}</p>
@@ -1086,7 +1089,7 @@ function RecallStep({ card, onDone }) {
             }}
             placeholder={t('pilot.recall.placeholder')}
             aria-label={t('pilot.recall.placeholder')}
-            autoComplete="off"
+            {...NO_SUGGEST}
             autoFocus
           />
           <button type="submit" className="primary-button">{t('pilot.recall.check')}</button>

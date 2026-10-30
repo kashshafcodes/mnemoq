@@ -3,6 +3,7 @@ import { buildChoices, checkTypedAnswer, normalizeText, scheduleNext } from '../
 import { formatDays } from '../analytics';
 import { subjectAccent } from '../subjects';
 import { RatingGuide } from './Tutorial';
+import { NO_SUGGEST } from '../noSuggest';
 
 const MODE_KEY = 'mnemoq-review-mode';
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -344,9 +345,7 @@ export default function ReviewCard({ card, cards, position, onRate }) {
             value={typed}
             onChange={(event) => setTyped(event.target.value)}
             placeholder="Type your answer"
-            autoComplete="off"
-            autoCapitalize="off"
-            spellCheck="false"
+            {...NO_SUGGEST}
             enterKeyHint="done"
           />
           <button type="submit" className="primary-button">

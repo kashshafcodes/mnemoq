@@ -13,6 +13,7 @@ import { DashboardIcon, HelpIcon, LibraryIcon, ReviewIcon } from './components/N
 import { ReviewSubjectTabs, SessionStart, SessionSummary } from './components/SessionPanels';
 import { SESSION_SIZE, pickSessionCards, scheduleNext } from './quiz';
 import QuickAdd from './components/QuickAdd';
+import { NO_SUGGEST } from './noSuggest';
 import Pilot, { RecoveryPlan } from './components/Pilot';
 import { LanguageToggle, useI18n } from './i18n';
 import { loadPilot, savePilot } from './pilot';
@@ -1094,6 +1095,7 @@ if (dataError) {
                 onChange={handleChange}
                 placeholder="What do you want to remember?"
                 required
+                {...NO_SUGGEST}
               />
 
               <label htmlFor="correctAnswer">Correct answer</label>
@@ -1104,6 +1106,7 @@ if (dataError) {
                 onChange={handleChange}
                 placeholder="What is the correct answer?"
                 required
+                {...NO_SUGGEST}
               />
 
               <label htmlFor="yourAnswer">
@@ -1115,6 +1118,7 @@ if (dataError) {
                 value={form.yourAnswer}
                 onChange={handleChange}
                 placeholder="If you got it wrong, what did you answer?"
+                {...NO_SUGGEST}
               />
 
               <label htmlFor="explanation">
@@ -1126,6 +1130,7 @@ if (dataError) {
                 value={form.explanation}
                 onChange={handleChange}
                 placeholder="A mnemonic, picture, or short reason that helps it stick"
+                {...NO_SUGGEST}
               />
 
               {formError && (
