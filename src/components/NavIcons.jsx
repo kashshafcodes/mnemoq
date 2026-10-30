@@ -61,3 +61,30 @@ export function HelpIcon() {
     </Icon>
   );
 }
+
+export function HomeIcon() {
+  return (
+    <Icon>
+      <path d="M4 11.2 12 4l8 7.2" />
+      <path d="M6 9.8V19a1 1 0 0 0 1 1h3.5v-5h3v5H17a1 1 0 0 0 1-1V9.8" />
+    </Icon>
+  );
+}
+
+export function AddIcon() {
+  return (
+    <Icon>
+      <rect x="4" y="4" width="16" height="16" rx="4" />
+      <path d="M12 8.5v7M8.5 12h7" />
+    </Icon>
+  );
+}
+
+export function ProfileIcon() {
+  return (
+    <Icon>
+      <circle cx="12" cy="8.5" r="3.6" />
+      <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0" />
+    </Icon>
+  );
+}

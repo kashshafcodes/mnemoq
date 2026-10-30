@@ -9,7 +9,11 @@ import MnemoqLogo from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
-import { DashboardIcon, HelpIcon, LibraryIcon, ReviewIcon } from './components/NavIcons';
+import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, ProfileIcon, ReviewIcon } from './components/NavIcons';
+import Profile from './components/Profile';
+import { readProfile } from './profile';
+import Home from './components/Home';
+import { pageHref, useRoute } from './useRoute';
 import { ReviewSubjectTabs, SessionStart, SessionSummary } from './components/SessionPanels';
 import { SESSION_SIZE, pickSessionCards, scheduleNext } from './quiz';
 import QuickAdd from './components/QuickAdd';
@@ -61,6 +65,7 @@ function App() {
   const [dataLoading, setDataLoading] = useState(true);
   const [dataError, setDataError] = useState('');
   const formRef = useRef(null);
+  const { page, go } = useRoute();
   const [session, setSession] = useState(null);
 const [authLoading, setAuthLoading] = useState(true);
   const [mistakes, setMistakes] = useState(() => {
@@ -825,12 +830,7 @@ function goToReview() {
     }
   }
 
-  requestAnimationFrame(() => {
-    document.getElementById('review')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  });
+  go('review');
 }
 
 
@@ -881,6 +881,37 @@ if (dataError) {
 }
 
 
+  async function logOut() {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      setDataError(error.message);
+    } else {
+      setMistakes([]);
+      setManualReviewId(null);
+      setReviewSession(null);
+      setReviewLog([]);
+      setPilot(null);
+      setPilotOpen(false);
+      pilotChecked.current = null;
+    }
+  }
+
+  // Name and avatar colour live on the account (Supabase user metadata).
+  async function saveProfile({ name, color }) {
+    const { data, error } = await supabase.auth.updateUser({
+      data: { display_name: name, avatar_color: color },
+    });
+
+    if (error) return { error: error.message };
+
+    if (data?.user) setSession((current) => (current ? { ...current, user: data.user } : current));
+
+    return { error: '' };
+  }
+
+  const me = readProfile(session?.user);
+
   function finishPilot(result, thenReview) {
     const next = { status: 'done', ...result, hidden: false };
 
@@ -901,7 +932,7 @@ if (dataError) {
     }
 
     setPilotOpen(false);
-    if (openAdd) setShowForm(true);
+    if (openAdd) go('add');
   }
 
   if (pilotOpen) {
@@ -923,18 +954,24 @@ if (dataError) {
         <p className="nav-label">{t('nav.workspace')}</p>
 
         <nav>
-          <a className="nav-item active" href="#dashboard">
-            <DashboardIcon />
-            <span>{t('nav.dashboard')}</span>
-          </a>
-          <a className="nav-item" href="#mistakes">
-            <LibraryIcon />
-            <span>{t('nav.library')}</span>
-          </a>
-          <a className="nav-item" href="#review">
-            <ReviewIcon />
-            <span>{t('nav.review')}</span>
-          </a>
+          {[
+            ['home', HomeIcon, 'nav.home'],
+            ['progress', DashboardIcon, 'nav.dashboard'],
+            ['add', AddIcon, 'nav.add'],
+            ['library', LibraryIcon, 'nav.library'],
+            ['review', ReviewIcon, 'nav.review'],
+            ['profile', ProfileIcon, 'nav.profile'],
+          ].map(([name, NavIcon, label]) => (
+            <a
+              key={name}
+              className={page === name ? 'nav-item active' : 'nav-item'}
+              href={pageHref(name)}
+              aria-current={page === name ? 'page' : undefined}
+            >
+              <NavIcon />
+              <span>{t(label)}</span>
+            </a>
+          ))}
           <button
             type="button"
             className="nav-item nav-button"
@@ -963,21 +1000,7 @@ if (dataError) {
   <button
     type="button"
     className="logout-button"
-    onClick={async () => {
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        setDataError(error.message);
-      } else {
-        setMistakes([]);
-        setManualReviewId(null);
-        setReviewSession(null);
-        setReviewLog([]);
-        setPilot(null);
-        setPilotOpen(false);
-        pilotChecked.current = null;
-      }
-    }}
+    onClick={logOut}
   >
     {t('nav.logout')}
   </button>
@@ -985,16 +1008,25 @@ if (dataError) {
 
       </aside>
 
-      <main className="main-content" id="dashboard">
+      <main className="main-content">
+        {page === 'home' && (
+          <>
         <header className="topbar">
           <div>
             <p className="eyebrow">{t('top.eyebrow')}</p>
-            <h1>{t('top.title')}</h1>
+            <h1>{me.name ? `${t('top.title').replace(/[.\u0964]$/, '')}, ${me.name}.` : t('top.title')}</h1>
             <p className="subtitle">
               {t('top.subtitle')}
             </p>
           </div>
-          <div className="avatar">M</div>
+          <a
+            className="avatar"
+            href={pageHref('profile')}
+            style={{ '--avatar': me.color.value }}
+            aria-label={t('nav.profile')}
+          >
+            {me.initial}
+          </a>
         </header>
 
         {pilot && pilot.status === 'done' && !pilot.hidden && (
@@ -1012,35 +1044,37 @@ if (dataError) {
           />
         )}
 
-        <Dashboard
-          cards={mistakes}
-          reviews={reviewLog}
-          dueCount={dueMistakes.length}
-          showForm={showForm}
-          onToggleAdd={() => {
-            if (showForm) {
-              setShowForm(false);
-              setEditingId(null);
-              setForm(emptyForm);
-            } else {
-              setShowForm(true);
-            }
-          }}
-          onReview={goToReview}
-        />
+            <Home
+              cards={mistakes}
+              reviews={reviewLog}
+              dueCount={dueMistakes.length}
+              onReview={goToReview}
+            />
+          </>
+        )}
 
-        {showForm && editingId === null && (
-          <QuickAdd
+        {page === 'progress' && (
+          <Dashboard
             cards={mistakes}
-            onSave={addCard}
-            onClose={() => setShowForm(false)}
-            onReviewNow={() => {
-              setShowForm(false);
-              goToReview();
-            }}
+            reviews={reviewLog}
+            dueCount={dueMistakes.length}
+            showForm={false}
+            onToggleAdd={() => go('add')}
+            onReview={goToReview}
           />
         )}
 
+        {page === 'add' && (
+          <QuickAdd
+            cards={mistakes}
+            onSave={addCard}
+            onClose={() => go('home')}
+            onReviewNow={goToReview}
+          />
+        )}
+
+        {page === 'library' && (
+          <>
         {showForm && editingId !== null && (
           <section ref={formRef} className="mistake-form-card">
             <h2>{editingId !== null ? 'Edit card' : 'Add a card'}</h2>
@@ -1270,10 +1304,7 @@ if (dataError) {
   className="secondary-button"
   onClick={() => {
     setManualReviewId(mistake.id);
-    document.getElementById('review')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
+    go('review');
   }}
 >
   Review now
@@ -1313,6 +1344,22 @@ if (dataError) {
   </section>
 )}
 
+          </>
+        )}
+
+        {page === 'profile' && (
+          <Profile
+            user={session.user}
+            cards={mistakes}
+            reviews={reviewLog}
+            onSave={saveProfile}
+            onLogout={logOut}
+            onTutorial={() => setShowTutorial(true)}
+          />
+        )}
+
+        {page === 'review' && (
+          <>
 <section className="review-section" id="review">
   <div className="section-heading">
     <div>
@@ -1391,6 +1438,9 @@ if (dataError) {
   </div>
 )}
 </section>
+
+          </>
+        )}
 
       </main>
 

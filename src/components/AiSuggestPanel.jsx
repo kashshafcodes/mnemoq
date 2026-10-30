@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { requestSuggestions } from '../aiSuggest';
+import { holdPosition } from '../holdPosition';
 
 // "Suggest with AI" for one card: a memory-hook draft, the concept being
 // tested, and similar multiple-choice questions. Everything is a draft. Nothing
@@ -61,10 +62,12 @@ export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCar
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function addOne(index) {
+  async function addOne(index, button) {
     const item = data.similar[index];
 
     if (added.has(index) || busyIndex !== null) return;
+
+    const releasePosition = holdPosition(button);
 
     setBusyIndex(index);
     setAddError('');
@@ -79,19 +82,23 @@ export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCar
 
     if (result?.error) {
       setAddError(`Could not add: ${result.error}`);
+      releasePosition();
       return false;
     }
 
     setAdded((current) => new Set(current).add(index));
+    releasePosition();
     return true;
   }
 
-  async function addAll() {
+  async function addAll(event) {
+    const button = event?.currentTarget;
+
     for (let index = 0; index < data.similar.length; index += 1) {
       if (added.has(index)) continue;
       // Stop at the first failure so the message stays accurate.
       // eslint-disable-next-line no-await-in-loop
-      if ((await addOne(index)) === false) return;
+      if ((await addOne(index, button)) === false) return;
     }
   }
 
@@ -197,7 +204,7 @@ export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCar
                       type="button"
                       className="ghost-button"
                       disabled={added.has(index) || busyIndex !== null}
-                      onClick={() => addOne(index)}
+                      onClick={(event) => addOne(index, event.currentTarget)}
                     >
                       {added.has(index) ? 'Added ✓' : busyIndex === index ? 'Adding...' : 'Add as a card'}
                     </button>
@@ -209,10 +216,19 @@ export default function AiSuggestPanel({ input, hookIsEmpty, onUseHook, onAddCar
           )}
 
           {status === 'done' && data.missing.length > 0 && (
-            <p className="ai-note">
-              {data.missing.includes('hook') ? 'The memory hook' : 'The practice questions'} could not be written this
-              time. Tap Suggest again to retry.
-            </p>
+            <div className="ai-retry">
+              <p className="ai-note">
+                {data.missing.includes('hook') && data.missing.includes('similar')
+                  ? 'The suggestions'
+                  : data.missing.includes('hook')
+                    ? 'The memory hook'
+                    : 'The practice questions'}{' '}
+                could not be written this time.
+              </p>
+              <button type="button" className="ghost-button" onClick={run}>
+                Try again
+              </button>
+            </div>
           )}
 
           {typeof data.remaining === 'number' && (

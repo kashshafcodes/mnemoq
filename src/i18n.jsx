@@ -29,6 +29,9 @@ const en = {
 
   // sidebar + top bar
   'nav.workspace': 'WORKSPACE',
+  'nav.profile': 'Profile',
+  'nav.home': 'Home',
+  'nav.add': 'Add cards',
   'nav.dashboard': 'Dashboard',
   'nav.library': 'My library',
   'nav.review': 'Review cards',
@@ -233,6 +236,9 @@ const bn = {
   'auth.noAccount': 'অ্যাকাউন্ট নেই? সাইন আপ করুন',
 
   'nav.workspace': 'ওয়ার্কস্পেস',
+  'nav.profile': 'প্রোফাইল',
+  'nav.home': 'হোম',
+  'nav.add': 'কার্ড যোগ করুন',
   'nav.dashboard': 'ড্যাশবোর্ড',
   'nav.library': 'আমার লাইব্রেরি',
   'nav.review': 'কার্ড রিভিউ',

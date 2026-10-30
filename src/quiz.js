@@ -1,6 +1,8 @@
 // Helpers for reviewing a card: building multiple-choice options and checking
 // typed answers. Pure functions (no React, no network) so they are easy to test.
 
+import { STARTER_CARDS } from './starterSets';
+
 // Lowercase, ignore punctuation/extra spaces. Letters from any language are
 // kept as they are, so this is safe for non-English text too.
 export function normalizeText(value) {
@@ -144,6 +146,42 @@ export function buildChoices(card, allCards, rand = Math.random, maxWrong = 3) {
       .map((entry) => entry.text);
 
     wrong.push(...shuffle(closest, rand).slice(0, needed));
+  }
+
+  // A brand-new person has too few cards to borrow wrong choices from. Fill the
+  // gap with answers from the built-in starter sets, but only from the SAME
+  // subject (a Biology answer under a History question would be silly), and
+  // same category first.
+  if (wrong.length < maxWrong) {
+    const starterTiers = [
+      STARTER_CARDS.filter((s) => s.subject === card.subject && s.category === card.category),
+      STARTER_CARDS.filter((s) => s.subject === card.subject),
+    ];
+
+    for (const tier of starterTiers) {
+      const needed = maxWrong - wrong.length;
+      if (needed <= 0) break;
+
+      const candidates = [];
+
+      for (const starter of tier) {
+        const text = String(starter.correctAnswer || '').trim();
+        const key = normalizeText(text);
+
+        if (!text || seen.has(key)) continue;
+
+        seen.add(key);
+        candidates.push(text);
+      }
+
+      const closest = candidates
+        .map((text) => ({ text, gap: Math.abs(text.length - correct.length) }))
+        .sort((x, y) => x.gap - y.gap)
+        .slice(0, Math.max(needed * 2, 3))
+        .map((entry) => entry.text);
+
+      wrong.push(...shuffle(closest, rand).slice(0, needed));
+    }
   }
 
   const options = shuffle(

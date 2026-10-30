@@ -12,6 +12,7 @@ import {
 } from '../subjects';
 import AiSuggestPanel, { SparkIcon } from './AiSuggestPanel';
 import { NO_SUGGEST } from '../noSuggest';
+import { holdPosition, isTouchDevice } from '../holdPosition';
 
 const DESTINATION_KEY = 'mnemoq-add-destination';
 const HIDE_WRONG_KEY = 'mnemoq-hide-wrong-answer';
@@ -97,6 +98,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
   const answerRef = useRef(null);
   const wrongRef = useRef(null);
   const hookRef = useRef(null);
+  const saveRef = useRef(null);
 
   const activeStep = step === 'entry' && !destination ? 'subject' : step;
 
@@ -165,6 +167,8 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
     setError('');
     setFlash('');
 
+    const releasePosition = holdPosition(saveRef.current);
+
     const result = await onSave({
       subject: destination.subject,
       category: destination.category,
@@ -193,7 +197,13 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
       return labels.includes(label) ? labels : [...labels, label];
     });
     setFlash('Saved. Add the next one.');
-    questionRef.current?.focus();
+
+    // On a phone, focusing the question box scrolls the page up and opens the
+    // keyboard. Keep the Save button where it was instead; the person taps the
+    // question box when ready.
+    if (isTouchDevice()) releasePosition();
+    else questionRef.current?.focus();
+
     return true;
   }
 
@@ -694,7 +704,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
         )}
 
         <div className="qa-actions">
-          <button type="submit" className="qa-primary" disabled={saving}>
+          <button ref={saveRef} type="submit" className="qa-primary" disabled={saving}>
             {saving ? 'Saving...' : 'Save & add next'}
           </button>
           <button type="button" className="ghost-button" onClick={finish}>

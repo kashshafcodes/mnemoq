@@ -471,7 +471,7 @@ function Moments({ data }) {
   return <div className="moments">{tiles}</div>;
 }
 
-function Badges({ badges }) {
+export function Badges({ badges }) {
   const earned = badges.filter((badge) => badge.earned).length;
 
   return (
