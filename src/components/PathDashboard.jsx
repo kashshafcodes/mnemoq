@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react';
 import { getPath } from '../paths';
 import { computeReadiness, daysLeftFor, describeProgress } from '../readiness';
+import { computeStreaks } from '../analytics';
+import { buildAchievements, buildMissions } from '../missions';
 import AiBadge from './AiBadge';
+import { AchievementsCard, MissionsCard } from './Missions';
 
 const todayString = () => {
   const d = new Date();
@@ -69,6 +72,15 @@ export default function PathDashboard({
   );
   const daysLeft = daysLeftFor(pathCfg.examDate);
   const progress = describeProgress(readiness?.overall ?? null, pathCfg.target, daysLeft);
+  const plan = useMemo(
+    () => buildMissions({ daysLeft: daysLeftFor(pathCfg.examDate), readiness, cards, reviews, hasDiagnostic: Boolean(diagnostic) }),
+    [pathCfg.examDate, readiness, cards, reviews, diagnostic]
+  );
+  const achievements = useMemo(
+    () => buildAchievements({ cards, reviews, readiness, target: pathCfg.target, hasDiagnostic: Boolean(diagnostic) }),
+    [cards, reviews, readiness, pathCfg.target, diagnostic]
+  );
+  const streak = useMemo(() => computeStreaks(reviews, new Date()).current, [reviews]);
   const [editing, setEditing] = useState(false);
   const [date, setDate] = useState(pathCfg.examDate || '');
   const [target, setTarget] = useState(pathCfg.target);
@@ -154,6 +166,14 @@ export default function PathDashboard({
 
         <Ring value={readiness.overall} />
       </section>
+
+      <MissionsCard
+        plan={plan}
+        streak={streak}
+        onStartDiagnostic={onStartDiagnostic}
+        onReviewSubject={onReviewSubject}
+        canReview={canReview}
+      />
 
       {!diagnostic && (
         <section className="path-cta">
@@ -327,6 +347,8 @@ export default function PathDashboard({
           )}
         </>
       )}
+
+      <AchievementsCard items={achievements} />
 
       <section className="path-card path-exam">
         <header>
