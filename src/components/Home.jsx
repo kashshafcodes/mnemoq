@@ -71,9 +71,13 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
                   : `${pathInfo.progress.label}.`
                 : 'Take the AI diagnostic to see where you stand in every section.'}
             </p>
-            {!pathInfo.hasDiagnostic && (
+            {!pathInfo.hasDiagnostic ? (
               <a className="qa-primary home-button" href={pageHref('path')}>
                 Start the AI diagnostic
+              </a>
+            ) : (
+              <a className="ghost-button home-button" href={pageHref('mocks')}>
+                Take a mock test
               </a>
             )}
           </Tile>

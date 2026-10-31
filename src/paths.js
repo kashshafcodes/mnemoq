@@ -15,7 +15,7 @@ export const VERIFIED_ON = '2026-10-31';
 export const SUBJECT_CATALOG = {
   math: {
     id: 'math',
-    name: 'Higher Mathematics',
+    name: 'Math',
     cardSubject: 'Mathematics',
     blurb: 'Calculus, vectors, complex numbers, coordinate geometry',
   },
@@ -76,7 +76,7 @@ export const PATHS = {
     id: 'buet',
     name: 'BUET Engineering',
     short: 'BUET',
-    tagline: 'Higher Mathematics, Physics and Chemistry at admission level.',
+    tagline: 'Math, Physics and Chemistry at admission level.',
     target: 85,
     subjects: [
       { id: 'math', marks: 35 },
@@ -86,7 +86,7 @@ export const PATHS = {
     exam: {
       summary: 'Written test: about 40 questions over 3 hours, around 400 marks.',
       details: [
-        'Higher Mathematics about 35%, Physics about 33%, Chemistry about 32%.',
+        'Math about 35%, Physics about 33%, Chemistry about 32%.',
         'Architecture applicants also sit a separate drawing test.',
         'The real test is written. Our diagnostic uses multiple choice to find your gaps quickly.',
       ],

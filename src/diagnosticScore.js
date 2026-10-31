@@ -28,6 +28,7 @@ export function scoreSections(sections, answers) {
           correct: q.answer,
           picked,
           topic: q.topic,
+          explain: q.explain || '',
           needsPassage: Boolean(section.passage),
         });
       }
@@ -61,6 +62,7 @@ export function missedAsCards(diagnostic) {
         correctAnswer: m.options[m.correct],
         yourAnswer: m.picked === null ? '' : m.options[m.picked],
         distractors: m.options.filter((_, i) => i !== m.correct),
+        explain: m.explain || '',
       });
     }
   }

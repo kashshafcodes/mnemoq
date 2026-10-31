@@ -4,6 +4,7 @@ import { computeReadiness, daysLeftFor, describeProgress } from '../readiness';
 import { computeStreaks } from '../analytics';
 import { buildAchievements, buildMissions } from '../missions';
 import AiBadge from './AiBadge';
+import { pageHref } from '../useRoute';
 import { AchievementsCard, MissionsCard } from './Missions';
 
 const todayString = () => {
@@ -56,7 +57,6 @@ export default function PathDashboard({
   onDismissNotice,
   onSavePath,
   onStartDiagnostic,
-  onStartMock,
   mocks = [],
   onAnalyze,
   analyzing,
@@ -158,7 +158,7 @@ export default function PathDashboard({
               <label htmlFor="edit-target">
                 Target readiness: <b>{target}</b>
               </label>
-              <input id="edit-target" type="range" min="40" max="95" step="5" value={target} onChange={(e) => setTarget(Number(e.target.value))} />
+              <input id="edit-target" type="range" className="fancy-range" style={{ '--fill': `${((target - 40) / 55) * 100}%` }} min="40" max="95" step="1" value={target} onChange={(e) => setTarget(Number(e.target.value))} />
               <button type="submit" className="qa-primary" disabled={saving}>
                 {saving ? 'Saving...' : 'Save'}
               </button>
@@ -173,7 +173,6 @@ export default function PathDashboard({
         plan={plan}
         streak={streak}
         onStartDiagnostic={onStartDiagnostic}
-        onStartMock={onStartMock}
         onReviewSubject={onReviewSubject}
         canReview={canReview}
       />
@@ -237,7 +236,7 @@ export default function PathDashboard({
               <h3>
                 Mock tests <AiBadge />
               </h3>
-              <p>Timed practice papers. Your recent mock results count towards your readiness.</p>
+              <p>Timed papers for English, Math, Reading and Essay, unlocked one by one. Every result counts towards your readiness.</p>
             </header>
             {mocks.length > 0 && (
               <ul className="mock-history">
@@ -252,9 +251,9 @@ export default function PathDashboard({
                 ))}
               </ul>
             )}
-            <button type="button" className="qa-primary" onClick={onStartMock}>
-              {mocks.length > 0 ? 'Build another mock test' : 'Build my first mock test'}
-            </button>
+            <a className="qa-primary home-button" href={pageHref('mocks')}>
+              Open mock tests
+            </a>
           </section>
 
           <section className="path-card path-ai">

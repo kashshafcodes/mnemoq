@@ -10,6 +10,7 @@ import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
 import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, ProfileIcon, ReviewIcon } from './components/NavIcons';
+import MockCenter from './components/MockCenter';
 import PathPage from './components/PathPage';
 import { SUBJECT_CATALOG, getPath } from './paths';
 import { deleteQuestion, saveMock, saveQuestions } from './mockStore';
@@ -1004,7 +1005,7 @@ if (dataError) {
         question: item.question,
         correctAnswer: item.correctAnswer,
         yourAnswer: item.yourAnswer,
-        explanation: '',
+        explanation: item.explain || '',
         distractors: item.distractors,
       });
 
@@ -1129,7 +1130,7 @@ if (dataError) {
           ].map(([name, NavIcon, label]) => (
             <a
               key={name}
-              className={page === name ? 'nav-item active' : 'nav-item'}
+              className={page === name || (name === 'path' && page === 'mocks') ? 'nav-item active' : 'nav-item'}
               href={pageHref(name)}
               aria-current={page === name ? 'page' : undefined}
             >
@@ -1527,9 +1528,19 @@ if (dataError) {
             onReviewSubject={reviewSubjectFromPath}
             canReview={(subject) => reviewTabs.some((t) => sameName(t.name, subject))}
             onReload={reloadPath}
+          />
+        )}
+
+        {page === 'mocks' && (
+          <MockCenter
+            state={pathState}
+            cards={mistakes}
+            reviews={reviewLog}
             onSaveMock={recordMock}
             onAddBank={addBankQuestions}
             onDeleteBank={removeBankQuestion}
+            onAddCards={addDiagnosticCards}
+            onReload={reloadPath}
           />
         )}
 

@@ -70,9 +70,11 @@ export default function PathSetup({ onSave, saving, error }) {
         <input
           id="path-target"
           type="range"
+          className="fancy-range"
+          style={{ '--fill': `${((target - 40) / 55) * 100}%` }}
           min="40"
           max="95"
-          step="5"
+          step="1"
           value={target}
           onChange={(e) => setTarget(Number(e.target.value))}
         />

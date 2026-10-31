@@ -86,3 +86,31 @@ export function formatClock(totalSeconds) {
 
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 }
+
+// Prepared mocks: a stable key stored with each result.
+export const preparedKey = (sectionId, n) => `prepared:${sectionId}:${n}`;
+
+export const pctOf = (record) => (record.total > 0 ? Math.round((record.correct / record.total) * 100) : 0);
+
+// -> [{ n, title, status: 'locked'|'ready'|'done', attempts, best, last }]
+// Mock 1 is open; each next mock unlocks once the one before it is finished.
+export function mockProgress(sectionId, list, mocks) {
+  let previousDone = true;
+
+  return list.map((m) => {
+    const tries = mocks.filter((r) => r.source === preparedKey(sectionId, m.n));
+    const done = tries.length > 0;
+    const status = !previousDone ? 'locked' : done ? 'done' : 'ready';
+
+    previousDone = done;
+
+    return {
+      n: m.n,
+      title: m.title,
+      status,
+      attempts: tries.length,
+      best: done ? Math.max(...tries.map(pctOf)) : null,
+      first: done ? tries.reduce((a, b) => (new Date(a.createdAt) <= new Date(b.createdAt) ? a : b)) : null,
+    };
+  });
+}

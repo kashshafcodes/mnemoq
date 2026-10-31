@@ -31,8 +31,25 @@ export function practiceStats(subject, reviews = [], now = new Date()) {
 const MOCK_RECENT = 3;
 const MIN_MOCK_QUESTIONS = 3;
 
+// A prepared mock only counts the first time it is taken, so retaking the same
+// paper cannot inflate the score. Custom mocks always count.
+export function countedMocks(mocks = []) {
+  const seen = new Set();
+
+  return [...mocks]
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    .filter((m) => {
+      if (!String(m.source || '').startsWith('prepared:')) return true;
+      if (seen.has(m.source)) return false;
+
+      seen.add(m.source);
+
+      return true;
+    });
+}
+
 export function mockStats(sectionId, mocks = []) {
-  const recent = [...mocks]
+  const recent = countedMocks(mocks)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .map((m) => m.sections?.find((s) => s.id === sectionId))
     .filter((s) => s && s.total >= MIN_MOCK_QUESTIONS)
@@ -61,7 +78,7 @@ export function computeReadiness(pathId, diagnostic, reviews = [], now = new Dat
 
     // Mock tests are a second, longer look at the same section: they count for
     // 60% of the baseline once there is one (the diagnostic keeps 40%).
-    const mock = entry.aiMarked ? { count: 0, score: null } : mockStats(entry.id, mocks);
+    const mock = mockStats(entry.id, mocks);
 
     let baseline = diagScore;
 

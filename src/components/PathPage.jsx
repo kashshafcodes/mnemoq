@@ -3,7 +3,6 @@ import { getPath } from '../paths';
 import { missedAsCards } from '../diagnosticScore';
 import { daysLeftFor } from '../readiness';
 import Diagnostic from './Diagnostic';
-import Mock from './Mock';
 import PathDashboard from './PathDashboard';
 import PathSetup from './PathSetup';
 
@@ -31,11 +30,8 @@ export default function PathPage({
   onReviewSubject,
   canReview,
   onReload,
-  onSaveMock,
-  onAddBank,
-  onDeleteBank,
 }) {
-  const [view, setView] = useState('dashboard'); // dashboard | diagnostic | mock
+  const [view, setView] = useState('dashboard'); // dashboard | diagnostic
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -128,25 +124,6 @@ export default function PathPage({
     );
   }
 
-  if (view === 'mock') {
-    return (
-      <Mock
-        pathId={state.path.pathId}
-        path={path}
-        diagnostic={diagnostic}
-        reviews={reviews}
-        mocks={state.mocks || []}
-        bank={state.bank || []}
-        setup={Boolean(state.mockSetup)}
-        onSaveMock={onSaveMock}
-        onAddBank={onAddBank}
-        onDeleteBank={onDeleteBank}
-        onAddCards={onAddCards}
-        onClose={() => setView('dashboard')}
-      />
-    );
-  }
-
   return (
     <PathDashboard
       pathCfg={state.path}
@@ -157,7 +134,6 @@ export default function PathPage({
       onDismissNotice={() => setNotice('')}
       onSavePath={onSavePath}
       onStartDiagnostic={() => setView('diagnostic')}
-      onStartMock={() => setView('mock')}
       mocks={state.mocks || []}
       analyzing={analyzing}
       onAnalyze={async () => {
