@@ -18,7 +18,7 @@ const en = {
   // sign in
   'auth.signupTitle': 'Create your account',
   'auth.loginTitle': 'Welcome back',
-  'auth.tagline': 'Build stronger recall, one mistake at a time.',
+  'auth.tagline': 'AI-powered recall training. Build a stronger memory, one mistake at a time.',
   'auth.email': 'Email',
   'auth.password': 'Password',
   'auth.wait': 'Please wait...',
@@ -30,6 +30,8 @@ const en = {
   // sidebar + top bar
   'nav.workspace': 'WORKSPACE',
   'nav.profile': 'Profile',
+  'nav.path': 'My exam path',
+  'side.ai': 'AI-powered coaching',
   'nav.home': 'Home',
   'nav.add': 'Add cards',
   'nav.dashboard': 'Dashboard',
@@ -40,7 +42,7 @@ const en = {
   'nav.logout': 'Log out',
   'side.line1': 'Small improvements.',
   'side.line2': 'Lasting knowledge.',
-  'top.eyebrow': 'YOUR LEARNING SPACE',
+  'top.eyebrow': 'YOUR AI-POWERED LEARNING SPACE',
   'top.title': 'Good to see you.',
   'top.subtitle': "Turn today's mistakes into tomorrow's strengths.",
 
@@ -58,6 +60,8 @@ const en = {
   'pilot.story.examHint': 'Turn my wrong answers into a recovery plan',
   'pilot.story.upcoming': 'I have an exam coming',
   'pilot.story.upcomingHint': 'Tell us the topic and AI writes your practice questions',
+  'pilot.story.path': 'I am preparing for an admission exam',
+  'pilot.story.pathHint': 'Pick your exam and the AI builds your countdown, diagnostic and study plan',
   'pilot.story.learn': 'I want to remember what I learn',
   'pilot.story.learnHint': 'Add cards your own way',
 
@@ -237,6 +241,8 @@ const bn = {
 
   'nav.workspace': 'ওয়ার্কস্পেস',
   'nav.profile': 'প্রোফাইল',
+  'nav.path': 'আমার পরীক্ষার পথ',
+  'side.ai': 'এআই-চালিত কোচিং',
   'nav.home': 'হোম',
   'nav.add': 'কার্ড যোগ করুন',
   'nav.dashboard': 'ড্যাশবোর্ড',
@@ -247,7 +253,7 @@ const bn = {
   'nav.logout': 'লগ আউট',
   'side.line1': 'ছোট ছোট উন্নতি।',
   'side.line2': 'দীর্ঘস্থায়ী জ্ঞান।',
-  'top.eyebrow': 'আপনার শেখার জায়গা',
+  'top.eyebrow': 'আপনার এআই-চালিত শেখার জায়গা',
   'top.title': 'আপনাকে দেখে ভালো লাগল।',
   'top.subtitle': 'আজকের ভুলকে আগামীকালের শক্তিতে বদলে ফেলুন।',
 
@@ -263,6 +269,8 @@ const bn = {
   'pilot.story.examHint': 'ভুল উত্তরগুলো দিয়ে রিকভারি প্ল্যান বানান',
   'pilot.story.upcoming': 'আমার পরীক্ষা আসছে',
   'pilot.story.upcomingHint': 'টপিক বলুন, এআই আপনার অনুশীলনের প্রশ্ন লিখে দেবে',
+  'pilot.story.path': 'আমি ভর্তি পরীক্ষার প্রস্তুতি নিচ্ছি',
+  'pilot.story.pathHint': 'পরীক্ষা বেছে নিন, এআই আপনার কাউন্টডাউন, ডায়াগনস্টিক ও পড়ার পরিকল্পনা তৈরি করবে',
   'pilot.story.learn': 'আমি যা শিখি তা মনে রাখতে চাই',
   'pilot.story.learnHint': 'নিজের মতো করে কার্ড যোগ করুন',
 

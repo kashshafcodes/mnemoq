@@ -9,7 +9,12 @@ import MnemoqLogo from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
-import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, ProfileIcon, ReviewIcon } from './components/NavIcons';
+import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, ProfileIcon, ReviewIcon } from './components/NavIcons';
+import PathPage from './components/PathPage';
+import { SUBJECT_CATALOG, getPath } from './paths';
+import { loadPathState, saveAnalysis, saveDiagnostic, savePath } from './pathStore';
+import { requestAnalysis } from './coachApi';
+import { analysisPayload, computeReadiness, daysLeftFor, describeProgress } from './readiness';
 import Profile from './components/Profile';
 import { readProfile } from './profile';
 import Home from './components/Home';
@@ -114,6 +119,28 @@ const [authLoading, setAuthLoading] = useState(true);
 
     if (!saved && mistakes.length === 0) setPilotOpen(true);
   }, [session, dataLoading, mistakes.length]);
+
+  // The student's exam path and latest diagnostic (Supabase).
+  const [pathState, setPathState] = useState({ status: 'loading', path: null, diagnostic: null });
+
+  useEffect(() => {
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      setPathState({ status: 'loading', path: null, diagnostic: null });
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    loadPathState(userId).then((next) => {
+      if (!cancelled) setPathState({ path: null, diagnostic: null, ...next });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id]);
 
 
   
@@ -912,6 +939,111 @@ if (dataError) {
 
   const me = readProfile(session?.user);
 
+  async function reloadPath() {
+    setPathState({ status: 'loading', path: null, diagnostic: null });
+    setPathState({ path: null, diagnostic: null, ...(await loadPathState(session.user.id)) });
+  }
+
+  async function choosePath(choice) {
+    const result = await savePath(session.user.id, choice);
+
+    if (result.error) return { error: result.error };
+
+    setPathState((current) => ({
+      status: 'ready',
+      path: result.path,
+      diagnostic: current.path?.pathId === result.path.pathId ? current.diagnostic : null,
+    }));
+    trackEvent('path_saved', { path: result.path.pathId });
+
+    return {};
+  }
+
+  async function recordDiagnostic(result) {
+    const saved = await saveDiagnostic(session.user.id, {
+      pathId: pathState.path.pathId,
+      kind: result.kind,
+      sections: result.sections,
+      essay: result.essay,
+      analysis: result.analysis,
+    });
+
+    if (saved.error) return { error: saved.error };
+
+    setPathState((current) => ({ ...current, diagnostic: saved.diagnostic }));
+    trackEvent('diagnostic_done', { path: pathState.path.pathId, kind: result.kind });
+
+    return {};
+  }
+
+  async function rerunAnalysis() {
+    const { path, diagnostic } = pathState;
+
+    try {
+      const data = await requestAnalysis(analysisPayload(path.pathId, diagnostic, path.examDate, path.target));
+      const saved = await saveAnalysis(diagnostic.id, data.analysis);
+
+      setPathState((current) => ({ ...current, diagnostic: { ...current.diagnostic, analysis: data.analysis } }));
+
+      return saved.error ? { error: `The analysis ran but could not be saved: ${saved.error}` } : {};
+    } catch (caught) {
+      return { error: caught?.message || 'The AI analysis could not run.' };
+    }
+  }
+
+  // Turns missed diagnostic questions into review cards (with their wrong options for multiple choice).
+  async function addDiagnosticCards(list) {
+    let added = 0;
+
+    for (const item of list) {
+      // eslint-disable-next-line no-await-in-loop
+      const result = await addCard({
+        subject: SUBJECT_CATALOG[item.sectionId]?.cardSubject || 'English',
+        category: String(item.topic || 'Diagnostic').slice(0, 40),
+        question: item.question,
+        correctAnswer: item.correctAnswer,
+        yourAnswer: item.yourAnswer,
+        explanation: '',
+        distractors: item.distractors,
+      });
+
+      if (result?.error) return { added, error: result.error };
+
+      added += 1;
+    }
+
+    return { added };
+  }
+
+  function reviewSubjectFromPath(subject) {
+    const tab = reviewTabs.find((t) => sameName(t.name, subject));
+
+    if (tab) chooseReviewSubject(tab.name);
+
+    go('review');
+  }
+
+  // A short summary of the path for the home page and the review page.
+  const pathCfg = pathState.status === 'ready' ? pathState.path : null;
+  const pathInfo = pathCfg
+    ? (() => {
+        const config = getPath(pathCfg.pathId);
+        const readiness = computeReadiness(pathCfg.pathId, pathState.diagnostic, reviewLog);
+        const daysLeft = daysLeftFor(pathCfg.examDate);
+
+        return {
+          name: config.name,
+          short: config.short,
+          daysLeft,
+          readiness: readiness.overall,
+          target: pathCfg.target,
+          progress: describeProgress(readiness.overall, pathCfg.target, daysLeft),
+          weakest: readiness.weakest,
+          hasDiagnostic: Boolean(pathState.diagnostic),
+        };
+      })()
+    : null;
+
   function finishPilot(result, thenReview) {
     const next = { status: 'done', ...result, hidden: false };
 
@@ -942,6 +1074,10 @@ if (dataError) {
         addCard={addCard}
         onSkip={() => leavePilot('skipped', false)}
         onChooseOther={() => leavePilot('skipped', true)}
+        onChoosePath={() => {
+          leavePilot('skipped', false);
+          go('path');
+        }}
         onFinish={finishPilot}
       />
     );
@@ -957,6 +1093,7 @@ if (dataError) {
           {[
             ['home', HomeIcon, 'nav.home'],
             ['progress', DashboardIcon, 'nav.dashboard'],
+            ['path', PathIcon, 'nav.path'],
             ['add', AddIcon, 'nav.add'],
             ['library', LibraryIcon, 'nav.library'],
             ['review', ReviewIcon, 'nav.review'],
@@ -994,6 +1131,7 @@ if (dataError) {
 <div className="sidebar-bottom">
   <p>{t('side.line1')}</p>
   <p>{t('side.line2')}</p>
+  <p className="side-ai">✦ {t('side.ai')}</p>
 
   <LanguageToggle />
 
@@ -1049,6 +1187,8 @@ if (dataError) {
               reviews={reviewLog}
               dueCount={dueMistakes.length}
               onReview={goToReview}
+              pathInfo={pathInfo}
+              pathLoading={pathState.status === 'loading'}
             />
           </>
         )}
@@ -1347,6 +1487,21 @@ if (dataError) {
           </>
         )}
 
+        {page === 'path' && (
+          <PathPage
+            state={pathState}
+            cards={mistakes}
+            reviews={reviewLog}
+            onSavePath={choosePath}
+            onSaveDiagnostic={recordDiagnostic}
+            onAnalyze={rerunAnalysis}
+            onAddCards={addDiagnosticCards}
+            onReviewSubject={reviewSubjectFromPath}
+            canReview={(subject) => reviewTabs.some((t) => sameName(t.name, subject))}
+            onReload={reloadPath}
+          />
+        )}
+
         {page === 'profile' && (
           <Profile
             user={session.user}
@@ -1368,6 +1523,26 @@ if (dataError) {
       <p>Pick or type your answer first. Recalling it beats re-reading it.</p>
     </div>
   </div>
+
+  {pathInfo && !reviewMistake && !sessionFinished && (
+    <div className="review-path">
+      <span>
+        <b>{pathInfo.short} prep</b>
+        {pathInfo.daysLeft !== null && ` · ${pathInfo.daysLeft} ${pathInfo.daysLeft === 1 ? 'day' : 'days'} left`}
+        {pathInfo.readiness !== null && ` · readiness ${pathInfo.readiness} of ${pathInfo.target}`}
+      </span>
+      {pathInfo.weakest &&
+        reviewTabs.some((tab) => sameName(tab.name, pathInfo.weakest.cardSubject)) &&
+        !sameName(activeReviewSubject, pathInfo.weakest.cardSubject) && (
+          <button type="button" className="text-link" onClick={() => reviewSubjectFromPath(pathInfo.weakest.cardSubject)}>
+            Focus on {pathInfo.weakest.name}, your weakest
+          </button>
+        )}
+      <a className="text-link" href={pageHref('path')}>
+        Open my path
+      </a>
+    </div>
+  )}
 
   {!reviewMistake && !sessionFinished && (
     <ReviewSubjectTabs

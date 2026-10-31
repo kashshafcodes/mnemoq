@@ -1180,7 +1180,7 @@ function PlanStep({ count, startIso, examDate, onFinish, onReviewNow }) {
 // ---------------------------------------------------------------------------
 // The whole first run
 // ---------------------------------------------------------------------------
-export default function Pilot({ cards, addCard, onSkip, onChooseOther, onFinish }) {
+export default function Pilot({ cards, addCard, onSkip, onChooseOther, onChoosePath, onFinish }) {
   const { t } = useI18n();
   const [step, setStep] = useState('story');
   const [path, setPath] = useState('exam');
@@ -1236,6 +1236,12 @@ export default function Pilot({ cards, addCard, onSkip, onChooseOther, onFinish 
                 <strong>{t('pilot.story.upcoming')}</strong>
                 <span>{t('pilot.story.upcomingHint')}</span>
               </button>
+              {onChoosePath && (
+                <button type="button" className="pilot-story" onClick={onChoosePath}>
+                  <strong>{t('pilot.story.path')}</strong>
+                  <span>{t('pilot.story.pathHint')}</span>
+                </button>
+              )}
               <button type="button" className="pilot-story" onClick={onChooseOther}>
                 <strong>{t('pilot.story.learn')}</strong>
                 <span>{t('pilot.story.learnHint')}</span>

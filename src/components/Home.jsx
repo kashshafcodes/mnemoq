@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { computeAnalytics, headline } from '../analytics';
 import { subjectAccent } from '../subjects';
 import { pageHref } from '../useRoute';
+import AiBadge from './AiBadge';
 
 // The home page: every section in short form, each with a link to its own page.
 
@@ -21,7 +22,7 @@ function Tile({ title, to, linkLabel, className = '', children }) {
   );
 }
 
-export default function Home({ cards, reviews, dueCount, onReview }) {
+export default function Home({ cards, reviews, dueCount, onReview, pathInfo = null, pathLoading = false }) {
   const data = useMemo(() => computeAnalytics(cards, reviews, new Date()), [cards, reviews]);
   const { stats } = data;
   const message = headline(stats);
@@ -47,6 +48,49 @@ export default function Home({ cards, reviews, dueCount, onReview }) {
       </section>
 
       <div className="home-grid">
+        {pathInfo ? (
+          <Tile
+            title={<>{pathInfo.name} <AiBadge /></>}
+            to="path"
+            linkLabel="Open my path"
+            className="home-path"
+          >
+            <div className="home-path-row">
+              <p className="home-big">
+                {pathInfo.daysLeft !== null ? pathInfo.daysLeft : '–'}{' '}
+                <span>{pathInfo.daysLeft === 1 ? 'day left' : pathInfo.daysLeft === null ? 'no exam date yet' : 'days left'}</span>
+              </p>
+              <p className="home-big">
+                {pathInfo.readiness !== null ? pathInfo.readiness : '–'} <span>readiness, target {pathInfo.target}</span>
+              </p>
+            </div>
+            <p className="home-muted">
+              {pathInfo.hasDiagnostic
+                ? pathInfo.weakest
+                  ? `Weakest section: ${pathInfo.weakest.name}. ${pathInfo.progress.label}.`
+                  : `${pathInfo.progress.label}.`
+                : 'Take the AI diagnostic to see where you stand in every section.'}
+            </p>
+            {!pathInfo.hasDiagnostic && (
+              <a className="qa-primary home-button" href={pageHref('path')}>
+                Start the AI diagnostic
+              </a>
+            )}
+          </Tile>
+        ) : (
+          !pathLoading && (
+            <Tile title={<>Preparing for an exam? <AiBadge /></>} to="path" linkLabel="Choose my path" className="home-path">
+              <p className="home-muted">
+                Pick your exam and Mnemoq builds your preparation around it: a countdown, an AI diagnostic of every
+                section and a readiness score that moves as you practise.
+              </p>
+              <a className="qa-primary home-button" href={pageHref('path')}>
+                Choose my exam path
+              </a>
+            </Tile>
+          )
+        )}
+
         <Tile title="Review" to="review" linkLabel="Open review" className="home-review">
           {cards.length === 0 ? (
             <p className="home-muted">Add your first card, then come back here to review it.</p>

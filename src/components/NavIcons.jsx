@@ -80,6 +80,16 @@ export function AddIcon() {
   );
 }
 
+export function PathIcon() {
+  return (
+    <Icon>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.6" />
+      <circle cx="12" cy="12" r="1" />
+    </Icon>
+  );
+}
+
 export function ProfileIcon() {
   return (
     <Icon>

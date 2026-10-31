@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 // own address (https://.../#/review) and the browser Back button works, with
 // no extra library and no server setup (a refresh on any page just works).
 
-export const PAGES = ['home', 'progress', 'add', 'library', 'review', 'profile'];
+export const PAGES = ['home', 'progress', 'add', 'library', 'review', 'profile', 'path'];
 
 // Links and bookmarks from before the pages existed still land somewhere sensible.
 const OLD_ANCHORS = { dashboard: 'progress', mistakes: 'library', review: 'review' };
