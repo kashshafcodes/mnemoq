@@ -12,6 +12,7 @@ import Dashboard from './components/Dashboard';
 import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, ProfileIcon, ReviewIcon } from './components/NavIcons';
 import PathPage from './components/PathPage';
 import { SUBJECT_CATALOG, getPath } from './paths';
+import { deleteQuestion, saveMock, saveQuestions } from './mockStore';
 import { loadPathState, saveAnalysis, saveDiagnostic, savePath } from './pathStore';
 import { requestAnalysis } from './coachApi';
 import { analysisPayload, computeReadiness, daysLeftFor, describeProgress } from './readiness';
@@ -1015,6 +1016,33 @@ if (dataError) {
     return { added };
   }
 
+  async function recordMock(record) {
+    const saved = await saveMock(session.user.id, record);
+
+    if (saved.error) return { error: saved.error };
+
+    setPathState((current) => ({ ...current, mocks: [saved.mock, ...(current.mocks || [])] }));
+    trackEvent('mock_done', { path: record.pathId });
+
+    return {};
+  }
+
+  async function addBankQuestions(sectionId, list) {
+    const saved = await saveQuestions(session.user.id, pathState.path.pathId, sectionId, list);
+
+    if (saved.error) return { error: saved.error };
+
+    setPathState((current) => ({ ...current, bank: [...(current.bank || []), ...saved.questions] }));
+
+    return {};
+  }
+
+  async function removeBankQuestion(id) {
+    const result = await deleteQuestion(id);
+
+    if (!result.error) setPathState((current) => ({ ...current, bank: (current.bank || []).filter((q) => q.id !== id) }));
+  }
+
   function reviewSubjectFromPath(subject) {
     const tab = reviewTabs.find((t) => sameName(t.name, subject));
 
@@ -1028,7 +1056,7 @@ if (dataError) {
   const pathInfo = pathCfg
     ? (() => {
         const config = getPath(pathCfg.pathId);
-        const readiness = computeReadiness(pathCfg.pathId, pathState.diagnostic, reviewLog);
+        const readiness = computeReadiness(pathCfg.pathId, pathState.diagnostic, reviewLog, new Date(), pathState.mocks || []);
         const daysLeft = daysLeftFor(pathCfg.examDate);
 
         return {
@@ -1499,6 +1527,9 @@ if (dataError) {
             onReviewSubject={reviewSubjectFromPath}
             canReview={(subject) => reviewTabs.some((t) => sameName(t.name, subject))}
             onReload={reloadPath}
+            onSaveMock={recordMock}
+            onAddBank={addBankQuestions}
+            onDeleteBank={removeBankQuestion}
           />
         )}
 

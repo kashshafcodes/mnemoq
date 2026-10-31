@@ -75,6 +75,9 @@ export const SECTIONS = {
   },
 };
 
+// The real NSU paper offers five choices (A to E).
+export const OPTION_COUNT = 5;
+
 export const ESSAY_CRITERIA = ['content', 'organization', 'language', 'grammar'];
 export const MIN_ESSAY_WORDS = 60;
 const MAX_ESSAY_CHARS = 4000;
@@ -85,8 +88,8 @@ export function buildQuestionPrompt(sectionId) {
   const section = SECTIONS[sectionId];
   const shape =
     sectionId === 'reading'
-      ? '{"passage": string, "questions": [{"question": string, "options": [string, string, string, string], "answer": number, "topic": string, "sure": boolean}]}'
-      : '{"questions": [{"question": string, "options": [string, string, string, string], "answer": number, "topic": string, "sure": boolean}]}';
+      ? '{"passage": string, "questions": [{"question": string, "options": [string, string, string, string, string], "answer": number, "topic": string, "sure": boolean}]}'
+      : '{"questions": [{"question": string, "options": [string, string, string, string, string], "answer": number, "topic": string, "sure": boolean}]}';
 
   return `You write diagnostic questions for a student preparing for the North South University (NSU) undergraduate admission test in Bangladesh.
 Section: ${section.brief}
@@ -96,7 +99,7 @@ ${shape}
 
 Rules:
 - Write exactly ${section.asking} questions${sectionId === 'reading' ? ' about your passage' : ''}. Mix easy, medium and hard, at the level of a competitive admission test for HSC graduates.
-- "options" has exactly 4 different choices. "answer" is the 0-based index of the one correct option. Exactly one option is correct; the other three are plausible but clearly wrong. Do not write "all of the above" or "none of the above".
+- "options" has exactly 5 different choices (A to E). "answer" is the 0-based index of the one correct option. Exactly one option is correct; the other four are plausible but clearly wrong. Do not write "all of the above" or "none of the above".
 - "question" stands on its own (apart from the passage) and is at most 280 characters. Options are at most 100 characters.
 - "topic" must be exactly one of: ${section.topics.map((t) => `"${t}"`).join(', ')}. Spread the questions across different topics.
 - "sure" is true only when you are certain the keyed answer is correct. Otherwise false.
@@ -220,6 +223,80 @@ const ANALYZE_SCHEMA = {
 
 // ---- cleaning what the AI wrote --------------------------------------------
 
+
+// ---- bringing the student's own questions in --------------------------------
+
+export const MAX_IMPORT_CHARS = 8000;
+export const MAX_IMPORTED = 30;
+
+export const IMPORT_PROMPT = `You turn pasted exam questions into clean multiple-choice data for a student's own question bank.
+Reply with JSON only: {"questions": [{"question": string, "options": [string], "answer": number, "fromText": boolean}]}
+
+Rules:
+- Copy each question and each option exactly as written; only fix obvious typos from copying or scanning. Do not rewrite, shorten or add questions.
+- Remove option labels such as "A.", "(b)" or "3)" from the start of options.
+- "options" has between 2 and 5 choices. Skip anything that is not a multiple-choice question (essays, diagrams you cannot read).
+- "answer" is the 0-based index of the correct option. If the text itself shows an answer key, use it and set "fromText" true. If it does not, solve the question yourself and set "fromText" false.
+- At most ${MAX_IMPORTED} questions. If the text is garbled or a question cannot be understood, skip it.`;
+
+const IMPORT_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    questions: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          question: { type: 'STRING' },
+          options: { type: 'ARRAY', items: { type: 'STRING' } },
+          answer: { type: 'INTEGER' },
+          fromText: { type: 'BOOLEAN' },
+        },
+        required: ['question', 'options', 'answer', 'fromText'],
+      },
+    },
+  },
+  required: ['questions'],
+};
+
+// Keeps well-formed questions in their original order. aiKey is true when the
+// AI, not the pasted text, chose the correct answer.
+export function sanitizeImported(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const seen = new Set();
+  const questions = [];
+
+  for (const item of Array.isArray(raw.questions) ? raw.questions : []) {
+    if (!item || typeof item !== 'object') continue;
+
+    const question = clean(item.question, 400);
+    const options = (Array.isArray(item.options) ? item.options : []).map((o) => clean(o, 160));
+    const answer = Number(item.answer);
+
+    if (!question || options.length < 2 || options.length > OPTION_COUNT || options.some((o) => !o)) continue;
+    if (new Set(options.map(norm)).size !== options.length) continue;
+    if (!Number.isInteger(answer) || answer < 0 || answer >= options.length) continue;
+    if (seen.has(norm(question))) continue;
+
+    seen.add(norm(question));
+    questions.push({ question, options, answer, aiKey: item.fromText !== true });
+
+    if (questions.length >= MAX_IMPORTED) break;
+  }
+
+  return questions.length > 0 ? { questions } : null;
+}
+
+export function readImportInput(body) {
+  const text = clean(body?.text, MAX_IMPORT_CHARS);
+  const section = String(body?.section || '');
+
+  if (text.length < 20 || !SECTIONS[section] || section === 'reading') return null;
+
+  return { text, section };
+}
+
 function shuffled(list, rand = Math.random) {
   const copy = [...list];
 
@@ -253,15 +330,15 @@ export function sanitizeQuestions(raw, sectionId, rand = Math.random) {
     const options = (Array.isArray(item.options) ? item.options : []).map((o) => clean(o, 120));
     const answer = Number(item.answer);
 
-    if (!question || options.length !== 4 || options.some((o) => !o)) continue;
-    if (new Set(options.map(norm)).size !== 4) continue;
-    if (!Number.isInteger(answer) || answer < 0 || answer > 3) continue;
+    if (!question || options.length !== OPTION_COUNT || options.some((o) => !o)) continue;
+    if (new Set(options.map(norm)).size !== OPTION_COUNT) continue;
+    if (!Number.isInteger(answer) || answer < 0 || answer >= OPTION_COUNT) continue;
     if (options.some((o) => /^(all|none) of the above$/i.test(o))) continue;
     if (seen.has(norm(question))) continue;
 
     seen.add(norm(question));
 
-    const order = shuffled([0, 1, 2, 3], rand);
+    const order = shuffled(Array.from({ length: OPTION_COUNT }, (_, i) => i), rand);
     const topic = section.topics.find((t) => norm(t) === norm(item.topic)) || section.topics[0];
 
     questions.push({
@@ -649,7 +726,7 @@ export default async function handler(req, res, env = process.env) {
   const body = readBody(req.body);
   const action = body?.action;
 
-  if (!['diagnostic', 'grade_essay', 'analyze'].includes(action)) {
+  if (!['diagnostic', 'mock', 'import_questions', 'grade_essay', 'analyze'].includes(action)) {
     return send(res, 400, { error: 'Unknown request.', code: 'input' });
   }
 
@@ -663,6 +740,27 @@ export default async function handler(req, res, env = process.env) {
 
   if (action === 'diagnostic' && body.path !== 'nsu') {
     return send(res, 400, { error: 'That exam path is not available yet.', code: 'input' });
+  }
+
+  let mockIds = null;
+  let importInput = null;
+
+  if (action === 'mock') {
+    mockIds = (Array.isArray(body.sections) ? body.sections : []).filter(
+      (id, i, all) => ['english', 'quant', 'reading'].includes(id) && all.indexOf(id) === i
+    );
+
+    if (body.path !== 'nsu' || mockIds.length === 0) {
+      return send(res, 400, { error: 'Choose at least one section for your mock test.', code: 'input' });
+    }
+  }
+
+  if (action === 'import_questions') {
+    importInput = readImportInput(body);
+
+    if (!importInput) {
+      return send(res, 400, { error: 'Paste some multiple-choice questions first (an English or quantitative section).', code: 'input' });
+    }
   }
 
   if (action === 'grade_essay') {
@@ -702,8 +800,31 @@ export default async function handler(req, res, env = process.env) {
   const startedAt = Date.now();
   let payload;
 
-  if (action === 'diagnostic') {
-    const ids = ['english', 'quant', 'reading'];
+  if (action === 'import_questions') {
+    const outcome = await runAi(
+      env,
+      {
+        system: IMPORT_PROMPT,
+        user: importInput.text,
+        schema: IMPORT_SCHEMA,
+        maxTokens: 6000,
+        temperature: 0,
+        timeoutMs: 45000,
+      },
+      sanitizeImported
+    );
+
+    if (!outcome.result) {
+      return send(res, outcome.busy ? 429 : 502, {
+        error: outcome.busy ? BUSY : 'The AI could not find multiple-choice questions in that text. Check it and try again.',
+        code: outcome.busy ? 'busy' : 'failed',
+        remaining: limit - used,
+      });
+    }
+
+    payload = { questions: outcome.result.questions };
+  } else if (action === 'diagnostic' || action === 'mock') {
+    const ids = action === 'mock' ? mockIds : ['english', 'quant', 'reading'];
     const outcomes = await Promise.all(ids.map((id) => buildSection(env, id, startedAt)));
     const sections = outcomes.filter((o) => o.section).map((o) => o.section);
 

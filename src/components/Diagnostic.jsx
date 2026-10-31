@@ -10,7 +10,7 @@ import AiBadge from './AiBadge';
 //
 //   intro -> loading -> quiz (one section at a time) -> essay -> finishing -> onFinish
 
-const LETTERS = ['A', 'B', 'C', 'D'];
+const LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
 function pickEssayPrompt() {
   return ESSAY_PROMPTS[Math.floor(Math.random() * ESSAY_PROMPTS.length)];

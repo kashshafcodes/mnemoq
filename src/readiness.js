@@ -27,8 +27,24 @@ export function practiceStats(subject, reviews = [], now = new Date()) {
   return { count: mine.length, recalled, rate: mine.length > 0 ? recalled / mine.length : null };
 }
 
+// The student's last three mock tests that included this section.
+const MOCK_RECENT = 3;
+const MIN_MOCK_QUESTIONS = 3;
+
+export function mockStats(sectionId, mocks = []) {
+  const recent = [...mocks]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map((m) => m.sections?.find((s) => s.id === sectionId))
+    .filter((s) => s && s.total >= MIN_MOCK_QUESTIONS)
+    .slice(0, MOCK_RECENT);
+  const total = recent.reduce((sum, s) => sum + s.total, 0);
+  const correct = recent.reduce((sum, s) => sum + s.correct, 0);
+
+  return { count: recent.length, score: total > 0 ? Math.round((correct / total) * 100) : null };
+}
+
 // diagnostic: { sections: [{ id, correct, total }], essay: { score } | null } or null.
-export function computeReadiness(pathId, diagnostic, reviews = [], now = new Date()) {
+export function computeReadiness(pathId, diagnostic, reviews = [], now = new Date(), mocks = []) {
   const path = getPath(pathId);
 
   if (!path) return null;
@@ -43,16 +59,24 @@ export function computeReadiness(pathId, diagnostic, reviews = [], now = new Dat
       diagScore = found ? percent(found.correct, found.total) : null;
     }
 
+    // Mock tests are a second, longer look at the same section: they count for
+    // 60% of the baseline once there is one (the diagnostic keeps 40%).
+    const mock = entry.aiMarked ? { count: 0, score: null } : mockStats(entry.id, mocks);
+
+    let baseline = diagScore;
+
+    if (mock.score !== null) baseline = diagScore === null ? mock.score : Math.round(diagScore * 0.4 + mock.score * 0.6);
+
     const practice = practiceStats(entry.cardSubject, reviews, now);
     const practiceScore = practice.count >= MIN_PRACTICE_REVIEWS ? Math.round(practice.rate * 100) : null;
     let score = null;
 
-    if (diagScore !== null && practiceScore !== null) {
+    if (baseline !== null && practiceScore !== null) {
       const weight = Math.min(MAX_PRACTICE_WEIGHT, (practice.count / FULL_WEIGHT_AT) * MAX_PRACTICE_WEIGHT);
 
-      score = Math.round(diagScore * (1 - weight) + practiceScore * weight);
+      score = Math.round(baseline * (1 - weight) + practiceScore * weight);
     } else {
-      score = diagScore ?? practiceScore;
+      score = baseline ?? practiceScore;
     }
 
     return {
@@ -64,6 +88,8 @@ export function computeReadiness(pathId, diagnostic, reviews = [], now = new Dat
       diagScore,
       practiceScore,
       practiceCount: practice.count,
+      mockScore: mock.score,
+      mockCount: mock.count,
       score,
     };
   });

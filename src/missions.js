@@ -14,7 +14,7 @@ export function dailyGoal(daysLeft) {
   return 10;
 }
 
-export function buildMissions({ daysLeft, readiness, cards = [], reviews = [], hasDiagnostic, now = new Date() }) {
+export function buildMissions({ daysLeft, readiness, cards = [], reviews = [], mocks = [], hasDiagnostic, now = new Date() }) {
   const today = dayKey(now);
   const reviewsToday = reviews.filter((r) => r.at && dayKey(r.at) === today);
   const cardsToday = cards.filter((c) => c.createdAt && dayKey(c.createdAt) === today);
@@ -85,6 +85,22 @@ export function buildMissions({ daysLeft, readiness, cards = [], reviews = [], h
     action: { type: 'add', label: 'Add cards' },
   });
 
+  // One mock test a week keeps the readiness score honest.
+  if (hasDiagnostic) {
+    const weekAgo = now.getTime() - 7 * 24 * 60 * 60 * 1000;
+    const recent = mocks.some((m) => new Date(m.createdAt).getTime() >= weekAgo);
+
+    missions.push({
+      id: 'mock',
+      title: 'Sit a mock test this week',
+      detail: recent ? 'Done this week.' : 'A timed paper shows what practice cannot.',
+      value: recent ? 1 : 0,
+      goal: 1,
+      done: recent,
+      action: { type: 'mock', label: 'Build' },
+    });
+  }
+
   const done = missions.filter((m) => m.done).length;
 
   return { missions, done, total: missions.length, allDone: done === missions.length, goal };
@@ -101,12 +117,13 @@ function goalDays(reviews, goal = 10) {
   return [...perDay.values()].filter((n) => n >= goal).length;
 }
 
-export function buildAchievements({ cards = [], reviews = [], readiness, target, hasDiagnostic, now = new Date() }) {
+export function buildAchievements({ cards = [], reviews = [], mocks = [], readiness, target, hasDiagnostic, now = new Date() }) {
   const streak = computeStreaks(reviews, now);
   const total = reviews.length;
   const overall = readiness?.overall ?? null;
   const bestSection = Math.max(0, ...(readiness?.sections || []).map((s) => s.score ?? 0));
   const days = goalDays(reviews);
+  const bestMock = Math.max(0, ...mocks.map((m) => (m.total > 0 ? Math.round((m.correct / m.total) * 100) : 0)));
 
   const counter = (id, title, detail, value, goal) => ({
     id,
@@ -119,6 +136,9 @@ export function buildAchievements({ cards = [], reviews = [], readiness, target,
 
   return [
     counter('diagnostic', 'Know your starting point', 'Finish the AI diagnostic.', hasDiagnostic ? 1 : 0, 1),
+    counter('mock1', 'First mock test', 'Finish a mock test.', mocks.length, 1),
+    counter('mock5', 'Exam rehearsal', 'Finish 5 mock tests.', mocks.length, 5),
+    counter('mockTarget', 'Mock on target', 'Score your target on a mock test.', bestMock, target || 75),
     counter('rev10', 'Getting going', 'Review 10 cards.', total, 10),
     counter('rev100', 'Hundred reviews', 'Review 100 cards.', total, 100),
     counter('rev500', 'Five hundred reviews', 'Review 500 cards.', total, 500),

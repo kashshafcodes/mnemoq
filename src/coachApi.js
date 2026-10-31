@@ -62,3 +62,5 @@ export async function coachRequest(body) {
 export const requestDiagnostic = (path = 'nsu') => coachRequest({ action: 'diagnostic', path });
 export const requestEssayGrade = (prompt, essay) => coachRequest({ action: 'grade_essay', prompt, essay });
 export const requestAnalysis = (payload) => coachRequest(payload);
+export const requestMock = (sections, path = 'nsu') => coachRequest({ action: 'mock', path, sections });
+export const requestImport = (section, text) => coachRequest({ action: 'import_questions', section, text });

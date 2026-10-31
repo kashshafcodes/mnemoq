@@ -3,11 +3,12 @@ import { pageHref } from '../useRoute';
 
 // "Today" card (daily missions) and the achievements list for an exam path.
 
-export function MissionsCard({ plan, streak, onStartDiagnostic, onReviewSubject, canReview }) {
+export function MissionsCard({ plan, streak, onStartDiagnostic, onStartMock, onReviewSubject, canReview }) {
   function act(mission) {
     const { type, subject } = mission.action;
 
     if (type === 'diagnostic') onStartDiagnostic();
+    else if (type === 'mock') onStartMock();
     else if (type === 'subject' && canReview(subject)) onReviewSubject(subject);
     else window.location.hash = pageHref(type === 'add' ? 'add' : 'review').slice(1);
   }

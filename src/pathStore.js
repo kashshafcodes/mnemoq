@@ -1,3 +1,4 @@
+import { loadMockData } from './mockStore';
 import { supabase } from './supabaseClient';
 
 // Saves the student's exam path and diagnostic results in Supabase
@@ -37,7 +38,7 @@ export async function loadPathState(userId) {
 
   const path = toPath(pathResult.data);
 
-  if (!path) return { status: 'ready', path: null, diagnostic: null };
+  if (!path) return { status: 'ready', path: null, diagnostic: null, mocks: [], bank: [], mockSetup: false };
 
   const diagResult = await supabase
     .from('diagnostics')
@@ -52,7 +53,16 @@ export async function loadPathState(userId) {
       : { status: 'error', message: diagResult.error.message };
   }
 
-  return { status: 'ready', path, diagnostic: toDiagnostic(diagResult.data?.[0]) };
+  const mock = await loadMockData(userId, path.pathId).catch(() => ({ setup: false, mocks: [], bank: [] }));
+
+  return {
+    status: 'ready',
+    path,
+    diagnostic: toDiagnostic(diagResult.data?.[0]),
+    mocks: mock.mocks,
+    bank: mock.bank,
+    mockSetup: mock.setup,
+  };
 }
 
 export async function savePath(userId, { pathId, examDate, target }) {

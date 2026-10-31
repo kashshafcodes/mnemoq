@@ -56,6 +56,8 @@ export default function PathDashboard({
   onDismissNotice,
   onSavePath,
   onStartDiagnostic,
+  onStartMock,
+  mocks = [],
   onAnalyze,
   analyzing,
   missedCount,
@@ -67,18 +69,18 @@ export default function PathDashboard({
 }) {
   const path = getPath(pathCfg.pathId);
   const readiness = useMemo(
-    () => computeReadiness(pathCfg.pathId, diagnostic, reviews, new Date()),
-    [pathCfg.pathId, diagnostic, reviews]
+    () => computeReadiness(pathCfg.pathId, diagnostic, reviews, new Date(), mocks),
+    [pathCfg.pathId, diagnostic, reviews, mocks]
   );
   const daysLeft = daysLeftFor(pathCfg.examDate);
   const progress = describeProgress(readiness?.overall ?? null, pathCfg.target, daysLeft);
   const plan = useMemo(
-    () => buildMissions({ daysLeft: daysLeftFor(pathCfg.examDate), readiness, cards, reviews, hasDiagnostic: Boolean(diagnostic) }),
-    [pathCfg.examDate, readiness, cards, reviews, diagnostic]
+    () => buildMissions({ daysLeft: daysLeftFor(pathCfg.examDate), readiness, cards, reviews, mocks, hasDiagnostic: Boolean(diagnostic) }),
+    [pathCfg.examDate, readiness, cards, reviews, mocks, diagnostic]
   );
   const achievements = useMemo(
-    () => buildAchievements({ cards, reviews, readiness, target: pathCfg.target, hasDiagnostic: Boolean(diagnostic) }),
-    [cards, reviews, readiness, pathCfg.target, diagnostic]
+    () => buildAchievements({ cards, reviews, mocks, readiness, target: pathCfg.target, hasDiagnostic: Boolean(diagnostic) }),
+    [cards, reviews, mocks, readiness, pathCfg.target, diagnostic]
   );
   const streak = useMemo(() => computeStreaks(reviews, new Date()).current, [reviews]);
   const [editing, setEditing] = useState(false);
@@ -171,6 +173,7 @@ export default function PathDashboard({
         plan={plan}
         streak={streak}
         onStartDiagnostic={onStartDiagnostic}
+        onStartMock={onStartMock}
         onReviewSubject={onReviewSubject}
         canReview={canReview}
       />
@@ -214,6 +217,7 @@ export default function PathDashboard({
                   </div>
                   <p className="path-detail">
                     {s.diagScore !== null && `Diagnostic ${s.diagScore}`}
+                    {s.mockScore !== null && ` · Mock tests ${s.mockScore}%`}
                     {s.practiceScore !== null && ` · Practice ${s.practiceScore}% over ${s.practiceCount} reviews`}
                     {s.diagScore === null && s.practiceScore === null && 'Retake the diagnostic to measure this section.'}
                     {s.aiMarked && s.diagScore !== null && ' · marked by AI'}
@@ -226,6 +230,31 @@ export default function PathDashboard({
                 </li>
               ))}
             </ul>
+          </section>
+
+          <section className="path-card">
+            <header>
+              <h3>
+                Mock tests <AiBadge />
+              </h3>
+              <p>Timed practice papers. Your recent mock results count towards your readiness.</p>
+            </header>
+            {mocks.length > 0 && (
+              <ul className="mock-history">
+                {mocks.slice(0, 5).map((m) => (
+                  <li key={m.id}>
+                    <span>{new Date(m.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span>
+                    <b>
+                      {m.correct}/{m.total}
+                    </b>
+                    <span>{m.total > 0 ? Math.round((m.correct / m.total) * 100) : 0}%</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button type="button" className="qa-primary" onClick={onStartMock}>
+              {mocks.length > 0 ? 'Build another mock test' : 'Build my first mock test'}
+            </button>
           </section>
 
           <section className="path-card path-ai">
