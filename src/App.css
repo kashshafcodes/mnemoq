@@ -3167,25 +3167,58 @@ a.avatar:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
 .diag-q { margin: 0 0 10px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
 .diag-q span { color: var(--mnemoq-subtle); margin-right: 4px; }
 .diag-options { display: grid; gap: 8px; }
-.diag-option {
+.diag-options .diag-option {
+  -webkit-appearance: none;
+  appearance: none;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
+  width: 100%;
+  height: auto;
+  min-height: 48px;
+  margin: 0;
   padding: 12px 14px;
   border: 1px solid var(--mnemoq-border);
   border-radius: 12px;
   background: #0d1526;
-  color: var(--mnemoq-white);
+  color: #f8fafc;
   font: inherit;
+  font-weight: 400;
+  line-height: 1.5;
   text-align: left;
   cursor: pointer;
-  overflow-wrap: anywhere;
 }
-.diag-option b { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px; background: rgba(148, 163, 184, 0.16); font-size: 0.8rem; }
-.diag-option:hover { border-color: #a5b4fc; }
-.diag-option.selected { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.16); }
-.diag-option.selected b { background: #8b5cf6; color: #fff; }
-.diag-option:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+.diag-options .diag-option .diag-letter {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(148, 163, 184, 0.16);
+  color: #f8fafc;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.diag-options .diag-option .diag-text {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  height: auto;
+  padding: 2px 0 0;
+  border: 0;
+  background: none;
+  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+.diag-options .diag-option:hover { border-color: #a5b4fc; }
+.diag-options .diag-option.selected { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.16); }
+.diag-options .diag-option.selected .diag-letter { background: #8b5cf6; color: #fff; }
+.diag-options .diag-option:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
 .diag-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
 .diag-count { margin: 0; color: var(--mnemoq-subtle); font-size: 0.88rem; }
 .diag-count.ok { color: var(--mnemoq-success); }

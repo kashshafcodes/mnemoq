@@ -201,8 +201,10 @@ export default function Diagnostic({ pathId, pathName, hasEssay, daysLeft, targe
                       className={answers[q.id] === oi ? 'diag-option selected' : 'diag-option'}
                       onClick={() => setAnswers((current) => ({ ...current, [q.id]: oi }))}
                     >
-                      <b aria-hidden="true">{LETTERS[oi]}</b>
-                      <span>{option}</span>
+                      <span className="diag-letter" aria-hidden="true">
+                        {LETTERS[oi]}
+                      </span>
+                      <span className="diag-text">{option}</span>
                     </button>
                   ))}
                 </div>
