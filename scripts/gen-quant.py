@@ -169,7 +169,7 @@ FAMILIES = {
     'Counting & probability': [arrange, committee, prob_ball, prob_dice],
     'Data interpretation': [di_average, di_change, di_share],
 }
-PLAN = [4, 3, 4, 4, 4, 4, 4, 3]   # per topic, 30 questions per mock
+PLAN = [7, 5, 7, 7, 7, 7, 6, 4]   # per topic, 50 questions per mock
 
 def build(mock):
     rng = random.Random(9000 + mock)
@@ -177,9 +177,11 @@ def build(mock):
     for (topic, fams), count in zip(FAMILIES.items(), PLAN):
         order = fams[:]; rng.shuffle(order)
         for i in range(count):
-            for _ in range(40):
-                q = order[i % len(order)](rng)
+            for _ in range(200):
+                q = order[(i + _) % len(order)](rng)
                 if q['question'] not in seen and q['question'] not in GLOBAL: break
+            else:
+                raise SystemExit('could not make a unique question for ' + topic)
             seen.add(q['question']); GLOBAL.add(q['question']); qs.append(q)
     rng.shuffle(qs)
     return qs
@@ -188,7 +190,7 @@ GLOBAL = set()
 mocks = []
 for n in (1, 2, 3):
     qs = build(n)
-    assert len(qs) == 30
+    assert len(qs) == 50 and len({q['question'] for q in qs}) == 50, 'duplicate questions'
     for i, q in enumerate(qs, 1): q['id'] = f'quant-{n}-{i}'
     mocks.append(dict(n=n, questions=qs))
 out = pathlib.Path(__file__).resolve().parent.parent / 'src' / 'mockBank' / 'nsuQuant.js'

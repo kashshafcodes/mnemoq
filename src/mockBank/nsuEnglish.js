@@ -87,12 +87,86 @@ const RAW = [
   ],
 ];
 
+
+// ---- The second half of each mock (questions 21 to 40) ----
+const MORE = [
+  // Mock 1
+  [
+    ['Despite ___ hard, she failed the test.', ['try', 'tried', 'trying', 'to try', 'she tried'], 2, T.fix, '"Despite" is followed by a noun or an -ing form.'],
+    ['Choose the word closest in meaning to "candid".', ['Secretive', 'Frank', 'Rude', 'Quiet', 'Shy'], 1, T.syn, 'Candid means open and honest.'],
+    ['Choose the word opposite in meaning to "generous".', ['Kind', 'Stingy', 'Wealthy', 'Polite', 'Brave'], 1, T.syn, 'Generous means giving freely; stingy is the opposite.'],
+    ['She is ___ university student.', ['a', 'an', 'the', 'some', 'no article'], 0, T.prep, '"University" starts with a consonant sound (yoo), so use "a".'],
+    ['The number of applicants ___ increased this year.', ['have', 'has', 'are', 'were', 'is being'], 1, T.sv, '"The number of" is singular.'],
+    ['If she had studied harder, she ___ passed.', ['will have', 'would have', 'would', 'had', 'might'], 1, T.cond, 'Third conditional: if + past perfect, would have + past participle.'],
+    ['Choose the passive form of: "They are building a new bridge."', ['A new bridge is built by them.', 'A new bridge is being built by them.', 'A new bridge was being built.', 'A new bridge has been built by them.', 'A new bridge builds them.'], 1, T.voice, 'Present continuous passive: is/are being + past participle.'],
+    ['What does "to call it a day" mean?', ['To name a day', 'To stop working for the day', 'To make a phone call', 'To start early', 'To celebrate'], 1, T.idiom, 'It means to stop what you are doing for now.'],
+    ['The teacher gave us good ___.', ['advices', 'advice', 'advise', 'advisings', 'an advice'], 1, T.fix, '"Advice" is uncountable: no plural and no "an".'],
+    ['A person who can speak two languages is called', ['bilingual', 'polyglot', 'linguist', 'bilateral', 'lingual'], 0, T.mean, 'Bilingual means able to speak two languages.'],
+    ['He ran so fast ___ he won the race.', ['that', 'than', 'as', 'which', 'what'], 0, T.fix, '"So + adverb + that" shows a result.'],
+    ['Choose the word closest in meaning to "strict".', ['Lenient', 'Severe', 'Funny', 'Weak', 'Careless'], 1, T.syn, 'A strict person is firm and severe about rules.'],
+    ['I have been waiting ___ two hours.', ['since', 'for', 'from', 'at', 'by'], 1, T.tense, '"For" is used with a length of time.'],
+    ['Choose the correct sentence.', ['She is taller than me.', 'She is more tall than I.', 'She is tallest than me.', 'She is tall than I am.', 'She is taller from me.'], 0, T.fix, 'The comparative "taller" is followed by "than".'],
+    ['The wound was so painful that he could ___ walk.', ['hardly', 'hard', 'hardy', 'harder', 'hardness'], 0, T.fix, '"Hardly" means almost not.'],
+    ['"Break a leg!" is said to', ['wish someone good luck', 'warn of danger', 'insult someone', 'thank someone', 'ask someone to rest'], 0, T.idiom, 'It is a way of wishing a performer good luck.'],
+    ['They ___ in this house since they were children.', ['live', 'lived', 'have lived', 'are living', 'will live'], 2, T.tense, '"Since" needs the present perfect.'],
+    ['She has a talent ___ painting.', ['for', 'of', 'on', 'with', 'by'], 0, T.prep, '"Talent for" is the fixed pattern.'],
+    ['Choose the correct spelling.', ['Recieve', 'Receive', 'Receeve', 'Receve', 'Reciev'], 1, T.fix, 'Remember: i before e, except after c.'],
+    ['Choose the word opposite in meaning to "optimistic".', ['Hopeful', 'Pessimistic', 'Cheerful', 'Positive', 'Eager'], 1, T.syn, 'An optimist expects good outcomes; a pessimist expects bad ones.'],
+  ],
+  // Mock 2
+  [
+    ['Not only did he lie, ___ he also cheated.', ['but', 'and', 'so', 'yet it', 'then'], 0, T.fix, '"Not only...but also" is the correct pair.'],
+    ['Each of the students ___ given a certificate.', ['were', 'was', 'are', 'have been', 'be'], 1, T.sv, '"Each" is singular.'],
+    ['I ___ rather stay home than go out.', ['will', 'would', 'shall', 'should', 'can'], 1, T.cond, '"Would rather" expresses preference.'],
+    ['The patient ___ to hospital last night.', ['was taken', 'has taken', 'took', 'is take', 'was took'], 0, T.voice, 'The patient receives the action in the past: was taken.'],
+    ['Choose the word closest in meaning to "frugal".', ['Wasteful', 'Thrifty', 'Rich', 'Hungry', 'Selfish'], 1, T.syn, 'Frugal means careful with money.'],
+    ['Choose the word opposite in meaning to "transparent".', ['Clear', 'Opaque', 'Thin', 'Visible', 'Plain'], 1, T.syn, 'Transparent means see-through; opaque is the opposite.'],
+    ['Choose the correct indirect speech: He asked me, "Where do you live?"', ['He asked me where I lived.', 'He asked me where do I live.', 'He asked me where you live.', 'He said me where I lived.', 'He asked where did I live.'], 0, T.voice, 'A question becomes a statement order clause with a backshifted verb.'],
+    ['What does "to hit the nail on the head" mean?', ['To make an exact point', 'To injure oneself', 'To build a house', 'To hammer hard', 'To waste time'], 0, T.idiom, 'It means to describe exactly what is causing a situation.'],
+    ['I am fond ___ music.', ['at', 'of', 'for', 'in', 'with'], 1, T.prep, '"Fond of" is the fixed pattern.'],
+    ['She speaks English ___ than her brother.', ['fluently', 'more fluent', 'more fluently', 'most fluent', 'fluent'], 2, T.fix, 'An adverb comparison needs "more fluently".'],
+    ['By the time you arrive, I ___ dinner.', ['will cook', 'will have cooked', 'cooked', 'am cooking', 'have cook'], 1, T.tense, 'Future perfect: finished before a future point.'],
+    ['"The scientist\'s theory was refuted by new evidence." The word "refuted" means', ['proved', 'disproved', 'praised', 'copied', 'published'], 1, T.mean, 'To refute is to prove something wrong.'],
+    ['Mathematics ___ my favourite subject.', ['are', 'were', 'is', 'have been', 'be'], 2, T.sv, 'Names of subjects ending in -ics take a singular verb.'],
+    ['He is allergic ___ peanuts.', ['to', 'with', 'from', 'of', 'at'], 0, T.prep, '"Allergic to" is the fixed pattern.'],
+    ['Choose the correct spelling.', ['Definately', 'Definitely', 'Definitly', 'Defanitely', 'Definetely'], 1, T.fix, 'Definitely comes from "definite".'],
+    ['"Let sleeping dogs lie" means', ['do not disturb a settled situation', 'feed stray dogs', 'wake up early', 'tell the truth', 'guard the house'], 0, T.idiom, 'It advises leaving a calm situation alone.'],
+    ['If it ___ tomorrow, we will cancel the picnic.', ['rains', 'will rain', 'rained', 'would rain', 'rain'], 0, T.cond, 'First conditional: if + present simple, will + verb.'],
+    ['A speech delivered without preparation is called', ['impromptu', 'rehearsed', 'formal', 'lengthy', 'scripted'], 0, T.mean, 'Impromptu means done without preparation.'],
+    ['Rarely ___ such a beautiful sunset.', ['I have seen', 'have I seen', 'I saw', 'did I seen', 'I see'], 1, T.fix, 'After a negative adverb at the start, the verb comes before the subject.'],
+    ['Choose the word opposite in meaning to "brave".', ['Cowardly', 'Bold', 'Daring', 'Fearless', 'Heroic'], 0, T.syn, 'Cowardly means lacking courage.'],
+  ],
+  // Mock 3
+  [
+    ['He, as well as his friends, ___ invited.', ['were', 'are', 'was', 'have', 'be'], 2, T.sv, '"As well as" does not change the subject: "He" is singular.'],
+    ['She suggested ___ early.', ['leave', 'to leave', 'leaving', 'left', 'to have leave'], 2, T.fix, '"Suggest" is followed by an -ing form.'],
+    ['The cake was ___ delicious that we ate it all.', ['so', 'such', 'too', 'very', 'enough'], 0, T.fix, '"So + adjective + that" shows a result.'],
+    ['Had I known the truth, I ___ you earlier.', ['would tell', 'would have told', 'will tell', 'had told', 'tell'], 1, T.cond, 'Inverted third conditional: Had I known = If I had known.'],
+    ['Choose the passive form of: "The chef cooked the meal."', ['The meal was cooked by the chef.', 'The meal is cooked by the chef.', 'The meal cooked by the chef.', 'The chef was cooked by the meal.', 'The meal has cooked by the chef.'], 0, T.voice, 'Past simple passive: was/were + past participle.'],
+    ['Choose the word closest in meaning to "ambiguous".', ['Clear', 'Vague', 'Exact', 'Loud', 'Simple'], 1, T.syn, 'Ambiguous means open to more than one meaning.'],
+    ['Choose the word opposite in meaning to "temporary".', ['Brief', 'Permanent', 'Short', 'Passing', 'Quick'], 1, T.syn, 'Temporary lasts a short time; permanent lasts.'],
+    ['What does "to break the ice" mean?', ['To start a friendly conversation', 'To freeze water', 'To damage something', 'To be rude', 'To go skating'], 0, T.idiom, 'It means to ease tension at the start of a meeting.'],
+    ['She is afraid ___ spiders.', ['from', 'of', 'at', 'with', 'on'], 1, T.prep, '"Afraid of" is the fixed pattern.'],
+    ['Where ___ you go yesterday?', ['do', 'did', 'does', 'have', 'are'], 1, T.tense, '"Yesterday" needs the past simple, so "did".'],
+    ['He ___ here for ten years before he moved.', ['lived', 'has lived', 'had lived', 'was living', 'lives'], 2, T.tense, 'Past perfect: earlier than the moving.'],
+    ['"The politician\'s remarks were inflammatory." The word "inflammatory" means', ['calming', 'likely to cause anger', 'boring', 'honest', 'short'], 1, T.mean, 'Inflammatory words stir up strong feelings.'],
+    ['Choose the correct sentence.', ['Neither he nor I am ready.', 'Neither he nor I is ready.', 'Neither he nor I are ready.', 'Neither he nor me am ready.', 'Neither he or I am ready.'], 0, T.sv, 'The verb agrees with the nearer subject, "I".'],
+    ['The farmer sold ___ cows to buy a tractor.', ['his', 'he', 'him', 'himself', 'he\'s'], 0, T.fix, 'A possessive is needed before the noun: his cows.'],
+    ['A place where bees are kept is called an', ['apiary', 'aviary', 'aquarium', 'nursery', 'orchard'], 0, T.mean, 'An apiary is a collection of beehives.'],
+    ['She was angry ___ she did not show it.', ['but', 'so', 'because', 'unless', 'if'], 0, T.fix, '"But" joins two contrasting ideas.'],
+    ['"Actions speak louder than words" means', ['what we do matters more than what we say', 'be quiet', 'shout when you speak', 'silence is golden', 'speak clearly'], 0, T.idiom, 'It means deeds show more than promises.'],
+    ['Choose the correct spelling.', ['Embarass', 'Embarrass', 'Embaras', 'Embarras', 'Emberass'], 1, T.fix, 'Embarrass has double r and double s.'],
+    ['I wish I ___ the answer yesterday.', ['know', 'knew', 'had known', 'have known', 'would know'], 2, T.cond, 'A wish about the past uses the past perfect.'],
+    ['Choose the word opposite in meaning to "rural".', ['Urban', 'Village', 'Farm', 'Country', 'Agrarian'], 0, T.syn, 'Rural means of the countryside; urban means of the city.'],
+  ],
+];
+
 export const NSU_ENGLISH = RAW.map((list, mi) => ({
   n: mi + 1,
-  questions: list.map(([question, options, answer, topic, explain], qi) => ({
+  questions: [...list, ...MORE[mi]].map(([question, options, answer, topic, explain], qi) => ({
     id: `english-${mi + 1}-${qi + 1}`,
     question,
-    ...shuffleOptions(options, answer, (mi + 1) * 100 + qi + 7),
+    ...shuffleOptions(options, answer, (mi + 1) * 100 + qi + 34),
     topic,
     explain,
   })),

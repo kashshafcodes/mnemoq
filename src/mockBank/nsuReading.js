@@ -63,11 +63,64 @@ const RAW = [
   },
 ];
 
+
+// A second paragraph and ten more questions for each passage.
+const EXTRA = [
+  {
+    paragraph:
+      'Protecting mangroves is not only a matter for governments. In parts of Bangladesh and India, villagers have organised patrols to stop illegal cutting, and schools plant seedlings at the start of each rainy season. Planting alone is not enough, however. Young trees die quickly if they are placed in the wrong spot, so experts first study the tides and the soil before choosing a site. Success also depends on patience. A planted mangrove needs about a decade before its roots are dense enough to break waves, and in that time it must be guarded from grazing animals and from people looking for firewood. Communities that keep faith with this long timetable are rewarded with calmer water, richer fishing and, increasingly, income from visitors who come to see the forest.',
+    questions: [
+      ['According to paragraph B, why do experts study the tides and soil before planting?', ['To save money on seedlings', 'Because young trees die quickly in the wrong spot', 'To attract visitors', 'Because the law requires it', 'To measure the waves'], 1, D, 'Young trees die quickly if placed in the wrong spot.'],
+      ['About how long does a planted mangrove need before its roots can break waves?', ['One season', 'About a year', 'About five years', 'About a decade', 'About fifty years'], 3, D, 'The passage says about a decade.'],
+      ['From what must young mangroves be guarded?', ['Heavy rain and floods', 'Grazing animals and people seeking firewood', 'Fishermen and tourists', 'Salt and mud', 'Other young trees'], 1, D, 'They must be guarded from grazing animals and people looking for firewood.'],
+      ['The author suggests that planting mangroves is', ['quick and easy', 'worthwhile but needs patience and planning', 'a waste of time', 'only for governments', 'harmful to fishing'], 1, I, 'Paragraph B stresses planning, guarding and patience, and lists rewards.'],
+      ['In paragraph B, "dense" most nearly means', ['thin', 'closely packed', 'dry', 'ancient', 'colourful'], 1, V, 'Dense roots are thick and tightly packed.'],
+      ['In paragraph B, "patrols" are', ['markets for fish', 'groups that guard or watch an area', 'planting tools', 'tourist boats', 'government offices'], 1, V, 'Villagers organised patrols to stop illegal cutting.'],
+      ['The main idea of paragraph B is that', ['mangroves grow slowly so they are not worth planting', 'protecting mangroves needs community effort, careful planning and time', 'only schools should plant trees', 'visitors harm the forest', 'firewood is more valuable than mangroves'], 1, M, 'The paragraph gives practical steps and the need for patience.'],
+      ['"Communities that keep faith with this long timetable" suggests that they', ['continue the work despite slow results', 'believe in old stories', 'avoid new ideas', 'give up quickly', 'follow the government blindly'], 0, I, 'Keeping faith means staying committed to the long process.'],
+      ['Which income benefit is mentioned in paragraph B?', ['Selling timber', 'Money from visitors who come to see the forest', 'Fees from shrimp farms', 'Payments from governments', 'Sale of seedlings'], 1, D, 'It mentions income from visitors.'],
+      ['Paragraph B mainly serves to', ['show how protection can work in practice', 'contradict paragraph A', 'describe how salt is removed', 'compare two countries', 'list the dangers of storms'], 0, P, 'It moves from the problem to practical action.'],
+    ],
+  },
+  {
+    paragraph:
+      'Researchers have also looked at naps. A short sleep of twenty to thirty minutes in the afternoon can sharpen attention without leaving a person groggy, whereas a long nap that slips into deep sleep may make waking difficult. Some students use this to their advantage, studying a hard topic, napping briefly and then testing themselves on it. Others, however, find that napping late in the day makes it harder to fall asleep at night, which defeats the purpose. The best advice, specialists say, is to protect a regular bedtime first. Going to bed at roughly the same hour each night trains the body clock, and caffeine, which stays in the blood for hours, should be avoided in the evening. These habits are not glamorous, but they cost nothing and the benefits to learning are well supported.',
+    questions: [
+      ['According to paragraph B, how long is a helpful afternoon nap?', ['Five minutes', 'Twenty to thirty minutes', 'One hour', 'Two hours', 'It does not matter'], 1, D, 'The paragraph names twenty to thirty minutes.'],
+      ['Why can a long nap be a problem?', ['It costs too much', 'It may slip into deep sleep and make waking difficult', 'It erases memories', 'It causes dreams', 'It makes people hungry'], 1, D, 'A long nap can slip into deep sleep and make waking difficult.'],
+      ['What problem can napping late in the day cause?', ['Poor eyesight', 'Difficulty falling asleep at night', 'Loss of appetite', 'Weaker muscles', 'Bad dreams'], 1, D, 'It makes it harder to fall asleep at night.'],
+      ['"Which defeats the purpose" means that', ['the nap helps more', 'the nap undermines the goal of good sleep', 'the student is defeated', 'the purpose is unknown', 'the nap was too short'], 1, I, 'The nap works against what it was meant to achieve.'],
+      ['What do specialists say should be protected first?', ['Afternoon naps', 'A regular bedtime', 'Study time', 'Exam dates', 'Dream time'], 1, D, 'They advise protecting a regular bedtime first.'],
+      ['In paragraph B, "groggy" most nearly means', ['energetic', 'drowsy and unclear-headed', 'angry', 'hungry', 'cheerful'], 1, V, 'A groggy person feels heavy and slow after sleep.'],
+      ['In paragraph B, "glamorous" most nearly means', ['exciting and attractive', 'expensive', 'dangerous', 'ancient', 'noisy'], 0, V, 'The habits are plain, not glamorous.'],
+      ['What does the paragraph say about evening caffeine?', ['It improves memory', 'It should be avoided because it stays in the blood for hours', 'It is harmless', 'It replaces sleep', 'It is only a problem for children'], 1, D, 'Caffeine stays in the blood for hours.'],
+      ['Paragraph B mainly aims to', ['give practical advice about naps and sleep habits', 'prove that naps are harmful', 'describe an experiment', 'argue against studying', 'list famous sleepers'], 0, P, 'It offers advice on naps, bedtime and caffeine.'],
+      ['The author\'s view of the habits described is that they are', ['dull and useless', 'simple but valuable', 'too difficult for students', 'expensive but effective', 'dangerous'], 1, I, '"Not glamorous, but they cost nothing and the benefits are well supported."'],
+    ],
+  },
+  {
+    paragraph:
+      'Some cities have already begun to change course. In several countries, old concrete channels have been broken open so that rivers can curve and spread as they once did, and the results have been encouraging. Water slows down, fish return, and nearby streets flood less often because the extra water has somewhere to go. Residents, too, have gained: where a drain once ran between fences, there are now paths, benches and small parks. Not every city can follow this example. In crowded districts there may be no room to give the river back its banks, and the cost of buying land can be high. Even so, planners say that small steps, such as leaving a strip of grass along the bank or building roofs that hold rainwater, add up over time.',
+    questions: [
+      ['What have some cities done with old concrete channels?', ['Painted them', 'Broken them open so rivers can curve and spread', 'Filled them with soil', 'Sold them', 'Built new walls beside them'], 1, D, 'They broke them open so rivers can curve and spread.'],
+      ['Which result is mentioned in paragraph B?', ['Fish return', 'Cities grow larger', 'Boats become faster', 'Farms disappear', 'Rain stops'], 0, D, 'The paragraph says fish return.'],
+      ['Why do nearby streets flood less often?', ['The river becomes smaller', 'The extra water has somewhere to go', 'Walls are built higher', 'People move away', 'Rain falls less'], 1, D, 'The extra water has somewhere to go.'],
+      ['What have residents gained?', ['Cheaper homes', 'Paths, benches and small parks', 'Faster boats', 'New markets', 'Less rain'], 1, D, 'The paragraph lists paths, benches and small parks.'],
+      ['Why can\'t every city follow this example?', ['Rivers are too small', 'Crowded districts may lack room and land can be costly', 'Fish refuse to return', 'Planners disagree', 'Concrete is too strong'], 1, I, 'It says there may be no room and land costs can be high.'],
+      ['In paragraph B, "encouraging" most nearly means', ['disappointing', 'hopeful and promising', 'confusing', 'dangerous', 'expensive'], 1, V, 'Encouraging results give hope.'],
+      ['In the last sentence, "add up over time" means that small steps', ['cost more each year', 'gradually build into a significant effect', 'are counted by planners', 'cancel each other out', 'are quickly forgotten'], 1, V, 'Small actions accumulate into a big benefit.'],
+      ['Which is given as an example of a small step?', ['Building a new harbour', 'Leaving a strip of grass along the bank', 'Moving a river', 'Selling riverside land', 'Closing a market'], 1, D, 'A strip of grass along the bank is mentioned.'],
+      ['Paragraph B mainly describes', ['examples of cities restoring rivers and the limits of doing so', 'how floods began', 'the history of trade', 'dangers of fishing', 'plans for new canals'], 0, M, 'It gives examples, benefits and limits.'],
+      ['The planners mentioned are most likely', ['hopeful that modest actions help', 'certain that nothing can be done', 'opposed to parks', 'worried about fish', 'planning to build walls'], 0, I, 'They believe small steps add up.'],
+    ],
+  },
+];
+
 export const NSU_READING = RAW.map((mock, mi) => ({
   n: mi + 1,
   title: mock.title,
-  passage: mock.passage,
-  questions: mock.questions.map(([question, options, answer, topic, explain], qi) => ({
+  passage: `A. ${mock.passage}\n\nB. ${EXTRA[mi].paragraph}`,
+  questions: [...mock.questions, ...EXTRA[mi].questions].map(([question, options, answer, topic, explain], qi) => ({
     id: `reading-${mi + 1}-${qi + 1}`,
     question,
     ...shuffleOptions(options, answer, (mi + 1) * 1000 + qi + 11),

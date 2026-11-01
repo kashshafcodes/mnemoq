@@ -4,144 +4,158 @@ export const NSU_QUANT = [
   "n": 1,
   "questions": [
    {
-    "question": "A tank is 15 cm long, 10 cm wide and 4 cm high. What is its volume in cm³?",
+    "question": "The perimeter of a square is 24 cm. What is its area?",
     "options": [
-     "500 cm³",
-     "29 cm³",
-     "602 cm³",
-     "1200 cm³",
-     "600 cm³"
+     "24 cm²",
+     "32 cm²",
+     "36 cm²",
+     "12 cm²",
+     "46 cm²"
     ],
-    "answer": 4,
+    "answer": 2,
     "topic": "Geometry & mensuration",
-    "explain": "Volume = 15 × 10 × 4 = 600 cm³.",
+    "explain": "Side = 24/4 = 6; area = 6² = 36 cm².",
     "id": "quant-1-1"
    },
    {
-    "question": "A bag has 3 red and 5 blue balls. One ball is drawn at random. What is the probability it is red?",
+    "question": "A radio is sold for Tk 450 at a loss of 10%. What was its cost price?",
     "options": [
-     "1/8",
-     "3/5",
-     "4/8",
-     "3/8",
-     "5/8"
+     "Tk 501",
+     "Tk 1000",
+     "Tk 498",
+     "Tk 495",
+     "Tk 500"
     ],
-    "answer": 3,
-    "topic": "Counting & probability",
-    "explain": "P(red) = 3/8 = 3/8.",
+    "answer": 4,
+    "topic": "Profit & loss",
+    "explain": "SP is 90% of CP, so CP = 450 × 100/90 = 500.",
     "id": "quant-1-2"
    },
    {
-    "question": "A shopkeeper buys a shirt for Tk 250 and sells it at a 10% profit. What is the selling price?",
+    "question": "A shop sold 40, 50, 60 and 70 phones in four consecutive months. What was the average number sold per month?",
     "options": [
-     "Tk 275",
-     "Tk 825",
-     "Tk 276",
-     "Tk 280",
-     "Tk 225"
+     "70",
+     "110",
+     "55",
+     "65",
+     "50"
     ],
-    "answer": 0,
-    "topic": "Profit & loss",
-    "explain": "Profit = 10% of 250 = 25; SP = 250 + 25 = 275.",
+    "answer": 2,
+    "topic": "Data interpretation",
+    "explain": "Total = 220; average = 220/4 = 55.",
     "id": "quant-1-3"
    },
    {
-    "question": "What is the remainder when 152 is divided by 6?",
+    "question": "Tk 840 is shared between two people in the ratio 5:7. How much does the larger share receive?",
     "options": [
-     "6",
-     "7",
-     "2",
-     "1",
-     "4"
-    ],
-    "answer": 2,
-    "topic": "Number properties",
-    "explain": "152 = 6 × 25 + 2.",
-    "id": "quant-1-4"
-   },
-   {
-    "question": "A rectangle is 20 cm long and 15 cm wide. What is the length of its diagonal?",
-    "options": [
-     "25 cm",
-     "20 cm",
-     "29 cm",
-     "150 cm",
-     "35 cm"
-    ],
-    "answer": 0,
-    "topic": "Geometry & mensuration",
-    "explain": "Diagonal = √(20² + 15²) = √625 = 25 cm.",
-    "id": "quant-1-5"
-   },
-   {
-    "question": "What is the least common multiple (LCM) of 16 and 24?",
-    "options": [
-     "49",
-     "8",
-     "384",
-     "48",
-     "52"
-    ],
-    "answer": 3,
-    "topic": "Number properties",
-    "explain": "LCM = 16 × 24 / HCF = 384/8 = 48.",
-    "id": "quant-1-6"
-   },
-   {
-    "question": "Tk 500 is shared between two people in the ratio 3:7. How much does the larger share receive?",
-    "options": [
-     "Tk 351",
-     "Tk 150",
-     "Tk 350",
-     "Tk 300",
-     "Tk 700"
+     "Tk 245",
+     "Tk 491",
+     "Tk 490",
+     "Tk 489",
+     "Tk 350"
     ],
     "answer": 2,
     "topic": "Percentages & ratio",
-    "explain": "Total parts = 10; one part = 50; larger share = 7 × 50 = 350.",
-    "id": "quant-1-7"
+    "explain": "Total parts = 12; one part = 70; larger share = 7 × 70 = 490.",
+    "id": "quant-1-4"
    },
    {
-    "question": "A school had 200 students in 2023 and 300 students in 2024. By what percentage did enrolment grow?",
+    "question": "A committee of 2 is chosen from 5 students. How many different committees are possible?",
     "options": [
-     "50%",
-     "60%",
-     "51%",
-     "48%",
-     "100%"
+     "6",
+     "20",
+     "11",
+     "30",
+     "10"
     ],
-    "answer": 0,
-    "topic": "Data interpretation",
-    "explain": "Growth = 100; 100/200 × 100 = 50%.",
-    "id": "quant-1-8"
-   },
-   {
-    "question": "What is the sum of the integers from 1 to 15?",
-    "options": [
-     "120",
-     "135",
-     "122",
-     "225",
-     "119"
-    ],
-    "answer": 0,
-    "topic": "Number properties",
-    "explain": "n(n+1)/2 = 15 × 16/2 = 120.",
-    "id": "quant-1-9"
+    "answer": 4,
+    "topic": "Counting & probability",
+    "explain": "C(5,2) = 10.",
+    "id": "quant-1-5"
    },
    {
     "question": "What is the area of a circle of radius 7 cm (in terms of π)?",
     "options": [
-     "14π",
-     "98π",
      "7π",
+     "98π",
      "50π",
-     "49π"
+     "49π",
+     "14π"
     ],
-    "answer": 4,
+    "answer": 3,
     "topic": "Geometry & mensuration",
     "explain": "Area = πr² = π × 7² = 49π cm².",
+    "id": "quant-1-6"
+   },
+   {
+    "question": "If f(x) = ax² + b with f(1) = 3 and f(2) = 9, what is f(3)?",
+    "options": [
+     "7",
+     "21",
+     "19",
+     "23",
+     "12"
+    ],
+    "answer": 2,
+    "topic": "Algebra",
+    "explain": "f(2) − f(1) = 3a = 6, so a = 2; b = 1; f(3) = 9 × 2 + 1 = 19.",
+    "id": "quant-1-7"
+   },
+   {
+    "question": "What is the remainder when 128 is divided by 6?",
+    "options": [
+     "4",
+     "2",
+     "3",
+     "1",
+     "9"
+    ],
+    "answer": 1,
+    "topic": "Number properties",
+    "explain": "128 = 6 × 21 + 2.",
+    "id": "quant-1-8"
+   },
+   {
+    "question": "A can finish a job in 10 days and B can finish it in 15 days. Working together, in how many days will they finish it?",
+    "options": [
+     "16 days",
+     "18 days",
+     "6 days",
+     "19 days",
+     "12 days"
+    ],
+    "answer": 2,
+    "topic": "Time, work & speed",
+    "explain": "Rate = 1/10 + 1/15 = 25/150 per day, so time = 150/25 = 6 days.",
+    "id": "quant-1-9"
+   },
+   {
+    "question": "A cyclist travels at 30 km/h for 90 minutes. How far does the cyclist go?",
+    "options": [
+     "45 km",
+     "40 km",
+     "46 km",
+     "90 km",
+     "270 km"
+    ],
+    "answer": 0,
+    "topic": "Time, work & speed",
+    "explain": "90 minutes = 90/60 hour; distance = 30 × 90/60 = 45 km.",
     "id": "quant-1-10"
+   },
+   {
+    "question": "What is the highest common factor (HCF) of 45 and 75?",
+    "options": [
+     "13",
+     "15",
+     "11",
+     "16",
+     "30"
+    ],
+    "answer": 1,
+    "topic": "Number properties",
+    "explain": "The largest number that divides both 45 and 75 is 15.",
+    "id": "quant-1-11"
    },
    {
     "question": "In a class of 45 students the ratio of boys to girls is 3:2. How many girls are there?",
@@ -155,1095 +169,7 @@ export const NSU_QUANT = [
     "answer": 1,
     "topic": "Percentages & ratio",
     "explain": "One part = 45/5 = 9; girls = 2 × 9 = 18.",
-    "id": "quant-1-11"
-   },
-   {
-    "question": "If f(x) = ax² + b with f(1) = 7 and f(2) = 22, what is f(3)?",
-    "options": [
-     "51",
-     "17",
-     "47",
-     "29",
-     "43"
-    ],
-    "answer": 2,
-    "topic": "Algebra",
-    "explain": "f(2) − f(1) = 3a = 15, so a = 5; b = 2; f(3) = 9 × 5 + 2 = 47.",
     "id": "quant-1-12"
-   },
-   {
-    "question": "A radio is sold for Tk 750 at a loss of 25%. What was its cost price?",
-    "options": [
-     "Tk 1010",
-     "Tk 1004",
-     "Tk 1000",
-     "Tk 1001",
-     "Tk 937"
-    ],
-    "answer": 2,
-    "topic": "Profit & loss",
-    "explain": "SP is 75% of CP, so CP = 750 × 100/75 = 1000.",
-    "id": "quant-1-13"
-   },
-   {
-    "question": "If x + y = 15 and x − y = 7, what is the value of xy?",
-    "options": [
-     "15",
-     "39",
-     "44",
-     "132",
-     "105"
-    ],
-    "answer": 2,
-    "topic": "Algebra",
-    "explain": "x = (15+7)/2 = 11, y = (15−7)/2 = 4; xy = 44.",
-    "id": "quant-1-14"
-   },
-   {
-    "question": "Two fair dice are rolled. What is the probability that the sum is 7?",
-    "options": [
-     "1/4",
-     "1/9",
-     "1/6",
-     "5/36",
-     "1/12"
-    ],
-    "answer": 2,
-    "topic": "Counting & probability",
-    "explain": "There are 6 ways to get 7 out of 36, so 6/36 = 1/6.",
-    "id": "quant-1-15"
-   },
-   {
-    "question": "If 5x + 7 = 27, what is the value of x?",
-    "options": [
-     "7",
-     "14",
-     "20",
-     "12",
-     "4"
-    ],
-    "answer": 4,
-    "topic": "Algebra",
-    "explain": "5x = 27 − 7 = 20, so x = 4.",
-    "id": "quant-1-16"
-   },
-   {
-    "question": "A train 200 m long runs at 72 km/h. How many seconds does it take to pass a pole?",
-    "options": [
-     "11 s",
-     "10 s",
-     "20 s",
-     "14 s",
-     "12 s"
-    ],
-    "answer": 1,
-    "topic": "Time, work & speed",
-    "explain": "72 km/h = 72 × 5/18 = 20 m/s; time = 200 ÷ that = 10 s.",
-    "id": "quant-1-17"
-   },
-   {
-    "question": "What is 65% of 260?",
-    "options": [
-     "169",
-     "4",
-     "174",
-     "173",
-     "1690"
-    ],
-    "answer": 0,
-    "topic": "Percentages & ratio",
-    "explain": "65% of 260 = 65/100 × 260 = 169.",
-    "id": "quant-1-18"
-   },
-   {
-    "question": "What is the highest common factor (HCF) of 36 and 48?",
-    "options": [
-     "12",
-     "13",
-     "22",
-     "24",
-     "16"
-    ],
-    "answer": 0,
-    "topic": "Number properties",
-    "explain": "The largest number that divides both 36 and 48 is 12.",
-    "id": "quant-1-19"
-   },
-   {
-    "question": "In how many different ways can 4 different books be arranged on a shelf?",
-    "options": [
-     "72",
-     "6",
-     "16",
-     "24",
-     "25"
-    ],
-    "answer": 3,
-    "topic": "Counting & probability",
-    "explain": "4! = 24.",
-    "id": "quant-1-20"
-   },
-   {
-    "question": "The roots of x² − 10x + 9 = 0 are both positive. What is the larger root?",
-    "options": [
-     "9",
-     "8",
-     "7",
-     "13",
-     "10"
-    ],
-    "answer": 0,
-    "topic": "Algebra",
-    "explain": "x² − 10x + 9 = (x − 1)(x − 9), so the roots are 1 and 9.",
-    "id": "quant-1-21"
-   },
-   {
-    "question": "A committee of 3 is chosen from 5 students. How many different committees are possible?",
-    "options": [
-     "15",
-     "20",
-     "10",
-     "9",
-     "60"
-    ],
-    "answer": 2,
-    "topic": "Counting & probability",
-    "explain": "C(5,3) = 10.",
-    "id": "quant-1-22"
-   },
-   {
-    "question": "The price of a book rose from Tk 120 to Tk 132. What is the percentage increase?",
-    "options": [
-     "6%",
-     "15%",
-     "10%",
-     "20%",
-     "8%"
-    ],
-    "answer": 2,
-    "topic": "Percentages & ratio",
-    "explain": "Increase = 12; 12/120 × 100 = 10%.",
-    "id": "quant-1-23"
-   },
-   {
-    "question": "Two angles of a triangle are 45° and 75°. What is the third angle?",
-    "options": [
-     "64°",
-     "60°",
-     "135°",
-     "120°",
-     "30°"
-    ],
-    "answer": 1,
-    "topic": "Geometry & mensuration",
-    "explain": "Angles sum to 180°: 180 − 45 − 75 = 60°.",
-    "id": "quant-1-24"
-   },
-   {
-    "question": "A bus goes to a town at 30 km/h and returns at 45 km/h along the same road. What is its average speed for the whole trip?",
-    "options": [
-     "34 km/h",
-     "35 km/h",
-     "36 km/h",
-     "37 km/h",
-     "41 km/h"
-    ],
-    "answer": 2,
-    "topic": "Time, work & speed",
-    "explain": "Average speed = 2uv/(u+v) = 2 × 30 × 45/75 = 36 km/h (not the simple mean).",
-    "id": "quant-1-25"
-   },
-   {
-    "question": "In a survey of 500 people, 150 said they prefer tea. What percentage prefer tea?",
-    "options": [
-     "30%",
-     "32%",
-     "15%",
-     "31%",
-     "20%"
-    ],
-    "answer": 0,
-    "topic": "Data interpretation",
-    "explain": "150/500 × 100 = 30%.",
-    "id": "quant-1-26"
-   },
-   {
-    "question": "A cyclist travels at 40 km/h for 90 minutes. How far does the cyclist go?",
-    "options": [
-     "61 km",
-     "60 km",
-     "70 km",
-     "120 km",
-     "360 km"
-    ],
-    "answer": 1,
-    "topic": "Time, work & speed",
-    "explain": "90 minutes = 90/60 hour; distance = 40 × 90/60 = 60 km.",
-    "id": "quant-1-27"
-   },
-   {
-    "question": "A bag has a marked price of Tk 1500. After a 25% discount, what is the price paid?",
-    "options": [
-     "Tk 375",
-     "Tk 1125",
-     "Tk 1120",
-     "Tk 1875",
-     "Tk 3375"
-    ],
-    "answer": 1,
-    "topic": "Profit & loss",
-    "explain": "Discount = 375; price paid = 1500 − 375 = 1125.",
-    "id": "quant-1-28"
-   },
-   {
-    "question": "A shop sold 50, 70, 90 and 110 phones in four consecutive months. What was the average number sold per month?",
-    "options": [
-     "110",
-     "80",
-     "79",
-     "70",
-     "81"
-    ],
-    "answer": 1,
-    "topic": "Data interpretation",
-    "explain": "Total = 320; average = 320/4 = 80.",
-    "id": "quant-1-29"
-   },
-   {
-    "question": "A can finish a job in 6 days and B can finish it in 12 days. Working together, in how many days will they finish it?",
-    "options": [
-     "14 days",
-     "5 days",
-     "9 days",
-     "4 days",
-     "12 days"
-    ],
-    "answer": 3,
-    "topic": "Time, work & speed",
-    "explain": "Rate = 1/6 + 1/12 = 18/72 per day, so time = 72/18 = 4 days.",
-    "id": "quant-1-30"
-   }
-  ]
- },
- {
-  "n": 2,
-  "questions": [
-   {
-    "question": "How many positive divisors does 36 have?",
-    "options": [
-     "18",
-     "7",
-     "4",
-     "9",
-     "11"
-    ],
-    "answer": 3,
-    "topic": "Number properties",
-    "explain": "Counting the numbers that divide 36 evenly gives 9.",
-    "id": "quant-2-1"
-   },
-   {
-    "question": "In a survey of 800 people, 200 said they prefer tea. What percentage prefer tea?",
-    "options": [
-     "20%",
-     "75%",
-     "15%",
-     "26%",
-     "25%"
-    ],
-    "answer": 4,
-    "topic": "Data interpretation",
-    "explain": "200/800 × 100 = 25%.",
-    "id": "quant-2-2"
-   },
-   {
-    "question": "If x + y = 16 and x − y = 4, what is the value of xy?",
-    "options": [
-     "50",
-     "60",
-     "120",
-     "64",
-     "16"
-    ],
-    "answer": 1,
-    "topic": "Algebra",
-    "explain": "x = (16+4)/2 = 10, y = (16−4)/2 = 6; xy = 60.",
-    "id": "quant-2-3"
-   },
-   {
-    "question": "A bag has a marked price of Tk 500. After a 25% discount, what is the price paid?",
-    "options": [
-     "Tk 375",
-     "Tk 379",
-     "Tk 125",
-     "Tk 750",
-     "Tk 625"
-    ],
-    "answer": 0,
-    "topic": "Profit & loss",
-    "explain": "Discount = 125; price paid = 500 − 125 = 375.",
-    "id": "quant-2-4"
-   },
-   {
-    "question": "What is the remainder when 68 is divided by 5?",
-    "options": [
-     "9",
-     "6",
-     "3",
-     "4",
-     "2"
-    ],
-    "answer": 2,
-    "topic": "Number properties",
-    "explain": "68 = 5 × 13 + 3.",
-    "id": "quant-2-5"
-   },
-   {
-    "question": "A rectangle is 8 cm long and 6 cm wide. What is the length of its diagonal?",
-    "options": [
-     "24 cm",
-     "10 cm",
-     "8 cm",
-     "20 cm",
-     "14 cm"
-    ],
-    "answer": 1,
-    "topic": "Geometry & mensuration",
-    "explain": "Diagonal = √(8² + 6²) = √100 = 10 cm.",
-    "id": "quant-2-6"
-   },
-   {
-    "question": "A shopkeeper buys a shirt for Tk 400 and sells it at a 25% profit. What is the selling price?",
-    "options": [
-     "Tk 496",
-     "Tk 500",
-     "Tk 300",
-     "Tk 490",
-     "Tk 501"
-    ],
-    "answer": 1,
-    "topic": "Profit & loss",
-    "explain": "Profit = 25% of 400 = 100; SP = 400 + 100 = 500.",
-    "id": "quant-2-7"
-   },
-   {
-    "question": "Tk 320 is shared between two people in the ratio 3:5. How much does the larger share receive?",
-    "options": [
-     "Tk 201",
-     "Tk 120",
-     "Tk 205",
-     "Tk 196",
-     "Tk 200"
-    ],
-    "answer": 4,
-    "topic": "Percentages & ratio",
-    "explain": "Total parts = 8; one part = 40; larger share = 5 × 40 = 200.",
-    "id": "quant-2-8"
-   },
-   {
-    "question": "The price of a book rose from Tk 200 to Tk 220. What is the percentage increase?",
-    "options": [
-     "20%",
-     "15%",
-     "11%",
-     "10%",
-     "12%"
-    ],
-    "answer": 3,
-    "topic": "Percentages & ratio",
-    "explain": "Increase = 20; 20/200 × 100 = 10%.",
-    "id": "quant-2-9"
-   },
-   {
-    "question": "What is the highest common factor (HCF) of 40 and 100?",
-    "options": [
-     "22",
-     "60",
-     "40",
-     "20",
-     "10"
-    ],
-    "answer": 3,
-    "topic": "Number properties",
-    "explain": "The largest number that divides both 40 and 100 is 20.",
-    "id": "quant-2-10"
-   },
-   {
-    "question": "A school had 50 students in 2023 and 60 students in 2024. By what percentage did enrolment grow?",
-    "options": [
-     "21%",
-     "22%",
-     "40%",
-     "20%",
-     "10%"
-    ],
-    "answer": 3,
-    "topic": "Data interpretation",
-    "explain": "Growth = 10; 10/50 × 100 = 20%.",
-    "id": "quant-2-11"
-   },
-   {
-    "question": "A committee of 3 is chosen from 6 students. How many different committees are possible?",
-    "options": [
-     "60",
-     "20",
-     "18",
-     "21",
-     "120"
-    ],
-    "answer": 1,
-    "topic": "Counting & probability",
-    "explain": "C(6,3) = 20.",
-    "id": "quant-2-12"
-   },
-   {
-    "question": "If f(x) = ax² + b with f(1) = 5 and f(2) = 11, what is f(3)?",
-    "options": [
-     "22",
-     "16",
-     "9",
-     "23",
-     "21"
-    ],
-    "answer": 4,
-    "topic": "Algebra",
-    "explain": "f(2) − f(1) = 3a = 6, so a = 2; b = 3; f(3) = 9 × 2 + 3 = 21.",
-    "id": "quant-2-13"
-   },
-   {
-    "question": "A bus goes to a town at 30 km/h and returns at 60 km/h along the same road. What is its average speed for the whole trip?",
-    "options": [
-     "42 km/h",
-     "40 km/h",
-     "45 km/h",
-     "20 km/h",
-     "41 km/h"
-    ],
-    "answer": 1,
-    "topic": "Time, work & speed",
-    "explain": "Average speed = 2uv/(u+v) = 2 × 30 × 60/90 = 40 km/h (not the simple mean).",
-    "id": "quant-2-14"
-   },
-   {
-    "question": "In how many different ways can 5 different books be arranged on a shelf?",
-    "options": [
-     "118",
-     "124",
-     "120",
-     "24",
-     "25"
-    ],
-    "answer": 2,
-    "topic": "Counting & probability",
-    "explain": "5! = 120.",
-    "id": "quant-2-15"
-   },
-   {
-    "question": "A tank is 10 cm long, 5 cm wide and 4 cm high. What is its volume in cm³?",
-    "options": [
-     "200 cm³",
-     "202 cm³",
-     "19 cm³",
-     "220 cm³",
-     "205 cm³"
-    ],
-    "answer": 0,
-    "topic": "Geometry & mensuration",
-    "explain": "Volume = 10 × 5 × 4 = 200 cm³.",
-    "id": "quant-2-16"
-   },
-   {
-    "question": "A bag has 5 red and 5 blue balls. One ball is drawn at random. What is the probability it is red?",
-    "options": [
-     "1/2",
-     "6/10",
-     "1/10",
-     "5/12",
-     "5/11"
-    ],
-    "answer": 0,
-    "topic": "Counting & probability",
-    "explain": "P(red) = 5/10 = 1/2.",
-    "id": "quant-2-17"
-   },
-   {
-    "question": "A shop sold 40, 60, 80 and 100 phones in four consecutive months. What was the average number sold per month?",
-    "options": [
-     "60",
-     "74",
-     "66",
-     "70",
-     "100"
-    ],
-    "answer": 3,
-    "topic": "Data interpretation",
-    "explain": "Total = 280; average = 280/4 = 70.",
-    "id": "quant-2-18"
-   },
-   {
-    "question": "Two fair dice are rolled. What is the probability that the sum is 10?",
-    "options": [
-     "1/12",
-     "1/9",
-     "1/4",
-     "5/36",
-     "1/6"
-    ],
-    "answer": 0,
-    "topic": "Counting & probability",
-    "explain": "There are 3 ways to get 10 out of 36, so 3/36 = 1/12.",
-    "id": "quant-2-19"
-   },
-   {
-    "question": "A cyclist travels at 40 km/h for 45 minutes. How far does the cyclist go?",
-    "options": [
-     "31 km",
-     "180 km",
-     "34 km",
-     "30 km",
-     "26 km"
-    ],
-    "answer": 3,
-    "topic": "Time, work & speed",
-    "explain": "45 minutes = 45/60 hour; distance = 40 × 45/60 = 30 km.",
-    "id": "quant-2-20"
-   },
-   {
-    "question": "A train 300 m long runs at 54 km/h. How many seconds does it take to pass a pole?",
-    "options": [
-     "15 s",
-     "30 s",
-     "21 s",
-     "20 s",
-     "40 s"
-    ],
-    "answer": 3,
-    "topic": "Time, work & speed",
-    "explain": "54 km/h = 54 × 5/18 = 15 m/s; time = 300 ÷ that = 20 s.",
-    "id": "quant-2-21"
-   },
-   {
-    "question": "In a class of 42 students the ratio of boys to girls is 4:3. How many girls are there?",
-    "options": [
-     "17",
-     "36",
-     "28",
-     "18",
-     "24"
-    ],
-    "answer": 3,
-    "topic": "Percentages & ratio",
-    "explain": "One part = 42/7 = 6; girls = 3 × 6 = 18.",
-    "id": "quant-2-22"
-   },
-   {
-    "question": "What is 25% of 280?",
-    "options": [
-     "60",
-     "700",
-     "70",
-     "11",
-     "75"
-    ],
-    "answer": 2,
-    "topic": "Percentages & ratio",
-    "explain": "25% of 280 = 25/100 × 280 = 70.",
-    "id": "quant-2-23"
-   },
-   {
-    "question": "If 4x + 1 = 29, what is the value of x?",
-    "options": [
-     "7",
-     "11",
-     "28",
-     "10",
-     "12"
-    ],
-    "answer": 0,
-    "topic": "Algebra",
-    "explain": "4x = 29 − 1 = 28, so x = 7.",
-    "id": "quant-2-24"
-   },
-   {
-    "question": "The perimeter of a square is 48 cm. What is its area?",
-    "options": [
-     "48 cm²",
-     "72 cm²",
-     "144 cm²",
-     "432 cm²",
-     "24 cm²"
-    ],
-    "answer": 2,
-    "topic": "Geometry & mensuration",
-    "explain": "Side = 48/4 = 12; area = 12² = 144 cm².",
-    "id": "quant-2-25"
-   },
-   {
-    "question": "A radio is sold for Tk 450 at a loss of 10%. What was its cost price?",
-    "options": [
-     "Tk 502",
-     "Tk 499",
-     "Tk 501",
-     "Tk 500",
-     "Tk 495"
-    ],
-    "answer": 3,
-    "topic": "Profit & loss",
-    "explain": "SP is 90% of CP, so CP = 450 × 100/90 = 500.",
-    "id": "quant-2-26"
-   },
-   {
-    "question": "A can finish a job in 10 days and B can finish it in 15 days. Working together, in how many days will they finish it?",
-    "options": [
-     "5 days",
-     "6 days",
-     "19 days",
-     "18 days",
-     "12 days"
-    ],
-    "answer": 1,
-    "topic": "Time, work & speed",
-    "explain": "Rate = 1/10 + 1/15 = 25/150 per day, so time = 150/25 = 6 days.",
-    "id": "quant-2-27"
-   },
-   {
-    "question": "What is the area of a circle of radius 3 cm (in terms of π)?",
-    "options": [
-     "6π",
-     "3π",
-     "18π",
-     "10π",
-     "9π"
-    ],
-    "answer": 4,
-    "topic": "Geometry & mensuration",
-    "explain": "Area = πr² = π × 3² = 9π cm².",
-    "id": "quant-2-28"
-   },
-   {
-    "question": "What is the sum of the integers from 1 to 30?",
-    "options": [
-     "465",
-     "455",
-     "900",
-     "470",
-     "495"
-    ],
-    "answer": 0,
-    "topic": "Number properties",
-    "explain": "n(n+1)/2 = 30 × 31/2 = 465.",
-    "id": "quant-2-29"
-   },
-   {
-    "question": "The roots of x² − 7x + 6 = 0 are both positive. What is the larger root?",
-    "options": [
-     "3",
-     "6",
-     "11",
-     "5",
-     "7"
-    ],
-    "answer": 1,
-    "topic": "Algebra",
-    "explain": "x² − 7x + 6 = (x − 1)(x − 6), so the roots are 1 and 6.",
-    "id": "quant-2-30"
-   }
-  ]
- },
- {
-  "n": 3,
-  "questions": [
-   {
-    "question": "A train 150 m long runs at 54 km/h. How many seconds does it take to pass a pole?",
-    "options": [
-     "8 s",
-     "15 s",
-     "20 s",
-     "9 s",
-     "10 s"
-    ],
-    "answer": 4,
-    "topic": "Time, work & speed",
-    "explain": "54 km/h = 54 × 5/18 = 15 m/s; time = 150 ÷ that = 10 s.",
-    "id": "quant-3-1"
-   },
-   {
-    "question": "A tank is 12 cm long, 5 cm wide and 5 cm high. What is its volume in cm³?",
-    "options": [
-     "300 cm³",
-     "304 cm³",
-     "301 cm³",
-     "22 cm³",
-     "290 cm³"
-    ],
-    "answer": 0,
-    "topic": "Geometry & mensuration",
-    "explain": "Volume = 12 × 5 × 5 = 300 cm³.",
-    "id": "quant-3-2"
-   },
-   {
-    "question": "A bag has a marked price of Tk 800. After a 10% discount, what is the price paid?",
-    "options": [
-     "Tk 716",
-     "Tk 880",
-     "Tk 715",
-     "Tk 80",
-     "Tk 720"
-    ],
-    "answer": 4,
-    "topic": "Profit & loss",
-    "explain": "Discount = 80; price paid = 800 − 80 = 720.",
-    "id": "quant-3-3"
-   },
-   {
-    "question": "If 2x + 1 = 13, what is the value of x?",
-    "options": [
-     "5",
-     "7",
-     "6",
-     "12",
-     "11"
-    ],
-    "answer": 2,
-    "topic": "Algebra",
-    "explain": "2x = 13 − 1 = 12, so x = 6.",
-    "id": "quant-3-4"
-   },
-   {
-    "question": "A bus goes to a town at 40 km/h and returns at 60 km/h along the same road. What is its average speed for the whole trip?",
-    "options": [
-     "44 km/h",
-     "48 km/h",
-     "49 km/h",
-     "46 km/h",
-     "50 km/h"
-    ],
-    "answer": 1,
-    "topic": "Time, work & speed",
-    "explain": "Average speed = 2uv/(u+v) = 2 × 40 × 60/100 = 48 km/h (not the simple mean).",
-    "id": "quant-3-5"
-   },
-   {
-    "question": "Two fair dice are rolled. What is the probability that the sum is 8?",
-    "options": [
-     "1/6",
-     "1/12",
-     "5/36",
-     "1/9",
-     "1/4"
-    ],
-    "answer": 2,
-    "topic": "Counting & probability",
-    "explain": "There are 5 ways to get 8 out of 36, so 5/36 = 5/36.",
-    "id": "quant-3-6"
-   },
-   {
-    "question": "A rectangle is 12 cm long and 9 cm wide. What is the length of its diagonal?",
-    "options": [
-     "54 cm",
-     "5 cm",
-     "15 cm",
-     "21 cm",
-     "14 cm"
-    ],
-    "answer": 2,
-    "topic": "Geometry & mensuration",
-    "explain": "Diagonal = √(12² + 9²) = √225 = 15 cm.",
-    "id": "quant-3-7"
-   },
-   {
-    "question": "What is the least common multiple (LCM) of 10 and 25?",
-    "options": [
-     "50",
-     "55",
-     "250",
-     "5",
-     "40"
-    ],
-    "answer": 0,
-    "topic": "Number properties",
-    "explain": "LCM = 10 × 25 / HCF = 250/5 = 50.",
-    "id": "quant-3-8"
-   },
-   {
-    "question": "A school had 80 students in 2023 and 96 students in 2024. By what percentage did enrolment grow?",
-    "options": [
-     "16%",
-     "15%",
-     "40%",
-     "20%",
-     "10%"
-    ],
-    "answer": 3,
-    "topic": "Data interpretation",
-    "explain": "Growth = 16; 16/80 × 100 = 20%.",
-    "id": "quant-3-9"
-   },
-   {
-    "question": "Tk 300 is shared between two people in the ratio 3:7. How much does the larger share receive?",
-    "options": [
-     "Tk 209",
-     "Tk 210",
-     "Tk 180",
-     "Tk 211",
-     "Tk 90"
-    ],
-    "answer": 1,
-    "topic": "Percentages & ratio",
-    "explain": "Total parts = 10; one part = 30; larger share = 7 × 30 = 210.",
-    "id": "quant-3-10"
-   },
-   {
-    "question": "In how many different ways can 6 different books be arranged on a shelf?",
-    "options": [
-     "36",
-     "720",
-     "725",
-     "120",
-     "722"
-    ],
-    "answer": 1,
-    "topic": "Counting & probability",
-    "explain": "6! = 720.",
-    "id": "quant-3-11"
-   },
-   {
-    "question": "In a class of 24 students the ratio of boys to girls is 2:1. How many girls are there?",
-    "options": [
-     "9",
-     "6",
-     "7",
-     "16",
-     "8"
-    ],
-    "answer": 4,
-    "topic": "Percentages & ratio",
-    "explain": "One part = 24/3 = 8; girls = 1 × 8 = 8.",
-    "id": "quant-3-12"
-   },
-   {
-    "question": "If f(x) = ax² + b with f(1) = 8 and f(2) = 17, what is f(3)?",
-    "options": [
-     "25",
-     "14",
-     "32",
-     "33",
-     "37"
-    ],
-    "answer": 2,
-    "topic": "Algebra",
-    "explain": "f(2) − f(1) = 3a = 9, so a = 3; b = 5; f(3) = 9 × 3 + 5 = 32.",
-    "id": "quant-3-13"
-   },
-   {
-    "question": "The perimeter of a square is 24 cm. What is its area?",
-    "options": [
-     "36 cm²",
-     "34 cm²",
-     "24 cm²",
-     "12 cm²",
-     "108 cm²"
-    ],
-    "answer": 0,
-    "topic": "Geometry & mensuration",
-    "explain": "Side = 24/4 = 6; area = 6² = 36 cm².",
-    "id": "quant-3-14"
-   },
-   {
-    "question": "A shop sold 30, 40, 50 and 60 phones in four consecutive months. What was the average number sold per month?",
-    "options": [
-     "60",
-     "40",
-     "45",
-     "41",
-     "43"
-    ],
-    "answer": 2,
-    "topic": "Data interpretation",
-    "explain": "Total = 180; average = 180/4 = 45.",
-    "id": "quant-3-15"
-   },
-   {
-    "question": "In a survey of 200 people, 50 said they prefer tea. What percentage prefer tea?",
-    "options": [
-     "29%",
-     "5%",
-     "25%",
-     "26%",
-     "27%"
-    ],
-    "answer": 2,
-    "topic": "Data interpretation",
-    "explain": "50/200 × 100 = 25%.",
-    "id": "quant-3-16"
-   },
-   {
-    "question": "What is the remainder when 232 is divided by 9?",
-    "options": [
-     "9",
-     "13",
-     "7",
-     "12",
-     "2"
-    ],
-    "answer": 2,
-    "topic": "Number properties",
-    "explain": "232 = 9 × 25 + 7.",
-    "id": "quant-3-17"
-   },
-   {
-    "question": "A shopkeeper buys a shirt for Tk 200 and sells it at a 20% profit. What is the selling price?",
-    "options": [
-     "Tk 241",
-     "Tk 240",
-     "Tk 120",
-     "Tk 160",
-     "Tk 236"
-    ],
-    "answer": 1,
-    "topic": "Profit & loss",
-    "explain": "Profit = 20% of 200 = 40; SP = 200 + 40 = 240.",
-    "id": "quant-3-18"
-   },
-   {
-    "question": "How many positive divisors does 20 have?",
-    "options": [
-     "6",
-     "8",
-     "16",
-     "10",
-     "4"
-    ],
-    "answer": 0,
-    "topic": "Number properties",
-    "explain": "Counting the numbers that divide 20 evenly gives 6.",
-    "id": "quant-3-19"
-   },
-   {
-    "question": "A can finish a job in 12 days and B can finish it in 24 days. Working together, in how many days will they finish it?",
-    "options": [
-     "6 days",
-     "18 days",
-     "8 days",
-     "28 days",
-     "7 days"
-    ],
-    "answer": 2,
-    "topic": "Time, work & speed",
-    "explain": "Rate = 1/12 + 1/24 = 36/288 per day, so time = 288/36 = 8 days.",
-    "id": "quant-3-20"
-   },
-   {
-    "question": "The price of a book rose from Tk 80 to Tk 112. What is the percentage increase?",
-    "options": [
-     "50%",
-     "39%",
-     "44%",
-     "45%",
-     "40%"
-    ],
-    "answer": 4,
-    "topic": "Percentages & ratio",
-    "explain": "Increase = 32; 32/80 × 100 = 40%.",
-    "id": "quant-3-21"
-   },
-   {
-    "question": "A committee of 3 is chosen from 7 students. How many different committees are possible?",
-    "options": [
-     "31",
-     "210",
-     "21",
-     "35",
-     "37"
-    ],
-    "answer": 3,
-    "topic": "Counting & probability",
-    "explain": "C(7,3) = 35.",
-    "id": "quant-3-22"
-   },
-   {
-    "question": "If x + y = 17 and x − y = 7, what is the value of xy?",
-    "options": [
-     "59",
-     "119",
-     "60",
-     "70",
-     "17"
-    ],
-    "answer": 2,
-    "topic": "Algebra",
-    "explain": "x = (17+7)/2 = 12, y = (17−7)/2 = 5; xy = 60.",
-    "id": "quant-3-23"
-   },
-   {
-    "question": "Two angles of a triangle are 35° and 85°. What is the third angle?",
-    "options": [
-     "145°",
-     "61°",
-     "120°",
-     "60°",
-     "30°"
-    ],
-    "answer": 3,
-    "topic": "Geometry & mensuration",
-    "explain": "Angles sum to 180°: 180 − 35 − 85 = 60°.",
-    "id": "quant-3-24"
-   },
-   {
-    "question": "The roots of x² − 7x + 12 = 0 are both positive. What is the larger root?",
-    "options": [
-     "12",
-     "4",
-     "2",
-     "5",
-     "7"
-    ],
-    "answer": 1,
-    "topic": "Algebra",
-    "explain": "x² − 7x + 12 = (x − 3)(x − 4), so the roots are 3 and 4.",
-    "id": "quant-3-25"
-   },
-   {
-    "question": "What is 65% of 360?",
-    "options": [
-     "2340",
-     "234",
-     "5",
-     "224",
-     "232"
-    ],
-    "answer": 1,
-    "topic": "Percentages & ratio",
-    "explain": "65% of 360 = 65/100 × 360 = 234.",
-    "id": "quant-3-26"
-   },
-   {
-    "question": "What is the highest common factor (HCF) of 24 and 60?",
-    "options": [
-     "24",
-     "11",
-     "36",
-     "12",
-     "22"
-    ],
-    "answer": 3,
-    "topic": "Number properties",
-    "explain": "The largest number that divides both 24 and 60 is 12.",
-    "id": "quant-3-27"
-   },
-   {
-    "question": "A cyclist travels at 54 km/h for 40 minutes. How far does the cyclist go?",
-    "options": [
-     "216 km",
-     "108 km",
-     "41 km",
-     "36 km",
-     "37 km"
-    ],
-    "answer": 3,
-    "topic": "Time, work & speed",
-    "explain": "40 minutes = 40/60 hour; distance = 54 × 40/60 = 36 km.",
-    "id": "quant-3-28"
    },
    {
     "question": "A bag has 6 red and 4 blue balls. One ball is drawn at random. What is the probability it is red?",
@@ -1257,21 +183,1935 @@ export const NSU_QUANT = [
     "answer": 0,
     "topic": "Counting & probability",
     "explain": "P(red) = 6/10 = 3/5.",
-    "id": "quant-3-29"
+    "id": "quant-1-13"
    },
    {
-    "question": "A radio is sold for Tk 375 at a loss of 25%. What was its cost price?",
+    "question": "The roots of x² − 9x + 14 = 0 are both positive. What is the larger root?",
     "options": [
-     "Tk 468",
-     "Tk 490",
-     "Tk 500",
-     "Tk 501",
-     "Tk 510"
+     "7",
+     "3",
+     "14",
+     "5",
+     "9"
+    ],
+    "answer": 0,
+    "topic": "Algebra",
+    "explain": "x² − 9x + 14 = (x − 2)(x − 7), so the roots are 2 and 7.",
+    "id": "quant-1-14"
+   },
+   {
+    "question": "If 5x + 3 = 28, what is the value of x?",
+    "options": [
+     "8",
+     "5",
+     "25",
+     "4",
+     "6"
+    ],
+    "answer": 1,
+    "topic": "Algebra",
+    "explain": "5x = 28 − 3 = 25, so x = 5.",
+    "id": "quant-1-15"
+   },
+   {
+    "question": "Two angles of a triangle are 45° and 75°. What is the third angle?",
+    "options": [
+     "120°",
+     "60°",
+     "58°",
+     "30°",
+     "135°"
+    ],
+    "answer": 1,
+    "topic": "Geometry & mensuration",
+    "explain": "Angles sum to 180°: 180 − 45 − 75 = 60°.",
+    "id": "quant-1-16"
+   },
+   {
+    "question": "A rectangle is 20 cm long and 15 cm wide. What is the length of its diagonal?",
+    "options": [
+     "50 cm",
+     "30 cm",
+     "35 cm",
+     "150 cm",
+     "25 cm"
+    ],
+    "answer": 4,
+    "topic": "Geometry & mensuration",
+    "explain": "Diagonal = √(20² + 15²) = √625 = 25 cm.",
+    "id": "quant-1-17"
+   },
+   {
+    "question": "A bag has 5 red and 5 blue balls. One ball is drawn at random. What is the probability it is red?",
+    "options": [
+     "6/10",
+     "1/10",
+     "5/12",
+     "1/2",
+     "5/11"
+    ],
+    "answer": 3,
+    "topic": "Counting & probability",
+    "explain": "P(red) = 5/10 = 1/2.",
+    "id": "quant-1-18"
+   },
+   {
+    "question": "A shop sold 50, 60, 70 and 80 phones in four consecutive months. What was the average number sold per month?",
+    "options": [
+     "55",
+     "67",
+     "80",
+     "65",
+     "60"
+    ],
+    "answer": 3,
+    "topic": "Data interpretation",
+    "explain": "Total = 260; average = 260/4 = 65.",
+    "id": "quant-1-19"
+   },
+   {
+    "question": "A bag has a marked price of Tk 500. After a 20% discount, what is the price paid?",
+    "options": [
+     "Tk 400",
+     "Tk 405",
+     "Tk 410",
+     "Tk 600",
+     "Tk 100"
+    ],
+    "answer": 0,
+    "topic": "Profit & loss",
+    "explain": "Discount = 100; price paid = 500 − 100 = 400.",
+    "id": "quant-1-20"
+   },
+   {
+    "question": "A train 250 m long runs at 90 km/h. How many seconds does it take to pass a pole?",
+    "options": [
+     "20 s",
+     "10 s",
+     "25 s",
+     "9 s",
+     "11 s"
+    ],
+    "answer": 1,
+    "topic": "Time, work & speed",
+    "explain": "90 km/h = 90 × 5/18 = 25 m/s; time = 250 ÷ that = 10 s.",
+    "id": "quant-1-21"
+   },
+   {
+    "question": "How many positive divisors does 60 have?",
+    "options": [
+     "30",
+     "12",
+     "36",
+     "22",
+     "14"
+    ],
+    "answer": 1,
+    "topic": "Number properties",
+    "explain": "Counting the numbers that divide 60 evenly gives 12.",
+    "id": "quant-1-22"
+   },
+   {
+    "question": "A bus goes to a town at 60 km/h and returns at 90 km/h along the same road. What is its average speed for the whole trip?",
+    "options": [
+     "72 km/h",
+     "216 km/h",
+     "67 km/h",
+     "73 km/h",
+     "75 km/h"
+    ],
+    "answer": 0,
+    "topic": "Time, work & speed",
+    "explain": "Average speed = 2uv/(u+v) = 2 × 60 × 90/150 = 72 km/h (not the simple mean).",
+    "id": "quant-1-23"
+   },
+   {
+    "question": "A cyclist travels at 48 km/h for 30 minutes. How far does the cyclist go?",
+    "options": [
+     "144 km",
+     "24 km",
+     "19 km",
+     "25 km",
+     "20 km"
+    ],
+    "answer": 1,
+    "topic": "Time, work & speed",
+    "explain": "30 minutes = 30/60 hour; distance = 48 × 30/60 = 24 km.",
+    "id": "quant-1-24"
+   },
+   {
+    "question": "Tk 500 is shared between two people in the ratio 3:7. How much does the larger share receive?",
+    "options": [
+     "Tk 351",
+     "Tk 150",
+     "Tk 350",
+     "Tk 300",
+     "Tk 700"
+    ],
+    "answer": 2,
+    "topic": "Percentages & ratio",
+    "explain": "Total parts = 10; one part = 50; larger share = 7 × 50 = 350.",
+    "id": "quant-1-25"
+   },
+   {
+    "question": "A tank is 20 cm long, 10 cm wide and 6 cm high. What is its volume in cm³?",
+    "options": [
+     "1210 cm³",
+     "760 cm³",
+     "1200 cm³",
+     "2400 cm³",
+     "36 cm³"
+    ],
+    "answer": 2,
+    "topic": "Geometry & mensuration",
+    "explain": "Volume = 20 × 10 × 6 = 1200 cm³.",
+    "id": "quant-1-26"
+   },
+   {
+    "question": "If x + y = 11 and x − y = 5, what is the value of xy?",
+    "options": [
+     "24",
+     "23",
+     "55",
+     "11",
+     "34"
+    ],
+    "answer": 0,
+    "topic": "Algebra",
+    "explain": "x = (11+5)/2 = 8, y = (11−5)/2 = 3; xy = 24.",
+    "id": "quant-1-27"
+   },
+   {
+    "question": "What is the sum of the integers from 1 to 15?",
+    "options": [
+     "118",
+     "120",
+     "121",
+     "225",
+     "135"
+    ],
+    "answer": 1,
+    "topic": "Number properties",
+    "explain": "n(n+1)/2 = 15 × 16/2 = 120.",
+    "id": "quant-1-28"
+   },
+   {
+    "question": "A rectangle is 12 cm long and 9 cm wide. What is the length of its diagonal?",
+    "options": [
+     "21 cm",
+     "54 cm",
+     "11 cm",
+     "15 cm",
+     "19 cm"
+    ],
+    "answer": 3,
+    "topic": "Geometry & mensuration",
+    "explain": "Diagonal = √(12² + 9²) = √225 = 15 cm.",
+    "id": "quant-1-29"
+   },
+   {
+    "question": "What is the sum of the integers from 1 to 25?",
+    "options": [
+     "350",
+     "325",
+     "330",
+     "625",
+     "650"
+    ],
+    "answer": 1,
+    "topic": "Number properties",
+    "explain": "n(n+1)/2 = 25 × 26/2 = 325.",
+    "id": "quant-1-30"
+   },
+   {
+    "question": "A train 300 m long runs at 54 km/h. How many seconds does it take to pass a pole?",
+    "options": [
+     "20 s",
+     "25 s",
+     "40 s",
+     "30 s",
+     "22 s"
+    ],
+    "answer": 0,
+    "topic": "Time, work & speed",
+    "explain": "54 km/h = 54 × 5/18 = 15 m/s; time = 300 ÷ that = 20 s.",
+    "id": "quant-1-31"
+   },
+   {
+    "question": "The price of a book rose from Tk 40 to Tk 50. What is the percentage increase?",
+    "options": [
+     "27%",
+     "50%",
+     "20%",
+     "30%",
+     "25%"
+    ],
+    "answer": 4,
+    "topic": "Percentages & ratio",
+    "explain": "Increase = 10; 10/40 × 100 = 25%.",
+    "id": "quant-1-32"
+   },
+   {
+    "question": "If x + y = 18 and x − y = 8, what is the value of xy?",
+    "options": [
+     "18",
+     "63",
+     "65",
+     "61",
+     "144"
+    ],
+    "answer": 2,
+    "topic": "Algebra",
+    "explain": "x = (18+8)/2 = 13, y = (18−8)/2 = 5; xy = 65.",
+    "id": "quant-1-33"
+   },
+   {
+    "question": "A committee of 2 is chosen from 6 students. How many different committees are possible?",
+    "options": [
+     "30",
+     "15",
+     "12",
+     "10",
+     "25"
+    ],
+    "answer": 1,
+    "topic": "Counting & probability",
+    "explain": "C(6,2) = 15.",
+    "id": "quant-1-34"
+   },
+   {
+    "question": "A shopkeeper buys a shirt for Tk 250 and sells it at a 40% profit. What is the selling price?",
+    "options": [
+     "Tk 348",
+     "Tk 352",
+     "Tk 351",
+     "Tk 150",
+     "Tk 350"
+    ],
+    "answer": 4,
+    "topic": "Profit & loss",
+    "explain": "Profit = 40% of 250 = 100; SP = 250 + 100 = 350.",
+    "id": "quant-1-35"
+   },
+   {
+    "question": "In a class of 25 students the ratio of boys to girls is 3:2. How many girls are there?",
+    "options": [
+     "9",
+     "15",
+     "10",
+     "12",
+     "20"
+    ],
+    "answer": 2,
+    "topic": "Percentages & ratio",
+    "explain": "One part = 25/5 = 5; girls = 2 × 5 = 10.",
+    "id": "quant-1-36"
+   },
+   {
+    "question": "What is the area of a circle of radius 10 cm (in terms of π)?",
+    "options": [
+     "50π",
+     "200π",
+     "20π",
+     "100π",
+     "10π"
+    ],
+    "answer": 3,
+    "topic": "Geometry & mensuration",
+    "explain": "Area = πr² = π × 10² = 100π cm².",
+    "id": "quant-1-37"
+   },
+   {
+    "question": "A school had 80 students in 2023 and 88 students in 2024. By what percentage did enrolment grow?",
+    "options": [
+     "10%",
+     "12%",
+     "15%",
+     "8%",
+     "20%"
+    ],
+    "answer": 0,
+    "topic": "Data interpretation",
+    "explain": "Growth = 8; 8/80 × 100 = 10%.",
+    "id": "quant-1-38"
+   },
+   {
+    "question": "If 2x + 3 = 17, what is the value of x?",
+    "options": [
+     "7",
+     "8",
+     "14",
+     "10",
+     "12"
+    ],
+    "answer": 0,
+    "topic": "Algebra",
+    "explain": "2x = 17 − 3 = 14, so x = 7.",
+    "id": "quant-1-39"
+   },
+   {
+    "question": "What is the least common multiple (LCM) of 9 and 12?",
+    "options": [
+     "36",
+     "40",
+     "108",
+     "3",
+     "37"
+    ],
+    "answer": 0,
+    "topic": "Number properties",
+    "explain": "LCM = 9 × 12 / HCF = 108/3 = 36.",
+    "id": "quant-1-40"
+   },
+   {
+    "question": "What is 65% of 260?",
+    "options": [
+     "169",
+     "4",
+     "174",
+     "173",
+     "1690"
+    ],
+    "answer": 0,
+    "topic": "Percentages & ratio",
+    "explain": "65% of 260 = 65/100 × 260 = 169.",
+    "id": "quant-1-41"
+   },
+   {
+    "question": "A shopkeeper buys a shirt for Tk 500 and sells it at a 10% profit. What is the selling price?",
+    "options": [
+     "Tk 1100",
+     "Tk 551",
+     "Tk 450",
+     "Tk 550",
+     "Tk 1650"
+    ],
+    "answer": 3,
+    "topic": "Profit & loss",
+    "explain": "Profit = 10% of 500 = 50; SP = 500 + 50 = 550.",
+    "id": "quant-1-42"
+   },
+   {
+    "question": "What is the least common multiple (LCM) of 10 and 25?",
+    "options": [
+     "250",
+     "25",
+     "60",
+     "50",
+     "5"
+    ],
+    "answer": 3,
+    "topic": "Number properties",
+    "explain": "LCM = 10 × 25 / HCF = 250/5 = 50.",
+    "id": "quant-1-43"
+   },
+   {
+    "question": "The roots of x² − 11x + 24 = 0 are both positive. What is the larger root?",
+    "options": [
+     "11",
+     "12",
+     "8",
+     "24",
+     "7"
+    ],
+    "answer": 2,
+    "topic": "Algebra",
+    "explain": "x² − 11x + 24 = (x − 3)(x − 8), so the roots are 3 and 8.",
+    "id": "quant-1-44"
+   },
+   {
+    "question": "In a survey of 400 people, 40 said they prefer tea. What percentage prefer tea?",
+    "options": [
+     "14%",
+     "4%",
+     "11%",
+     "30%",
+     "10%"
+    ],
+    "answer": 4,
+    "topic": "Data interpretation",
+    "explain": "40/400 × 100 = 10%.",
+    "id": "quant-1-45"
+   },
+   {
+    "question": "In how many different ways can 6 different books be arranged on a shelf?",
+    "options": [
+     "120",
+     "36",
+     "721",
+     "720",
+     "724"
+    ],
+    "answer": 3,
+    "topic": "Counting & probability",
+    "explain": "6! = 720.",
+    "id": "quant-1-46"
+   },
+   {
+    "question": "The price of a book rose from Tk 120 to Tk 132. What is the percentage increase?",
+    "options": [
+     "6%",
+     "15%",
+     "10%",
+     "20%",
+     "8%"
+    ],
+    "answer": 2,
+    "topic": "Percentages & ratio",
+    "explain": "Increase = 12; 12/120 × 100 = 10%.",
+    "id": "quant-1-47"
+   },
+   {
+    "question": "A bus goes to a town at 50 km/h and returns at 75 km/h along the same road. What is its average speed for the whole trip?",
+    "options": [
+     "61 km/h",
+     "65 km/h",
+     "60 km/h",
+     "180 km/h",
+     "62 km/h"
+    ],
+    "answer": 2,
+    "topic": "Time, work & speed",
+    "explain": "Average speed = 2uv/(u+v) = 2 × 50 × 75/125 = 60 km/h (not the simple mean).",
+    "id": "quant-1-48"
+   },
+   {
+    "question": "A radio is sold for Tk 300 at a loss of 25%. What was its cost price?",
+    "options": [
+     "Tk 400",
+     "Tk 402",
+     "Tk 395",
+     "Tk 401",
+     "Tk 375"
+    ],
+    "answer": 0,
+    "topic": "Profit & loss",
+    "explain": "SP is 75% of CP, so CP = 300 × 100/75 = 400.",
+    "id": "quant-1-49"
+   },
+   {
+    "question": "Two fair dice are rolled. What is the probability that the sum is 8?",
+    "options": [
+     "5/36",
+     "1/4",
+     "1/6",
+     "1/12",
+     "1/9"
+    ],
+    "answer": 0,
+    "topic": "Counting & probability",
+    "explain": "There are 5 ways to get 8 out of 36, so 5/36 = 5/36.",
+    "id": "quant-1-50"
+   }
+  ]
+ },
+ {
+  "n": 2,
+  "questions": [
+   {
+    "question": "A tank is 12 cm long, 5 cm wide and 5 cm high. What is its volume in cm³?",
+    "options": [
+     "298 cm³",
+     "900 cm³",
+     "300 cm³",
+     "22 cm³",
+     "290 cm³"
+    ],
+    "answer": 2,
+    "topic": "Geometry & mensuration",
+    "explain": "Volume = 12 × 5 × 5 = 300 cm³.",
+    "id": "quant-2-1"
+   },
+   {
+    "question": "What is the area of a circle of radius 9 cm (in terms of π)?",
+    "options": [
+     "18π",
+     "162π",
+     "82π",
+     "81π",
+     "9π"
+    ],
+    "answer": 3,
+    "topic": "Geometry & mensuration",
+    "explain": "Area = πr² = π × 9² = 81π cm².",
+    "id": "quant-2-2"
+   },
+   {
+    "question": "Two angles of a triangle are 60° and 55°. What is the third angle?",
+    "options": [
+     "65°",
+     "75°",
+     "115°",
+     "64°",
+     "120°"
+    ],
+    "answer": 0,
+    "topic": "Geometry & mensuration",
+    "explain": "Angles sum to 180°: 180 − 60 − 55 = 65°.",
+    "id": "quant-2-3"
+   },
+   {
+    "question": "In how many different ways can 5 different books be arranged on a shelf?",
+    "options": [
+     "130",
+     "122",
+     "25",
+     "24",
+     "120"
+    ],
+    "answer": 4,
+    "topic": "Counting & probability",
+    "explain": "5! = 120.",
+    "id": "quant-2-4"
+   },
+   {
+    "question": "Two fair dice are rolled. What is the probability that the sum is 9?",
+    "options": [
+     "1/6",
+     "1/12",
+     "1/4",
+     "5/36",
+     "1/9"
+    ],
+    "answer": 4,
+    "topic": "Counting & probability",
+    "explain": "There are 4 ways to get 9 out of 36, so 4/36 = 1/9.",
+    "id": "quant-2-5"
+   },
+   {
+    "question": "In a survey of 800 people, 160 said they prefer tea. What percentage prefer tea?",
+    "options": [
+     "20%",
+     "40%",
+     "10%",
+     "21%",
+     "16%"
+    ],
+    "answer": 0,
+    "topic": "Data interpretation",
+    "explain": "160/800 × 100 = 20%.",
+    "id": "quant-2-6"
+   },
+   {
+    "question": "How many positive divisors does 48 have?",
+    "options": [
+     "10",
+     "15",
+     "12",
+     "14",
+     "24"
+    ],
+    "answer": 0,
+    "topic": "Number properties",
+    "explain": "Counting the numbers that divide 48 evenly gives 10.",
+    "id": "quant-2-7"
+   },
+   {
+    "question": "What is the sum of the integers from 1 to 20?",
+    "options": [
+     "400",
+     "105",
+     "210",
+     "211",
+     "230"
+    ],
+    "answer": 2,
+    "topic": "Number properties",
+    "explain": "n(n+1)/2 = 20 × 21/2 = 210.",
+    "id": "quant-2-8"
+   },
+   {
+    "question": "A radio is sold for Tk 800 at a loss of 20%. What was its cost price?",
+    "options": [
+     "Tk 999",
+     "Tk 1001",
+     "Tk 1005",
+     "Tk 1000",
+     "Tk 960"
+    ],
+    "answer": 3,
+    "topic": "Profit & loss",
+    "explain": "SP is 80% of CP, so CP = 800 × 100/80 = 1000.",
+    "id": "quant-2-9"
+   },
+   {
+    "question": "A bus goes to a town at 20 km/h and returns at 30 km/h along the same road. What is its average speed for the whole trip?",
+    "options": [
+     "25 km/h",
+     "12 km/h",
+     "24 km/h",
+     "22 km/h",
+     "23 km/h"
+    ],
+    "answer": 2,
+    "topic": "Time, work & speed",
+    "explain": "Average speed = 2uv/(u+v) = 2 × 20 × 30/50 = 24 km/h (not the simple mean).",
+    "id": "quant-2-10"
+   },
+   {
+    "question": "A radio is sold for Tk 320 at a loss of 20%. What was its cost price?",
+    "options": [
+     "Tk 1200",
+     "Tk 401",
+     "Tk 400",
+     "Tk 395",
+     "Tk 384"
     ],
     "answer": 2,
     "topic": "Profit & loss",
-    "explain": "SP is 75% of CP, so CP = 375 × 100/75 = 500.",
+    "explain": "SP is 80% of CP, so CP = 320 × 100/80 = 400.",
+    "id": "quant-2-11"
+   },
+   {
+    "question": "The perimeter of a square is 60 cm. What is its area?",
+    "options": [
+     "225 cm²",
+     "60 cm²",
+     "230 cm²",
+     "220 cm²",
+     "30 cm²"
+    ],
+    "answer": 0,
+    "topic": "Geometry & mensuration",
+    "explain": "Side = 60/4 = 15; area = 15² = 225 cm².",
+    "id": "quant-2-12"
+   },
+   {
+    "question": "The price of a book rose from Tk 80 to Tk 100. What is the percentage increase?",
+    "options": [
+     "29%",
+     "25%",
+     "30%",
+     "27%",
+     "20%"
+    ],
+    "answer": 1,
+    "topic": "Percentages & ratio",
+    "explain": "Increase = 20; 20/80 × 100 = 25%.",
+    "id": "quant-2-13"
+   },
+   {
+    "question": "In a class of 42 students the ratio of boys to girls is 4:3. How many girls are there?",
+    "options": [
+     "17",
+     "36",
+     "28",
+     "18",
+     "24"
+    ],
+    "answer": 3,
+    "topic": "Percentages & ratio",
+    "explain": "One part = 42/7 = 6; girls = 3 × 6 = 18.",
+    "id": "quant-2-14"
+   },
+   {
+    "question": "If x + y = 16 and x − y = 4, what is the value of xy?",
+    "options": [
+     "180",
+     "64",
+     "60",
+     "16",
+     "61"
+    ],
+    "answer": 2,
+    "topic": "Algebra",
+    "explain": "x = (16+4)/2 = 10, y = (16−4)/2 = 6; xy = 60.",
+    "id": "quant-2-15"
+   },
+   {
+    "question": "A train 180 m long runs at 36 km/h. How many seconds does it take to pass a pole?",
+    "options": [
+     "36 s",
+     "19 s",
+     "23 s",
+     "20 s",
+     "18 s"
+    ],
+    "answer": 4,
+    "topic": "Time, work & speed",
+    "explain": "36 km/h = 36 × 5/18 = 10 m/s; time = 180 ÷ that = 18 s.",
+    "id": "quant-2-16"
+   },
+   {
+    "question": "A cyclist travels at 60 km/h for 90 minutes. How far does the cyclist go?",
+    "options": [
+     "90 km",
+     "540 km",
+     "180 km",
+     "89 km",
+     "91 km"
+    ],
+    "answer": 0,
+    "topic": "Time, work & speed",
+    "explain": "90 minutes = 90/60 hour; distance = 60 × 90/60 = 90 km.",
+    "id": "quant-2-17"
+   },
+   {
+    "question": "If 4x + 2 = 26, what is the value of x?",
+    "options": [
+     "11",
+     "6",
+     "7",
+     "24",
+     "5"
+    ],
+    "answer": 1,
+    "topic": "Algebra",
+    "explain": "4x = 26 − 2 = 24, so x = 6.",
+    "id": "quant-2-18"
+   },
+   {
+    "question": "What is the area of a circle of radius 5 cm (in terms of π)?",
+    "options": [
+     "50π",
+     "5π",
+     "10π",
+     "25π",
+     "26π"
+    ],
+    "answer": 3,
+    "topic": "Geometry & mensuration",
+    "explain": "Area = πr² = π × 5² = 25π cm².",
+    "id": "quant-2-19"
+   },
+   {
+    "question": "What is the highest common factor (HCF) of 40 and 100?",
+    "options": [
+     "60",
+     "40",
+     "20",
+     "16",
+     "19"
+    ],
+    "answer": 2,
+    "topic": "Number properties",
+    "explain": "The largest number that divides both 40 and 100 is 20.",
+    "id": "quant-2-20"
+   },
+   {
+    "question": "What is the highest common factor (HCF) of 54 and 72?",
+    "options": [
+     "36",
+     "28",
+     "18",
+     "54",
+     "19"
+    ],
+    "answer": 2,
+    "topic": "Number properties",
+    "explain": "The largest number that divides both 54 and 72 is 18.",
+    "id": "quant-2-21"
+   },
+   {
+    "question": "If 2x + 1 = 7, what is the value of x?",
+    "options": [
+     "6",
+     "3",
+     "13",
+     "8",
+     "4"
+    ],
+    "answer": 1,
+    "topic": "Algebra",
+    "explain": "2x = 7 − 1 = 6, so x = 3.",
+    "id": "quant-2-22"
+   },
+   {
+    "question": "If f(x) = ax² + b with f(1) = 5 and f(2) = 11, what is f(3)?",
+    "options": [
+     "31",
+     "16",
+     "63",
+     "9",
+     "21"
+    ],
+    "answer": 4,
+    "topic": "Algebra",
+    "explain": "f(2) − f(1) = 3a = 6, so a = 2; b = 3; f(3) = 9 × 2 + 3 = 21.",
+    "id": "quant-2-23"
+   },
+   {
+    "question": "In a class of 35 students the ratio of boys to girls is 4:3. How many girls are there?",
+    "options": [
+     "15",
+     "20",
+     "30",
+     "14",
+     "16"
+    ],
+    "answer": 0,
+    "topic": "Percentages & ratio",
+    "explain": "One part = 35/7 = 5; girls = 3 × 5 = 15.",
+    "id": "quant-2-24"
+   },
+   {
+    "question": "The roots of x² − 7x + 12 = 0 are both positive. What is the larger root?",
+    "options": [
+     "7",
+     "3",
+     "9",
+     "4",
+     "12"
+    ],
+    "answer": 3,
+    "topic": "Algebra",
+    "explain": "x² − 7x + 12 = (x − 3)(x − 4), so the roots are 3 and 4.",
+    "id": "quant-2-25"
+   },
+   {
+    "question": "What is the remainder when 97 is divided by 7?",
+    "options": [
+     "5",
+     "1",
+     "12",
+     "7",
+     "6"
+    ],
+    "answer": 4,
+    "topic": "Number properties",
+    "explain": "97 = 7 × 13 + 6.",
+    "id": "quant-2-26"
+   },
+   {
+    "question": "The price of a book rose from Tk 200 to Tk 220. What is the percentage increase?",
+    "options": [
+     "20%",
+     "15%",
+     "11%",
+     "10%",
+     "12%"
+    ],
+    "answer": 3,
+    "topic": "Percentages & ratio",
+    "explain": "Increase = 20; 20/200 × 100 = 10%.",
+    "id": "quant-2-27"
+   },
+   {
+    "question": "A bag has a marked price of Tk 1000. After a 10% discount, what is the price paid?",
+    "options": [
+     "Tk 1100",
+     "Tk 900",
+     "Tk 100",
+     "Tk 1800",
+     "Tk 902"
+    ],
+    "answer": 1,
+    "topic": "Profit & loss",
+    "explain": "Discount = 100; price paid = 1000 − 100 = 900.",
+    "id": "quant-2-28"
+   },
+   {
+    "question": "A can finish a job in 20 days and B can finish it in 30 days. Working together, in how many days will they finish it?",
+    "options": [
+     "25 days",
+     "38 days",
+     "36 days",
+     "12 days",
+     "7 days"
+    ],
+    "answer": 3,
+    "topic": "Time, work & speed",
+    "explain": "Rate = 1/20 + 1/30 = 50/600 per day, so time = 600/50 = 12 days.",
+    "id": "quant-2-29"
+   },
+   {
+    "question": "A shop sold 50, 70, 90 and 110 phones in four consecutive months. What was the average number sold per month?",
+    "options": [
+     "110",
+     "80",
+     "79",
+     "70",
+     "81"
+    ],
+    "answer": 1,
+    "topic": "Data interpretation",
+    "explain": "Total = 320; average = 320/4 = 80.",
+    "id": "quant-2-30"
+   },
+   {
+    "question": "A cyclist travels at 60 km/h for 30 minutes. How far does the cyclist go?",
+    "options": [
+     "40 km",
+     "31 km",
+     "28 km",
+     "180 km",
+     "30 km"
+    ],
+    "answer": 4,
+    "topic": "Time, work & speed",
+    "explain": "30 minutes = 30/60 hour; distance = 60 × 30/60 = 30 km.",
+    "id": "quant-2-31"
+   },
+   {
+    "question": "Two angles of a triangle are 50° and 70°. What is the third angle?",
+    "options": [
+     "60°",
+     "180°",
+     "130°",
+     "61°",
+     "120°"
+    ],
+    "answer": 0,
+    "topic": "Geometry & mensuration",
+    "explain": "Angles sum to 180°: 180 − 50 − 70 = 60°.",
+    "id": "quant-2-32"
+   },
+   {
+    "question": "In how many different ways can 4 different books be arranged on a shelf?",
+    "options": [
+     "25",
+     "6",
+     "34",
+     "24",
+     "16"
+    ],
+    "answer": 3,
+    "topic": "Counting & probability",
+    "explain": "4! = 24.",
+    "id": "quant-2-33"
+   },
+   {
+    "question": "A school had 200 students in 2023 and 250 students in 2024. By what percentage did enrolment grow?",
+    "options": [
+     "23%",
+     "25%",
+     "15%",
+     "26%",
+     "50%"
+    ],
+    "answer": 1,
+    "topic": "Data interpretation",
+    "explain": "Growth = 50; 50/200 × 100 = 25%.",
+    "id": "quant-2-34"
+   },
+   {
+    "question": "What is 60% of 180?",
+    "options": [
+     "108",
+     "103",
+     "1080",
+     "216",
+     "3"
+    ],
+    "answer": 0,
+    "topic": "Percentages & ratio",
+    "explain": "60% of 180 = 60/100 × 180 = 108.",
+    "id": "quant-2-35"
+   },
+   {
+    "question": "What is the least common multiple (LCM) of 14 and 21?",
+    "options": [
+     "294",
+     "38",
+     "7",
+     "42",
+     "46"
+    ],
+    "answer": 3,
+    "topic": "Number properties",
+    "explain": "LCM = 14 × 21 / HCF = 294/7 = 42.",
+    "id": "quant-2-36"
+   },
+   {
+    "question": "If f(x) = ax² + b with f(1) = 5 and f(2) = 14, what is f(3)?",
+    "options": [
+     "25",
+     "29",
+     "11",
+     "58",
+     "19"
+    ],
+    "answer": 1,
+    "topic": "Algebra",
+    "explain": "f(2) − f(1) = 3a = 9, so a = 3; b = 2; f(3) = 9 × 3 + 2 = 29.",
+    "id": "quant-2-37"
+   },
+   {
+    "question": "A bag has a marked price of Tk 1000. After a 15% discount, what is the price paid?",
+    "options": [
+     "Tk 2550",
+     "Tk 150",
+     "Tk 1150",
+     "Tk 845",
+     "Tk 850"
+    ],
+    "answer": 4,
+    "topic": "Profit & loss",
+    "explain": "Discount = 150; price paid = 1000 − 150 = 850.",
+    "id": "quant-2-38"
+   },
+   {
+    "question": "A rectangle is 8 cm long and 6 cm wide. What is the length of its diagonal?",
+    "options": [
+     "10 cm",
+     "14 cm",
+     "24 cm",
+     "20 cm",
+     "5 cm"
+    ],
+    "answer": 0,
+    "topic": "Geometry & mensuration",
+    "explain": "Diagonal = √(8² + 6²) = √100 = 10 cm.",
+    "id": "quant-2-39"
+   },
+   {
+    "question": "A committee of 2 is chosen from 8 students. How many different committees are possible?",
+    "options": [
+     "56",
+     "16",
+     "28",
+     "24",
+     "84"
+    ],
+    "answer": 2,
+    "topic": "Counting & probability",
+    "explain": "C(8,2) = 28.",
+    "id": "quant-2-40"
+   },
+   {
+    "question": "A bag has 2 red and 8 blue balls. One ball is drawn at random. What is the probability it is red?",
+    "options": [
+     "2/8",
+     "3/10",
+     "4/5",
+     "1/5",
+     "1/10"
+    ],
+    "answer": 3,
+    "topic": "Counting & probability",
+    "explain": "P(red) = 2/10 = 1/5.",
+    "id": "quant-2-41"
+   },
+   {
+    "question": "What is 25% of 280?",
+    "options": [
+     "60",
+     "700",
+     "70",
+     "11",
+     "75"
+    ],
+    "answer": 2,
+    "topic": "Percentages & ratio",
+    "explain": "25% of 280 = 25/100 × 280 = 70.",
+    "id": "quant-2-42"
+   },
+   {
+    "question": "A shopkeeper buys a shirt for Tk 800 and sells it at a 40% profit. What is the selling price?",
+    "options": [
+     "Tk 480",
+     "Tk 1130",
+     "Tk 1120",
+     "Tk 1121",
+     "Tk 1119"
+    ],
+    "answer": 2,
+    "topic": "Profit & loss",
+    "explain": "Profit = 40% of 800 = 320; SP = 800 + 320 = 1120.",
+    "id": "quant-2-43"
+   },
+   {
+    "question": "Tk 320 is shared between two people in the ratio 3:5. How much does the larger share receive?",
+    "options": [
+     "Tk 201",
+     "Tk 120",
+     "Tk 205",
+     "Tk 196",
+     "Tk 200"
+    ],
+    "answer": 4,
+    "topic": "Percentages & ratio",
+    "explain": "Total parts = 8; one part = 40; larger share = 5 × 40 = 200.",
+    "id": "quant-2-44"
+   },
+   {
+    "question": "What is the remainder when 152 is divided by 6?",
+    "options": [
+     "6",
+     "4",
+     "2",
+     "3",
+     "7"
+    ],
+    "answer": 2,
+    "topic": "Number properties",
+    "explain": "152 = 6 × 25 + 2.",
+    "id": "quant-2-45"
+   },
+   {
+    "question": "A can finish a job in 6 days and B can finish it in 12 days. Working together, in how many days will they finish it?",
+    "options": [
+     "5 days",
+     "14 days",
+     "6 days",
+     "9 days",
+     "4 days"
+    ],
+    "answer": 4,
+    "topic": "Time, work & speed",
+    "explain": "Rate = 1/6 + 1/12 = 18/72 per day, so time = 72/18 = 4 days.",
+    "id": "quant-2-46"
+   },
+   {
+    "question": "If 2x + 5 = 17, what is the value of x?",
+    "options": [
+     "6",
+     "8",
+     "12",
+     "11",
+     "5"
+    ],
+    "answer": 0,
+    "topic": "Algebra",
+    "explain": "2x = 17 − 5 = 12, so x = 6.",
+    "id": "quant-2-47"
+   },
+   {
+    "question": "A school had 200 students in 2023 and 300 students in 2024. By what percentage did enrolment grow?",
+    "options": [
+     "100%",
+     "50%",
+     "45%",
+     "25%",
+     "51%"
+    ],
+    "answer": 1,
+    "topic": "Data interpretation",
+    "explain": "Growth = 100; 100/200 × 100 = 50%.",
+    "id": "quant-2-48"
+   },
+   {
+    "question": "A bus goes to a town at 30 km/h and returns at 60 km/h along the same road. What is its average speed for the whole trip?",
+    "options": [
+     "41 km/h",
+     "45 km/h",
+     "40 km/h",
+     "42 km/h",
+     "80 km/h"
+    ],
+    "answer": 2,
+    "topic": "Time, work & speed",
+    "explain": "Average speed = 2uv/(u+v) = 2 × 30 × 60/90 = 40 km/h (not the simple mean).",
+    "id": "quant-2-49"
+   },
+   {
+    "question": "A committee of 3 is chosen from 7 students. How many different committees are possible?",
+    "options": [
+     "210",
+     "35",
+     "39",
+     "31",
+     "21"
+    ],
+    "answer": 1,
+    "topic": "Counting & probability",
+    "explain": "C(7,3) = 35.",
+    "id": "quant-2-50"
+   }
+  ]
+ },
+ {
+  "n": 3,
+  "questions": [
+   {
+    "question": "Two angles of a triangle are 40° and 65°. What is the third angle?",
+    "options": [
+     "105°",
+     "74°",
+     "80°",
+     "75°",
+     "140°"
+    ],
+    "answer": 3,
+    "topic": "Geometry & mensuration",
+    "explain": "Angles sum to 180°: 180 − 40 − 65 = 75°.",
+    "id": "quant-3-1"
+   },
+   {
+    "question": "If 6x + 5 = 53, what is the value of x?",
+    "options": [
+     "48",
+     "8",
+     "13",
+     "7",
+     "11"
+    ],
+    "answer": 1,
+    "topic": "Algebra",
+    "explain": "6x = 53 − 5 = 48, so x = 8.",
+    "id": "quant-3-2"
+   },
+   {
+    "question": "If 5x + 2 = 32, what is the value of x?",
+    "options": [
+     "30",
+     "6",
+     "9",
+     "12",
+     "7"
+    ],
+    "answer": 1,
+    "topic": "Algebra",
+    "explain": "5x = 32 − 2 = 30, so x = 6.",
+    "id": "quant-3-3"
+   },
+   {
+    "question": "A train 150 m long runs at 54 km/h. How many seconds does it take to pass a pole?",
+    "options": [
+     "12 s",
+     "20 s",
+     "10 s",
+     "8 s",
+     "15 s"
+    ],
+    "answer": 2,
+    "topic": "Time, work & speed",
+    "explain": "54 km/h = 54 × 5/18 = 15 m/s; time = 150 ÷ that = 10 s.",
+    "id": "quant-3-4"
+   },
+   {
+    "question": "A can finish a job in 12 days and B can finish it in 24 days. Working together, in how many days will they finish it?",
+    "options": [
+     "8 days",
+     "3 days",
+     "6 days",
+     "18 days",
+     "28 days"
+    ],
+    "answer": 0,
+    "topic": "Time, work & speed",
+    "explain": "Rate = 1/12 + 1/24 = 36/288 per day, so time = 288/36 = 8 days.",
+    "id": "quant-3-5"
+   },
+   {
+    "question": "What is the remainder when 94 is divided by 7?",
+    "options": [
+     "3",
+     "13",
+     "12",
+     "4",
+     "1"
+    ],
+    "answer": 0,
+    "topic": "Number properties",
+    "explain": "94 = 7 × 13 + 3.",
+    "id": "quant-3-6"
+   },
+   {
+    "question": "A shop sold 30, 40, 50 and 60 phones in four consecutive months. What was the average number sold per month?",
+    "options": [
+     "43",
+     "60",
+     "40",
+     "45",
+     "50"
+    ],
+    "answer": 3,
+    "topic": "Data interpretation",
+    "explain": "Total = 180; average = 180/4 = 45.",
+    "id": "quant-3-7"
+   },
+   {
+    "question": "Two fair dice are rolled. What is the probability that the sum is 10?",
+    "options": [
+     "1/6",
+     "1/9",
+     "1/4",
+     "5/36",
+     "1/12"
+    ],
+    "answer": 4,
+    "topic": "Counting & probability",
+    "explain": "There are 3 ways to get 10 out of 36, so 3/36 = 1/12.",
+    "id": "quant-3-8"
+   },
+   {
+    "question": "What is the area of a circle of radius 6 cm (in terms of π)?",
+    "options": [
+     "18π",
+     "36π",
+     "12π",
+     "6π",
+     "72π"
+    ],
+    "answer": 1,
+    "topic": "Geometry & mensuration",
+    "explain": "Area = πr² = π × 6² = 36π cm².",
+    "id": "quant-3-9"
+   },
+   {
+    "question": "In a class of 40 students the ratio of boys to girls is 3:2. How many girls are there?",
+    "options": [
+     "6",
+     "21",
+     "24",
+     "32",
+     "16"
+    ],
+    "answer": 4,
+    "topic": "Percentages & ratio",
+    "explain": "One part = 40/5 = 8; girls = 2 × 8 = 16.",
+    "id": "quant-3-10"
+   },
+   {
+    "question": "A can finish a job in 15 days and B can finish it in 30 days. Working together, in how many days will they finish it?",
+    "options": [
+     "30 days",
+     "22 days",
+     "35 days",
+     "10 days",
+     "11 days"
+    ],
+    "answer": 3,
+    "topic": "Time, work & speed",
+    "explain": "Rate = 1/15 + 1/30 = 45/450 per day, so time = 450/45 = 10 days.",
+    "id": "quant-3-11"
+   },
+   {
+    "question": "What is the sum of the integers from 1 to 10?",
+    "options": [
+     "100",
+     "55",
+     "50",
+     "57",
+     "65"
+    ],
+    "answer": 1,
+    "topic": "Number properties",
+    "explain": "n(n+1)/2 = 10 × 11/2 = 55.",
+    "id": "quant-3-12"
+   },
+   {
+    "question": "What is the remainder when 105 is divided by 6?",
+    "options": [
+     "9",
+     "11",
+     "4",
+     "3",
+     "1"
+    ],
+    "answer": 3,
+    "topic": "Number properties",
+    "explain": "105 = 6 × 17 + 3.",
+    "id": "quant-3-13"
+   },
+   {
+    "question": "If f(x) = ax² + b with f(1) = 5 and f(2) = 17, what is f(3)?",
+    "options": [
+     "22",
+     "13",
+     "36",
+     "37",
+     "42"
+    ],
+    "answer": 3,
+    "topic": "Algebra",
+    "explain": "f(2) − f(1) = 3a = 12, so a = 4; b = 1; f(3) = 9 × 4 + 1 = 37.",
+    "id": "quant-3-14"
+   },
+   {
+    "question": "A bag has a marked price of Tk 1500. After a 10% discount, what is the price paid?",
+    "options": [
+     "Tk 2700",
+     "Tk 1350",
+     "Tk 1650",
+     "Tk 150",
+     "Tk 1340"
+    ],
+    "answer": 1,
+    "topic": "Profit & loss",
+    "explain": "Discount = 150; price paid = 1500 − 150 = 1350.",
+    "id": "quant-3-15"
+   },
+   {
+    "question": "Two angles of a triangle are 35° and 85°. What is the third angle?",
+    "options": [
+     "60°",
+     "56°",
+     "61°",
+     "120°",
+     "145°"
+    ],
+    "answer": 0,
+    "topic": "Geometry & mensuration",
+    "explain": "Angles sum to 180°: 180 − 35 − 85 = 60°.",
+    "id": "quant-3-16"
+   },
+   {
+    "question": "A radio is sold for Tk 750 at a loss of 25%. What was its cost price?",
+    "options": [
+     "Tk 937",
+     "Tk 1005",
+     "Tk 995",
+     "Tk 1000",
+     "Tk 1001"
+    ],
+    "answer": 3,
+    "topic": "Profit & loss",
+    "explain": "SP is 75% of CP, so CP = 750 × 100/75 = 1000.",
+    "id": "quant-3-17"
+   },
+   {
+    "question": "How many positive divisors does 30 have?",
+    "options": [
+     "10",
+     "13",
+     "15",
+     "24",
+     "8"
+    ],
+    "answer": 4,
+    "topic": "Number properties",
+    "explain": "Counting the numbers that divide 30 evenly gives 8.",
+    "id": "quant-3-18"
+   },
+   {
+    "question": "Tk 300 is shared between two people in the ratio 3:7. How much does the larger share receive?",
+    "options": [
+     "Tk 209",
+     "Tk 210",
+     "Tk 180",
+     "Tk 211",
+     "Tk 90"
+    ],
+    "answer": 1,
+    "topic": "Percentages & ratio",
+    "explain": "Total parts = 10; one part = 30; larger share = 7 × 30 = 210.",
+    "id": "quant-3-19"
+   },
+   {
+    "question": "A bag has 3 red and 9 blue balls. One ball is drawn at random. What is the probability it is red?",
+    "options": [
+     "1/4",
+     "1/12",
+     "3/9",
+     "4/12",
+     "3/4"
+    ],
+    "answer": 0,
+    "topic": "Counting & probability",
+    "explain": "P(red) = 3/12 = 1/4.",
+    "id": "quant-3-20"
+   },
+   {
+    "question": "A shopkeeper buys a shirt for Tk 800 and sells it at a 10% profit. What is the selling price?",
+    "options": [
+     "Tk 881",
+     "Tk 720",
+     "Tk 875",
+     "Tk 880",
+     "Tk 440"
+    ],
+    "answer": 3,
+    "topic": "Profit & loss",
+    "explain": "Profit = 10% of 800 = 80; SP = 800 + 80 = 880.",
+    "id": "quant-3-21"
+   },
+   {
+    "question": "If 6x + 9 = 51, what is the value of x?",
+    "options": [
+     "42",
+     "9",
+     "10",
+     "7",
+     "11"
+    ],
+    "answer": 3,
+    "topic": "Algebra",
+    "explain": "6x = 51 − 9 = 42, so x = 7.",
+    "id": "quant-3-22"
+   },
+   {
+    "question": "What is the area of a circle of radius 8 cm (in terms of π)?",
+    "options": [
+     "128π",
+     "64π",
+     "32π",
+     "8π",
+     "16π"
+    ],
+    "answer": 1,
+    "topic": "Geometry & mensuration",
+    "explain": "Area = πr² = π × 8² = 64π cm².",
+    "id": "quant-3-23"
+   },
+   {
+    "question": "How many positive divisors does 36 have?",
+    "options": [
+     "9",
+     "5",
+     "13",
+     "18",
+     "11"
+    ],
+    "answer": 0,
+    "topic": "Number properties",
+    "explain": "Counting the numbers that divide 36 evenly gives 9.",
+    "id": "quant-3-24"
+   },
+   {
+    "question": "A cyclist travels at 48 km/h for 20 minutes. How far does the cyclist go?",
+    "options": [
+     "16 km",
+     "11 km",
+     "96 km",
+     "17 km",
+     "21 km"
+    ],
+    "answer": 0,
+    "topic": "Time, work & speed",
+    "explain": "20 minutes = 20/60 hour; distance = 48 × 20/60 = 16 km.",
+    "id": "quant-3-25"
+   },
+   {
+    "question": "The price of a book rose from Tk 80 to Tk 112. What is the percentage increase?",
+    "options": [
+     "50%",
+     "39%",
+     "44%",
+     "45%",
+     "40%"
+    ],
+    "answer": 4,
+    "topic": "Percentages & ratio",
+    "explain": "Increase = 32; 32/80 × 100 = 40%.",
+    "id": "quant-3-26"
+   },
+   {
+    "question": "What is the area of a circle of radius 12 cm (in terms of π)?",
+    "options": [
+     "288π",
+     "144π",
+     "24π",
+     "72π",
+     "12π"
+    ],
+    "answer": 1,
+    "topic": "Geometry & mensuration",
+    "explain": "Area = πr² = π × 12² = 144π cm².",
+    "id": "quant-3-27"
+   },
+   {
+    "question": "The perimeter of a square is 48 cm. What is its area?",
+    "options": [
+     "48 cm²",
+     "432 cm²",
+     "145 cm²",
+     "144 cm²",
+     "24 cm²"
+    ],
+    "answer": 3,
+    "topic": "Geometry & mensuration",
+    "explain": "Side = 48/4 = 12; area = 12² = 144 cm².",
+    "id": "quant-3-28"
+   },
+   {
+    "question": "If 6x + 9 = 27, what is the value of x?",
+    "options": [
+     "4",
+     "18",
+     "6",
+     "7",
+     "3"
+    ],
+    "answer": 4,
+    "topic": "Algebra",
+    "explain": "6x = 27 − 9 = 18, so x = 3.",
+    "id": "quant-3-29"
+   },
+   {
+    "question": "A committee of 3 is chosen from 6 students. How many different committees are possible?",
+    "options": [
+     "20",
+     "120",
+     "18",
+     "10",
+     "15"
+    ],
+    "answer": 0,
+    "topic": "Counting & probability",
+    "explain": "C(6,3) = 20.",
     "id": "quant-3-30"
+   },
+   {
+    "question": "What is the least common multiple (LCM) of 15 and 20?",
+    "options": [
+     "58",
+     "300",
+     "55",
+     "60",
+     "5"
+    ],
+    "answer": 3,
+    "topic": "Number properties",
+    "explain": "LCM = 15 × 20 / HCF = 300/5 = 60.",
+    "id": "quant-3-31"
+   },
+   {
+    "question": "A bag has 4 red and 6 blue balls. One ball is drawn at random. What is the probability it is red?",
+    "options": [
+     "5/10",
+     "2/5",
+     "3/5",
+     "1/10",
+     "4/6"
+    ],
+    "answer": 1,
+    "topic": "Counting & probability",
+    "explain": "P(red) = 4/10 = 2/5.",
+    "id": "quant-3-32"
+   },
+   {
+    "question": "The price of a book rose from Tk 80 to Tk 88. What is the percentage increase?",
+    "options": [
+     "15%",
+     "30%",
+     "6%",
+     "10%",
+     "20%"
+    ],
+    "answer": 3,
+    "topic": "Percentages & ratio",
+    "explain": "Increase = 8; 8/80 × 100 = 10%.",
+    "id": "quant-3-33"
+   },
+   {
+    "question": "A rectangle is 16 cm long and 12 cm wide. What is the length of its diagonal?",
+    "options": [
+     "24 cm",
+     "30 cm",
+     "28 cm",
+     "96 cm",
+     "20 cm"
+    ],
+    "answer": 4,
+    "topic": "Geometry & mensuration",
+    "explain": "Diagonal = √(16² + 12²) = √400 = 20 cm.",
+    "id": "quant-3-34"
+   },
+   {
+    "question": "In a survey of 500 people, 50 said they prefer tea. What percentage prefer tea?",
+    "options": [
+     "8%",
+     "20%",
+     "5%",
+     "10%",
+     "11%"
+    ],
+    "answer": 3,
+    "topic": "Data interpretation",
+    "explain": "50/500 × 100 = 10%.",
+    "id": "quant-3-35"
+   },
+   {
+    "question": "A train 200 m long runs at 72 km/h. How many seconds does it take to pass a pole?",
+    "options": [
+     "20 s",
+     "11 s",
+     "10 s",
+     "6 s",
+     "14 s"
+    ],
+    "answer": 2,
+    "topic": "Time, work & speed",
+    "explain": "72 km/h = 72 × 5/18 = 20 m/s; time = 200 ÷ that = 10 s.",
+    "id": "quant-3-36"
+   },
+   {
+    "question": "A can finish a job in 12 days and B can finish it in 6 days. Working together, in how many days will they finish it?",
+    "options": [
+     "9 days",
+     "12 days",
+     "14 days",
+     "4 days",
+     "3 days"
+    ],
+    "answer": 3,
+    "topic": "Time, work & speed",
+    "explain": "Rate = 1/12 + 1/6 = 18/72 per day, so time = 72/18 = 4 days.",
+    "id": "quant-3-37"
+   },
+   {
+    "question": "In a survey of 200 people, 60 said they prefer tea. What percentage prefer tea?",
+    "options": [
+     "30%",
+     "31%",
+     "90%",
+     "15%",
+     "6%"
+    ],
+    "answer": 0,
+    "topic": "Data interpretation",
+    "explain": "60/200 × 100 = 30%.",
+    "id": "quant-3-38"
+   },
+   {
+    "question": "The price of a book rose from Tk 250 to Tk 350. What is the percentage increase?",
+    "options": [
+     "42%",
+     "45%",
+     "40%",
+     "120%",
+     "50%"
+    ],
+    "answer": 2,
+    "topic": "Percentages & ratio",
+    "explain": "Increase = 100; 100/250 × 100 = 40%.",
+    "id": "quant-3-39"
+   },
+   {
+    "question": "What is 65% of 360?",
+    "options": [
+     "2340",
+     "234",
+     "5",
+     "224",
+     "232"
+    ],
+    "answer": 1,
+    "topic": "Percentages & ratio",
+    "explain": "65% of 360 = 65/100 × 360 = 234.",
+    "id": "quant-3-40"
+   },
+   {
+    "question": "What is the highest common factor (HCF) of 28 and 42?",
+    "options": [
+     "24",
+     "15",
+     "14",
+     "19",
+     "28"
+    ],
+    "answer": 2,
+    "topic": "Number properties",
+    "explain": "The largest number that divides both 28 and 42 is 14.",
+    "id": "quant-3-41"
+   },
+   {
+    "question": "A committee of 3 is chosen from 5 students. How many different committees are possible?",
+    "options": [
+     "20",
+     "60",
+     "15",
+     "14",
+     "10"
+    ],
+    "answer": 4,
+    "topic": "Counting & probability",
+    "explain": "C(5,3) = 10.",
+    "id": "quant-3-42"
+   },
+   {
+    "question": "If x + y = 15 and x − y = 7, what is the value of xy?",
+    "options": [
+     "40",
+     "15",
+     "54",
+     "105",
+     "44"
+    ],
+    "answer": 4,
+    "topic": "Algebra",
+    "explain": "x = (15+7)/2 = 11, y = (15−7)/2 = 4; xy = 44.",
+    "id": "quant-3-43"
+   },
+   {
+    "question": "A shopkeeper buys a shirt for Tk 200 and sells it at a 40% profit. What is the selling price?",
+    "options": [
+     "Tk 284",
+     "Tk 280",
+     "Tk 281",
+     "Tk 282",
+     "Tk 120"
+    ],
+    "answer": 1,
+    "topic": "Profit & loss",
+    "explain": "Profit = 40% of 200 = 80; SP = 200 + 80 = 280.",
+    "id": "quant-3-44"
+   },
+   {
+    "question": "A cyclist travels at 36 km/h for 30 minutes. How far does the cyclist go?",
+    "options": [
+     "19 km",
+     "18 km",
+     "22 km",
+     "20 km",
+     "108 km"
+    ],
+    "answer": 1,
+    "topic": "Time, work & speed",
+    "explain": "30 minutes = 30/60 hour; distance = 36 × 30/60 = 18 km.",
+    "id": "quant-3-45"
+   },
+   {
+    "question": "A school had 100 students in 2023 and 125 students in 2024. By what percentage did enrolment grow?",
+    "options": [
+     "25%",
+     "26%",
+     "30%",
+     "50%",
+     "75%"
+    ],
+    "answer": 0,
+    "topic": "Data interpretation",
+    "explain": "Growth = 25; 25/100 × 100 = 25%.",
+    "id": "quant-3-46"
+   },
+   {
+    "question": "Two fair dice are rolled. What is the probability that the sum is 7?",
+    "options": [
+     "5/36",
+     "1/12",
+     "1/9",
+     "1/4",
+     "1/6"
+    ],
+    "answer": 4,
+    "topic": "Counting & probability",
+    "explain": "There are 6 ways to get 7 out of 36, so 6/36 = 1/6.",
+    "id": "quant-3-47"
+   },
+   {
+    "question": "If f(x) = ax² + b with f(1) = 8 and f(2) = 17, what is f(3)?",
+    "options": [
+     "30",
+     "25",
+     "14",
+     "32",
+     "22"
+    ],
+    "answer": 3,
+    "topic": "Algebra",
+    "explain": "f(2) − f(1) = 3a = 9, so a = 3; b = 5; f(3) = 9 × 3 + 5 = 32.",
+    "id": "quant-3-48"
+   },
+   {
+    "question": "A bag has a marked price of Tk 2000. After a 25% discount, what is the price paid?",
+    "options": [
+     "Tk 1502",
+     "Tk 1501",
+     "Tk 500",
+     "Tk 1500",
+     "Tk 2500"
+    ],
+    "answer": 3,
+    "topic": "Profit & loss",
+    "explain": "Discount = 500; price paid = 2000 − 500 = 1500.",
+    "id": "quant-3-49"
+   },
+   {
+    "question": "In a class of 24 students the ratio of boys to girls is 2:1. How many girls are there?",
+    "options": [
+     "9",
+     "6",
+     "7",
+     "16",
+     "8"
+    ],
+    "answer": 4,
+    "topic": "Percentages & ratio",
+    "explain": "One part = 24/3 = 8; girls = 1 × 8 = 8.",
+    "id": "quant-3-50"
    }
   ]
  }

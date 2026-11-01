@@ -127,7 +127,9 @@ export default function MockSession({
       <div className="diag-card">
         {item.section.passage && (
           <blockquote className="diag-passage">
-            <p>{item.section.passage}</p>
+            {item.section.passage.split('\n\n').map((para) => (
+              <p key={para.slice(0, 24)}>{para}</p>
+            ))}
           </blockquote>
         )}
 
