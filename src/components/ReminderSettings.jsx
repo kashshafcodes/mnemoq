@@ -127,7 +127,10 @@ export default function ReminderSettings({ userId }) {
       )}
 
       {!state.setup && supported && serverKeyMissing() && (
-        <p className="path-hint">Reminders are not set up on the server yet.</p>
+        <p className="path-hint">
+          The site is missing its reminder key (<code>VITE_VAPID_PUBLIC_KEY</code>), so reminders cannot start yet. If you run this
+          site, add it in Vercel and redeploy.
+        </p>
       )}
 
       {!state.setup && supported && !on && (
@@ -135,7 +138,7 @@ export default function ReminderSettings({ userId }) {
           {state.permission === 'denied' ? (
             <p className="path-hint">Notifications are blocked for this site. Allow them in your browser settings, then reload.</p>
           ) : (
-            <button type="button" className="qa-primary" disabled={busy || serverKeyMissing()} onClick={turnOn}>
+            <button type="button" className="qa-primary" disabled={busy} onClick={turnOn}>
               {busy ? 'Turning on...' : state.settings.enabled ? 'Turn on for this device' : 'Turn on reminders'}
             </button>
           )}
