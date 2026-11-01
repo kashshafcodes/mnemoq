@@ -1,0 +1,23 @@
+# Sends Mnemoq review reminders. GitHub runs this about every 15 minutes (it can
+# be a few minutes late, which is fine). Needs two repository secrets:
+#   APP_URL      your site, for example https://mnemoq-two.vercel.app
+#   CRON_SECRET  the same value as the CRON_SECRET variable in Vercel
+name: Send review reminders
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the reminder endpoint
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail --silent --show-error --max-time 60 \
+            -X POST "$APP_URL/api/remind" \
+            -H "Authorization: Bearer $CRON_SECRET"

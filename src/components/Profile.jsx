@@ -4,6 +4,7 @@ import { AVATAR_COLORS, NAME_MAX, cleanName, readProfile } from '../profile';
 import { LanguageToggle } from '../i18n';
 import { Badges } from './Dashboard';
 import { NO_SUGGEST } from '../noSuggest';
+import ReminderSettings from './ReminderSettings';
 
 // The person's own page: who they are, how they're doing, and their settings.
 
@@ -159,6 +160,8 @@ export default function Profile({ user, cards, reviews, onSave, onLogout, onTuto
         <h3>Badges</h3>
         <Badges badges={data.badges} />
       </section>
+
+      <ReminderSettings userId={user.id} />
 
       <section className="profile-card">
         <h3>Settings</h3>

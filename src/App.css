@@ -3382,3 +3382,14 @@ input[type="range"].fancy-range:focus-visible::-webkit-slider-thumb { box-shadow
 .report-score span { color: var(--mnemoq-muted); font-size: 1.1rem; }
 .report-explain { display: block; margin-top: 2px; color: #c4b5fd; }
 .mock-report { display: grid; gap: 16px; }
+
+/* ---- Reminders ---- */
+.reminders code { padding: 2px 6px; border-radius: 6px; background: #0d1526; font-size: 0.85em; }
+.reminder-form { display: grid; gap: 12px; margin-top: 12px; }
+.reminder-form input[type="time"] { width: max-content; padding: 10px 12px; border: 1px solid #334155; border-radius: 10px; background: #0d1526; color: var(--mnemoq-white); font: inherit; color-scheme: dark; }
+.reminder-check { display: flex; align-items: flex-start; gap: 10px; }
+.reminder-check input { accent-color: #8b5cf6; width: 18px; height: 18px; margin-top: 2px; flex: none; }
+.reminder-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 8px; }
+.reminder-sub { display: grid; gap: 8px; padding-left: 28px; }
+.reminder-sub select, .reminder-quiet input { padding: 10px 12px; border: 1px solid #334155; border-radius: 10px; background: #0d1526; color: var(--mnemoq-white); font: inherit; color-scheme: dark; width: max-content; max-width: 100%; }
+.reminder-quiet { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

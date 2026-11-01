@@ -10,6 +10,7 @@ import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
 import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, ProfileIcon, ReviewIcon } from './components/NavIcons';
+import DueBadge from './components/DueBadge';
 import MockCenter from './components/MockCenter';
 import PathPage from './components/PathPage';
 import { SUBJECT_CATALOG, getPath } from './paths';
@@ -1114,6 +1115,7 @@ if (dataError) {
 
   return (
     <div className="app">
+      <DueBadge count={dueMistakes.length} />
       <aside className="sidebar">
         <MnemoqLogo size={36} />
         <p className="nav-label">{t('nav.workspace')}</p>
