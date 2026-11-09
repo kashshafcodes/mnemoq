@@ -23,6 +23,7 @@ import {
   clean,
   countRecentUse,
   getUser,
+  hasUnlimitedAi,
   norm,
   recordUse,
   supabaseConfig,
@@ -413,8 +414,9 @@ export default async function handler(req, res, env = process.env) {
 
   if (!user) return send(res, 401, { error: 'Please log in again.', code: 'auth' });
 
-  const limit = Math.max(1, Number(env.AI_USER_DAILY_LIMIT) || 10);
-  const used = await countRecentUse(cfg, token).catch(() => null);
+  const unlimited = hasUnlimitedAi(env, user);
+  const limit = unlimited ? Infinity : Math.max(1, Number(env.AI_USER_DAILY_LIMIT) || 10);
+  const used = unlimited ? 0 : await countRecentUse(cfg, token).catch(() => null);
 
   if (used === null) return send(res, 503, { error: 'AI suggestions are not set up yet.', code: 'config' });
 

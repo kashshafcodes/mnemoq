@@ -18,9 +18,10 @@
 //
 // Settings (Vercel > Environment Variables), on top of /api/suggest's:
 //   AI_COACH_DAILY_LIMIT   coach uses per person per 24 hours (default 30)
+//   AI_UNLIMITED_EMAILS    comma-separated emails with no daily AI limits
 //   GEMINI_GENERATE_MODEL  default "gemini-flash-latest"
 
-import { ProviderError, clean, getUser, norm, supabaseConfig } from './suggest.js';
+import { ProviderError, clean, getUser, hasUnlimitedAi, norm, supabaseConfig } from './suggest.js';
 
 export const config = { maxDuration: 60 };
 
@@ -781,8 +782,9 @@ export default async function handler(req, res, env = process.env) {
 
   if (!user) return send(res, 401, { error: 'Please log in again.', code: 'auth' });
 
-  const limit = Math.max(1, Number(env.AI_COACH_DAILY_LIMIT) || 30);
-  const used = await countCoachUse(cfg, token).catch(() => null);
+  const unlimited = hasUnlimitedAi(env, user);
+  const limit = unlimited ? Infinity : Math.max(1, Number(env.AI_COACH_DAILY_LIMIT) || 30);
+  const used = unlimited ? 0 : await countCoachUse(cfg, token).catch(() => null);
 
   // Fail closed: without a working usage counter there is no safe limit.
   if (used === null) {

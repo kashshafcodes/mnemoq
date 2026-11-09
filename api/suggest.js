@@ -11,6 +11,7 @@
 //   GEMINI_MODEL       optional, default "gemini-flash-lite-latest"
 //   GROQ_MODEL         optional, default "openai/gpt-oss-120b"
 //   AI_USER_DAILY_LIMIT optional, suggestions per user per 24 hours (default 10)
+//   AI_UNLIMITED_EMAILS optional, comma-separated emails with no daily AI limits
 // It also reads the Supabase URL and publishable key you already set for the
 // site (VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY).
 
@@ -235,6 +236,21 @@ export async function getUser(cfg, token) {
   return user?.id ? user : null;
 }
 
+// Accounts listed in AI_UNLIMITED_EMAILS (comma-separated) skip the daily AI
+// limits. Only verified emails count, so nobody can claim one by signing up.
+export function hasUnlimitedAi(env, user) {
+  const email = String(user?.email || '').trim().toLowerCase();
+  const verified = Boolean(user?.email_confirmed_at || user?.confirmed_at);
+
+  if (!email || !verified) return false;
+
+  return String(env.AI_UNLIMITED_EMAILS || '')
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(email);
+}
+
 // Rows in the last 24 hours (RLS means the user can only see their own).
 export async function countRecentUse(cfg, token) {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -420,8 +436,10 @@ export default async function handler(req, res, env = process.env) {
 
   if (!user) return send(res, 401, { error: 'Please log in again.', code: 'auth' });
 
-  const limit = Math.max(1, Number(env.AI_USER_DAILY_LIMIT) || 10);
-  const used = await countRecentUse(cfg, token).catch(() => null);
+  // Unlimited accounts get Infinity, which JSON sends as null (counter hidden).
+  const unlimited = hasUnlimitedAi(env, user);
+  const limit = unlimited ? Infinity : Math.max(1, Number(env.AI_USER_DAILY_LIMIT) || 10);
+  const used = unlimited ? 0 : await countRecentUse(cfg, token).catch(() => null);
 
   // Fail closed: without a working usage counter there is no safe limit.
   if (used === null) {
