@@ -123,12 +123,32 @@ code {
   color: var(--ink);
 }
 
+.mq-mark {
+  display: block;
+  flex: none;
+  object-fit: contain;
+  user-select: none;
+}
+
 .mq-wordmark {
-  font-family: var(--font-display);
+  display: grid;
+  gap: 3px;
+  font-family: "Sora", var(--font-display);
   font-weight: 700;
-  font-size: calc(var(--logo-size, 30px) * 0.78);
-  letter-spacing: -0.03em;
+  font-size: calc(var(--logo-size, 30px) * 0.74);
+  letter-spacing: -0.04em;
   line-height: 1;
+  color: var(--ink);
+}
+
+.mq-wordmark small {
+  font-family: "Sora", var(--font-body);
+  font-size: max(7.5px, calc(var(--logo-size, 30px) * 0.24));
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  opacity: 0.75;
 }
 
 /* ---- 2. App shell ------------------------------------------------------- */
