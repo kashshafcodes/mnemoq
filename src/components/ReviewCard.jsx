@@ -251,7 +251,7 @@ export default function ReviewCard({ card, cards, position, onRate }) {
   return (
     <div
       className="review-card accented"
-      style={{ '--accent': subjectAccent(card.subject) }}
+      style={{ '--subject': subjectAccent(card.subject) }}
     >
       <div className="review-card-top">
         <span className="category-badge">

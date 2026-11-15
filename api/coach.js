@@ -21,6 +21,7 @@
 //   AI_UNLIMITED_EMAILS    comma-separated emails with no daily AI limits
 //   GEMINI_GENERATE_MODEL  default "gemini-flash-latest"
 
+import { BUDGET_MESSAGE, globalAiBudgetOk } from './_guard.js';
 import { hasPro } from './_plan.js';
 import { ProviderError, clean, getUser, hasUnlimitedAi, norm, supabaseConfig } from './suggest.js';
 
@@ -818,6 +819,10 @@ export default async function handler(req, res, env = process.env) {
       code: 'limit',
       remaining: 0,
     });
+  }
+
+  if (!unlimited && !(await globalAiBudgetOk(env))) {
+    return send(res, 429, { error: BUDGET_MESSAGE, code: 'busy', remaining: limit - used });
   }
 
   const startedAt = Date.now();

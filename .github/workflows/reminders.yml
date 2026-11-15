@@ -1,12 +1,18 @@
-# Sends Mnemoq review reminders. GitHub runs this about every 15 minutes (it can
-# be a few minutes late, which is fine). Needs two repository secrets:
-#   APP_URL      your site, for example https://mnemoq-two.vercel.app
-#   CRON_SECRET  the same value as the CRON_SECRET variable in Vercel
+# Backup scheduler for Mnemoq review reminders.
+#
+# The main scheduler is Supabase pg_cron (supabase/reminders.sql), which runs
+# every 10 minutes. GitHub's own schedule is best effort and in practice ran
+# only every few hours, so this workflow is a fallback and a manual test button
+# (Actions > "Send review reminders" > Run workflow).
+#
+# Repository secrets (Settings > Secrets and variables > Actions):
+#   CRON_SECRET  required: the same value as CRON_SECRET in Vercel
+#   APP_URL      optional: your site, defaults to https://mnemoq-two.vercel.app
 name: Send review reminders
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -18,6 +24,24 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          curl --fail --silent --show-error --max-time 60 \
-            -X POST "$APP_URL/api/remind" \
-            -H "Authorization: Bearer $CRON_SECRET"
+          url="$(printf '%s' "${APP_URL:-https://mnemoq-two.vercel.app}" | tr -d '[:space:]')"
+          url="${url%/}"
+          case "$url" in http://*|https://*) ;; *) url="https://$url" ;; esac
+
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::The CRON_SECRET repository secret is missing. Add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+          echo "Calling $url/api/remind"
+          status=$(curl --silent --show-error --max-time 60 -o response.txt -w '%{http_code}' \
+            -X POST "$url/api/remind" -H "Authorization: Bearer $CRON_SECRET")
+          echo "HTTP $status"
+          cat response.txt; echo
+
+          case "$status" in
+            200) ;;
+            401) echo "::error::Not allowed: CRON_SECRET here does not match CRON_SECRET in Vercel."; exit 1 ;;
+            503) echo "::error::Reminders are not set up on Vercel (VAPID keys or SUPABASE_SERVICE_ROLE_KEY missing)."; exit 1 ;;
+            *) echo "::error::Unexpected response."; exit 1 ;;
+          esac

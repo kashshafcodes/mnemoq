@@ -18,6 +18,7 @@
 //   GEMINI_GENERATE_MODEL   default "gemini-flash-latest" (a stronger model than
 //                           the one used for single-card suggestions)
 
+import { BUDGET_MESSAGE, globalAiBudgetOk } from './_guard.js';
 import {
   ProviderError,
   clean,
@@ -426,6 +427,10 @@ export default async function handler(req, res, env = process.env) {
       code: 'limit',
       remaining: 0,
     });
+  }
+
+  if (!unlimited && !(await globalAiBudgetOk(env))) {
+    return send(res, 429, { error: BUDGET_MESSAGE, code: 'busy', remaining: limit - used });
   }
 
   const startedAt = Date.now();

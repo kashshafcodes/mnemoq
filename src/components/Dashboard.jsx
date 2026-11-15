@@ -295,7 +295,7 @@ function SubjectBars({ subjects }) {
         const share = subject.total > 0 ? subject.mastered / subject.total : 0;
 
         return (
-          <li key={subject.name} style={{ '--accent': subjectAccent(subject.name) }}>
+          <li key={subject.name} style={{ '--subject': subjectAccent(subject.name) }}>
             <div className="subject-bar-head">
               <span className="subject-bar-name">
                 <span className="subject-dot" aria-hidden="true" />
@@ -388,7 +388,7 @@ function Moments({ data }) {
 
   if (best) {
     tiles.push(
-      <article className="moment moment-feature" key="best" style={{ '--accent': subjectAccent(best.card.subject) }}>
+      <article className="moment moment-feature" key="best" style={{ '--subject': subjectAccent(best.card.subject) }}>
         <p className="eyebrow">YOUR STRONGEST MEMORY</p>
         <h4>&ldquo;{best.card.question}&rdquo;</h4>
         <p>

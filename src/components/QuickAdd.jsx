@@ -402,7 +402,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
               key={name}
               type="button"
               className="qa-chip"
-              style={{ '--accent': subjectAccent(name) }}
+              style={{ '--subject': subjectAccent(name) }}
               onClick={() => {
                 setPendingSubject(name);
                 stopAdding();
@@ -450,7 +450,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
       <section
         ref={rootRef}
         className="quick-add"
-        style={{ '--accent': subjectAccent(pendingSubject) }}
+        style={{ '--subject': subjectAccent(pendingSubject) }}
       >
         <h2>Add cards</h2>
         <p className="subtitle">
@@ -552,7 +552,7 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
     <section
       ref={rootRef}
       className="quick-add"
-      style={{ '--accent': subjectAccent(destination?.subject) }}
+      style={{ '--subject': subjectAccent(destination?.subject) }}
     >
       <h2>Add cards</h2>
 

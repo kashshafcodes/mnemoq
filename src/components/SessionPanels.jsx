@@ -21,7 +21,7 @@ export function ReviewSubjectTabs({ tabs, active, totalDue, onChange }) {
           key={tab.name}
           type="button"
           className="review-tab"
-          style={{ '--accent': subjectAccent(tab.name) }}
+          style={{ '--subject': subjectAccent(tab.name) }}
           aria-pressed={active === tab.name}
           onClick={() => onChange(tab.name)}
         >
@@ -61,7 +61,7 @@ export function SessionStart({ dueCards, subject, sessionSize, onStart }) {
             <span
               key={subject}
               className="session-subject"
-              style={{ '--accent': subjectAccent(subject) }}
+              style={{ '--subject': subjectAccent(subject) }}
             >
               <span className="subject-dot" aria-hidden="true" />
               {subject}
@@ -126,7 +126,7 @@ export function SessionSummary({ results, cards, moreDue, onAgain, onDone }) {
           <p className="eyebrow">WORTH ANOTHER LOOK</p>
           <ul>
             {missed.map((card) => (
-              <li key={card.id} style={{ '--accent': subjectAccent(card.subject) }}>
+              <li key={card.id} style={{ '--subject': subjectAccent(card.subject) }}>
                 <span className="session-q">{card.question}</span>
                 <span className="session-a">{card.correctAnswer}</span>
               </li>

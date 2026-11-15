@@ -15,6 +15,8 @@
 // It also reads the Supabase URL and publishable key you already set for the
 // site (VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY).
 
+import { BUDGET_MESSAGE, globalAiBudgetOk } from './_guard.js';
+
 const LIMITS = { question: 500, answer: 300, wrong: 300, hook: 300, subject: 60 };
 const OUT = { hook: 240, concept: 80, question: 220, answer: 120, wrongOption: 120 };
 
@@ -452,6 +454,10 @@ export default async function handler(req, res, env = process.env) {
       code: 'limit',
       remaining: 0,
     });
+  }
+
+  if (!unlimited && !(await globalAiBudgetOk(env))) {
+    return send(res, 429, { error: BUDGET_MESSAGE, code: 'busy', remaining: limit - used });
   }
 
   if (!env.GEMINI_API_KEY && !env.GROQ_API_KEY) {

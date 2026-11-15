@@ -1,20 +1,117 @@
+/* Mnemoq design tokens. Every colour in the app comes from here, so the whole
+   look (and dark mode) changes in one place.
+   Light: warm paper background, deep ink, one indigo accent, marigold for
+   streaks and "due" moments. Dark follows the device setting. */
 
 :root {
-  font-family: "Sora", "Segoe UI", sans-serif;
+  --font-body: "Inter", "Noto Sans Bengali", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "Inter", "Noto Sans Bengali", system-ui, sans-serif;
+
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --surface-2: #f3f0e9;
+  --surface-3: #e7e2d7;
+  --line: #e6e1d6;
+  --line-strong: #cfc8b8;
+  --ink: #16171d;
+  --ink-2: #474a55;
+  --ink-3: #6f727d;
+  --on-accent: #ffffff;
+
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-ink: #4338ca;
+  --accent-soft: #eeedfd;
+  --accent-line: #d3d0f8;
+
+  --highlight: #f5a524;
+  --highlight-ink: #8a5300;
+  --highlight-soft: #fdf1dc;
+
+  --info: #1d6fd1;
+  --info-ink: #1559ab;
+  --info-soft: #e6f0fb;
+  --info-line: #c4dbf5;
+
+  --success: #138a5e;
+  --success-ink: #0e6b49;
+  --success-soft: #e2f4ec;
+  --success-line: #bfe5d3;
+
+  --warn: #d98a0b;
+  --warn-ink: #8a5300;
+  --warn-soft: #fdf1dc;
+  --warn-line: #f4d9a6;
+
+  --danger: #d23f57;
+  --danger-ink: #b02a41;
+  --danger-soft: #fcebee;
+  --danger-line: #f4c6cf;
+
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.05);
+  --shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 8px 24px rgba(28, 25, 23, 0.06);
+  --shadow-lg: 0 2px 4px rgba(28, 25, 23, 0.04), 0 24px 60px rgba(28, 25, 23, 0.12);
+
+  color-scheme: light;
+  font-family: var(--font-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: var(--ink);
+  background: var(--bg);
+}
 
-  color: #f8fafc;
-  background: #0b1020;
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111114;
+    --surface: #1a1a1f;
+    --surface-2: #222228;
+    --surface-3: #2e2e36;
+    --line: #2c2c34;
+    --line-strong: #3d3d48;
+    --ink: #f3f2ee;
+    --ink-2: #c4c3cc;
+    --ink-3: #8f8e99;
 
-  --mnemoq-blue: #3b82f6;
-  --mnemoq-violet: #8b5cf6;
-  --mnemoq-navy: #0b1020;
-  --mnemoq-white: #f8fafc;
-  --mnemoq-surface: #111827;
-  --mnemoq-border: #263248;
+    --accent: #7c74ff;
+    --accent-hover: #918bff;
+    --accent-ink: #aaa5ff;
+    --accent-soft: #24223f;
+    --accent-line: #3b3870;
+
+    --highlight: #f5b13f;
+    --highlight-ink: #f7c56b;
+    --highlight-soft: #3a2c12;
+
+    --info: #5aa2f0;
+    --info-ink: #8cc0f7;
+    --info-soft: #172a40;
+    --info-line: #24456b;
+
+    --success: #3fbf8a;
+    --success-ink: #6fd6aa;
+    --success-soft: #133126;
+    --success-line: #1f5440;
+
+    --warn: #f0a83a;
+    --warn-ink: #f7c56b;
+    --warn-soft: #3a2c12;
+    --warn-line: #5e4719;
+
+    --danger: #f06a80;
+    --danger-ink: #f6a0ae;
+    --danger-soft: #3a1820;
+    --danger-line: #62293a;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.3), 0 24px 60px rgba(0, 0, 0, 0.45);
+
+    color-scheme: dark;
+  }
 }
 
 * {
@@ -30,4 +127,6 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  background: var(--bg);
+  color: var(--ink);
 }

@@ -3,6 +3,7 @@ import { redeemCode } from '../plan';
 import { PRO, hasPaymentDetails } from '../proConfig';
 import { NO_SUGGEST } from '../noSuggest';
 import { pageHref } from '../useRoute';
+import { trackEvent } from '../googleAnalytics';
 import '../sat/sat.css';
 
 // Mnemoq Pro on screen: the small lock and badge, the upgrade prompt shown
@@ -116,6 +117,8 @@ export default function ProPage({ plan, onPlan, email }) {
       setMessage({ ok: false, text: result.error });
       return;
     }
+
+    trackEvent('pro_redeemed', { days: result.days });
 
     setCode('');
     setMessage({ ok: true, text: `Done. ${result.days} days of Pro added. You are Pro until ${longDate(result.plan.proUntil)}.` });

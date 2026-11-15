@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 
 // Review reminders: browser / phone push notifications.
-// Settings and devices live in Supabase (supabase/stage4.sql); the server sends
+// Settings and devices live in Supabase (supabase/reminders.sql); the server sends
 // them on schedule (api/remind.js).
 
 export const DEFAULT_SETTINGS = { enabled: false, time: '18:00', streakNudge: true, dueAlerts: true, dueMin: 5, quietStart: '22:00', quietEnd: '07:00' };
@@ -33,6 +33,14 @@ function keyBytes(base64Url) {
   const raw = atob(padded);
 
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+}
+
+function sameKey(buffer, bytes) {
+  if (!buffer) return true; // the browser does not say; keep the subscription
+
+  const a = new Uint8Array(buffer);
+
+  return a.length === bytes.length && a.every((value, i) => value === bytes[i]);
 }
 
 const localDate = (timeZone) =>
@@ -93,7 +101,7 @@ export async function saveReminderSettings(userId, settings, { justEnabled = fal
 
   const { error } = await supabase.from('reminder_settings').upsert(row, { onConflict: 'user_id' });
 
-  if (missingTable(error)) return { error: 'Reminders need a one-time server update (run supabase/stage4.sql).' };
+  if (missingTable(error)) return { error: 'Reminders need a one-time server update (run supabase/reminders.sql).' };
 
   return { error: error ? error.message : '' };
 }
@@ -114,9 +122,18 @@ export async function subscribeThisDevice(userId) {
 
     await navigator.serviceWorker.ready;
 
-    const subscription =
-      (await registration.pushManager.getSubscription()) ||
-      (await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(PUBLIC_KEY) }));
+    const wanted = keyBytes(PUBLIC_KEY);
+    let subscription = await registration.pushManager.getSubscription();
+
+    // A subscription made with an older server key can never receive pushes: replace it.
+    if (subscription && !sameKey(subscription.options?.applicationServerKey, wanted)) {
+      await subscription.unsubscribe().catch(() => {});
+      subscription = null;
+    }
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: wanted });
+    }
     const json = subscription.toJSON();
     const { error } = await supabase.from('push_subscriptions').upsert(
       {
@@ -129,7 +146,7 @@ export async function subscribeThisDevice(userId) {
       { onConflict: 'endpoint' }
     );
 
-    if (missingTable(error)) return { error: 'Reminders need a one-time server update (run supabase/stage4.sql).' };
+    if (missingTable(error)) return { error: 'Reminders need a one-time server update (run supabase/reminders.sql).' };
 
     return { error: error ? error.message : '' };
   } catch (caught) {

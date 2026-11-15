@@ -2,14 +2,17 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { supabase } from './supabaseClient';
-import Auth from './Auth';
+import Landing from './components/Landing';
 import { trackEvent } from './googleAnalytics';
 
-import MnemoqLogo from './components/MnemoqLogo';
+import MnemoqLogo, { MnemoqMark } from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
-import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, ProIcon, ProfileIcon, ReviewIcon } from './components/NavIcons';
+import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, ProIcon, ReviewIcon, StatsIcon } from './components/NavIcons';
+import AdminStats from './components/AdminStats';
+import { PRO } from './proConfig';
+import { checkAdmin, identify, trackPage } from './track';
 import DueBadge from './components/DueBadge';
 import MockCenter from './components/MockCenter';
 import PathPage from './components/PathPage';
@@ -42,6 +45,8 @@ import {
   sameName,
   subjectAccent,
 } from './subjects';
+// Loaded after every component's own styles so the new look has the final say.
+import './polish.css';
 
 const STORAGE_KEY = 'mnemoq-mistakes';
 const COLLAPSED_COUNT = 3;
@@ -56,22 +61,6 @@ const emptyForm = {
 };
 
 function App() {
-  useEffect(() => {
-  async function testConnection() {
-    const { error } = await supabase
-      .from('mistakes')
-      .select('id')
-      .limit(1);
-
-    if (error) {
-      console.error('Supabase connection test failed:', error.message);
-    } else {
-      console.log('Supabase connection successful!');
-    }
-  }
-
-  testConnection();
-}, []);
   const [dataLoading, setDataLoading] = useState(true);
   const [dataError, setDataError] = useState('');
   const formRef = useRef(null);
@@ -140,6 +129,34 @@ const [authLoading, setAuthLoading] = useState(true);
 
     loadPathState(userId).then((next) => {
       if (!cancelled) setPathState({ path: null, diagnostic: null, ...next });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id]);
+
+  // Visitor and activity tracking (src/track.js): one page view per page, tied
+  // to the account once signed in. `isAdmin` unlocks the Stats page.
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.id) trackPage(page);
+  }, [page, session?.user?.id]);
+
+  useEffect(() => {
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      setIsAdmin(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    identify(userId);
+    checkAdmin().then((yes) => {
+      if (!cancelled) setIsAdmin(yes);
     });
 
     return () => {
@@ -899,20 +916,22 @@ const reviewMistake =
 
 if (authLoading) {
   return (
-    <main className="auth-page">
-      <p>Loading Mnemoq...</p>
+    <main className="mq-loading" aria-busy="true">
+      <MnemoqMark size={44} />
+      <p>Loading Mnemoq…</p>
     </main>
   );
 }
 
 if (!session) {
-  return <Auth />;
+  return <Landing />;
 }
 
 if (dataLoading) {
   return (
-    <main className="auth-page">
-      <p>Loading your mistakes...</p>
+    <main className="mq-loading" aria-busy="true">
+      <MnemoqMark size={44} />
+      <p>Getting your cards ready…</p>
     </main>
   );
 }
@@ -1113,8 +1132,30 @@ if (dataError) {
       })()
     : null;
 
+  // Navigation. The sidebar shows everything; the phone tab bar the five most used.
+  const pathLabel = pathInfo ? `${pathInfo.short} path` : 'nav.path';
+  const navItems = [
+    ['home', HomeIcon, 'nav.home'],
+    ['review', ReviewIcon, 'nav.review', dueMistakes.length],
+    ['add', AddIcon, 'nav.add'],
+    ['path', PathIcon, pathLabel],
+    ['progress', DashboardIcon, 'nav.dashboard'],
+    ['library', LibraryIcon, 'nav.library'],
+    ...(isAdmin ? [['admin', StatsIcon, 'Stats']] : []),
+  ];
+  const tabItems = [
+    ['home', HomeIcon, 'Home'],
+    ['review', ReviewIcon, 'Review', dueMistakes.length],
+    ['add', AddIcon, 'Add'],
+    ['path', PathIcon, pathInfo ? pathInfo.short : 'Path'],
+    ['progress', DashboardIcon, 'Progress'],
+  ];
+  const isActive = (name) => page === name || (name === 'path' && page === 'mocks');
+
   function finishPilot(result, thenReview) {
     const next = { status: 'done', ...result, hidden: false };
+
+    trackEvent('pilot_done');
 
     savePilot(session.user.id, next);
     setPilot(next);
@@ -1153,89 +1194,109 @@ if (dataError) {
   }
 
   return (
-    <div className="app">
+    <div className="mq-app">
       <DueBadge count={dueMistakes.length} />
-      <aside className="sidebar">
-        <MnemoqLogo size={36} />
-        <p className="nav-label">{t('nav.workspace')}</p>
+      <aside className="mq-side" aria-label="Main menu">
+        <MnemoqLogo size={30} href={pageHref('home')} />
 
-        <nav>
-          {[
-            ['home', HomeIcon, 'nav.home'],
-            ['progress', DashboardIcon, 'nav.dashboard'],
-            ['path', PathIcon, 'nav.path'],
-            ['pro', ProIcon, 'nav.pro'],
-            ['add', AddIcon, 'nav.add'],
-            ['library', LibraryIcon, 'nav.library'],
-            ['review', ReviewIcon, 'nav.review'],
-            ['profile', ProfileIcon, 'nav.profile'],
-          ].map(([name, NavIcon, label]) => (
+        <nav className="mq-nav">
+          {navItems.map(([name, NavIcon, label, count]) => (
             <a
               key={name}
-              className={page === name || (name === 'path' && page === 'mocks') ? 'nav-item active' : 'nav-item'}
+              className={isActive(name) ? 'mq-nav-link active' : 'mq-nav-link'}
               href={pageHref(name)}
-              aria-current={page === name ? 'page' : undefined}
+              aria-current={isActive(name) ? 'page' : undefined}
             >
               <NavIcon />
-              <span>{t(label)}</span>
+              <span>{typeof label === 'string' && label.includes('.') ? t(label) : label}</span>
+              {count > 0 && <b className="mq-count">{count > 99 ? '99+' : count}</b>}
             </a>
           ))}
-          <button
-            type="button"
-            className="nav-item nav-button"
-            onClick={() => setShowTutorial(true)}
-          >
-            <HelpIcon />
-            <span>{t('nav.how')}</span>
-          </button>
-          <button
-            type="button"
-            className="nav-item nav-button"
-            onClick={() => setPilotOpen(true)}
-          >
-            <ReviewIcon />
-            <span>{t('nav.debrief')}</span>
-          </button>
         </nav>
 
-        
-<div className="sidebar-bottom">
-  <p>{t('side.line1')}</p>
-  <p>{t('side.line2')}</p>
-  <p className="side-ai">✦ {t('side.ai')}</p>
+        <div className="mq-side-bottom">
+          {plan.pro ? (
+            <a className="mq-pro-card is-pro" href={pageHref('pro')}>
+              <ProIcon />
+              <span>
+                <b>Mnemoq Pro</b>
+                <small>{plan.daysLeft} {plan.daysLeft === 1 ? 'day' : 'days'} left</small>
+              </span>
+            </a>
+          ) : (
+            <a className={page === 'pro' ? 'mq-pro-card active' : 'mq-pro-card'} href={pageHref('pro')}>
+              <ProIcon />
+              <span>
+                <b>Go Pro</b>
+                <small>Full tests, AI coach · from {PRO.offers[0].price}/mo</small>
+              </span>
+            </a>
+          )}
 
-  <LanguageToggle />
+          <div className="mq-side-links">
+            <button type="button" onClick={() => setShowTutorial(true)}>
+              <HelpIcon /> {t('nav.how')}
+            </button>
+            <button type="button" onClick={() => setPilotOpen(true)}>
+              <ReviewIcon /> {t('nav.debrief')}
+            </button>
+          </div>
 
-  <button
-    type="button"
-    className="logout-button"
-    onClick={logOut}
-  >
-    {t('nav.logout')}
-  </button>
-</div>
-
+          <a className={page === 'profile' ? 'mq-me active' : 'mq-me'} href={pageHref('profile')}>
+            <span className="mq-avatar" style={{ '--avatar': me.color.value }} aria-hidden="true">
+              {me.initial}
+            </span>
+            <span className="mq-me-text">
+              <b>{me.name || t('nav.profile')}</b>
+              <small>{t('nav.profile')} &amp; reminders</small>
+            </span>
+          </a>
+          <div className="mq-side-foot">
+            <LanguageToggle />
+            <button type="button" className="mq-logout" onClick={logOut}>
+              {t('nav.logout')}
+            </button>
+          </div>
+        </div>
       </aside>
 
-      <main className="main-content">
-        {page === 'home' && (
-          <>
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">{t('top.eyebrow')}</p>
-            <h1>{me.name ? `${t('top.title').replace(/[.\u0964]$/, '')}, ${me.name}.` : t('top.title')}</h1>
-            <p className="subtitle">
-              {t('top.subtitle')}
-            </p>
-          </div>
-          <a
-            className="avatar"
-            href={pageHref('profile')}
-            style={{ '--avatar': me.color.value }}
-            aria-label={t('nav.profile')}
-          >
+      <header className="mq-mobilebar">
+        <MnemoqLogo size={26} href={pageHref('home')} />
+        <div className="mq-mobilebar-right">
+          {!plan.pro && (
+            <a className="mq-pro-chip" href={pageHref('pro')}>
+              <ProIcon /> Pro
+            </a>
+          )}
+          <a className="mq-avatar" href={pageHref('profile')} style={{ '--avatar': me.color.value }} aria-label={t('nav.profile')}>
             {me.initial}
           </a>
+        </div>
+      </header>
+
+      <nav className="mq-tabbar" aria-label="Main menu">
+        {tabItems.map(([name, NavIcon, label, count]) => (
+          <a
+            key={name}
+            className={`${isActive(name) ? 'mq-tab active' : 'mq-tab'}${name === 'add' ? ' mq-tab-add' : ''}`}
+            href={pageHref(name)}
+            aria-current={isActive(name) ? 'page' : undefined}
+          >
+            <span className="mq-tab-icon">
+              <NavIcon />
+              {count > 0 && <b className="mq-count">{count > 99 ? '99+' : count}</b>}
+            </span>
+            <span>{label}</span>
+          </a>
+        ))}
+      </nav>
+
+      <main className="mq-main">
+        {page === 'home' && (
+          <>
+        <header className="mq-greeting">
+          <p className="mq-date">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+          <h1>{me.name ? `${t('top.title').replace(/[.।]$/, '')}, ${me.name}.` : t('top.title')}</h1>
         </header>
 
         {pilot && pilot.status === 'done' && !pilot.hidden && (
@@ -1260,6 +1321,7 @@ if (dataError) {
               onReview={goToReview}
               pathInfo={pathInfo}
               pathLoading={pathState.status === 'loading'}
+              userId={session.user.id}
             />
           </>
         )}
@@ -1414,7 +1476,7 @@ if (dataError) {
           : 'filter-button'
       }
       style={
-        subject === 'All' ? undefined : { '--accent': subjectAccent(subject) }
+        subject === 'All' ? undefined : { '--subject': subjectAccent(subject) }
       }
       aria-pressed={subjectNow === subject}
       onClick={() => selectSubject(subject)}
@@ -1481,7 +1543,7 @@ if (dataError) {
       <article
         className="mistake-card accented"
         key={mistake.id}
-        style={{ '--accent': subjectAccent(mistake.subject) }}
+        style={{ '--subject': subjectAccent(mistake.subject) }}
       >
         <div className="mistake-card-top">
           <span className="subject-tag">
@@ -1575,6 +1637,8 @@ if (dataError) {
             onReload={reloadPath}
           />
         )}
+
+        {page === 'admin' && isAdmin && <AdminStats />}
 
         {page === 'pro' && <ProPage plan={plan} onPlan={setPlan} email={session.user.email} />}
 

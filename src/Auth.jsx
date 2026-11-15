@@ -1,114 +1,123 @@
-
 import { useState } from 'react';
 import { supabase } from './supabaseClient';
-import { LanguageToggle, useI18n } from './i18n';
+import { useI18n } from './i18n';
 import { trackEvent } from './googleAnalytics';
+import { trafficSource } from './track';
 
-export default function Auth({ onLogin }) {
+// The sign-up / log-in form. Shown inside the landing page (Landing.jsx).
+export default function Auth({ startWith = 'signup', compact = false }) {
   const { t } = useI18n();
-  const [isSignup, setIsSignup] = useState(true);
+  const [isSignup, setIsSignup] = useState(startWith !== 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState({ text: '', ok: false });
   const [loading, setLoading] = useState(false);
 
-  
-async function handleSubmit(event) {
-  event.preventDefault();
-  setMessage('');
-  setLoading(true);
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setMessage({ text: '', ok: false });
+    setLoading(true);
 
-  try {
-    if (isSignup) {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+    try {
+      if (isSignup) {
+        const src = trafficSource();
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          // Which post or site brought them, so the Stats page can credit it.
+          options: { data: { source: src.source, campaign: src.campaign || null } },
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Supabase may return session=null when email confirmation is required.
-      // The account creation request still succeeded, so count the signup.
-      // An empty identities array can indicate an existing account (anti-enumeration).
-      if (data.user && (!Array.isArray(data.user.identities) || data.user.identities.length > 0)) {
-        trackEvent('sign_up', { method: 'email' });
-      }
+        // Supabase may return session=null when email confirmation is required.
+        // An empty identities array can mean an existing account (anti-enumeration).
+        if (data.user && (!Array.isArray(data.user.identities) || data.user.identities.length > 0)) {
+          trackEvent('sign_up', { method: 'email' });
+        }
 
-      if (data.session) {
-        setMessage('Account created successfully!');
-      } else {
         setMessage(
-          'Account created. Check your email for a confirmation link before logging in.'
+          data.session
+            ? { text: 'Account created. Taking you in…', ok: true }
+            : { text: 'Almost there: we sent a confirmation link to your email. Open it, then log in here.', ok: true }
         );
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+
+        if (error) throw error;
+
+        trackEvent('login', { method: 'email' });
       }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    } catch (error) {
+      const text = /invalid login/i.test(error.message || '')
+        ? 'That email and password do not match. Check them, or create a new account.'
+        : /rate limit|too many/i.test(error.message || '')
+          ? 'Too many tries. Please wait a minute and try again.'
+          : error.message || 'Something went wrong. Please try again.';
 
-      if (error) throw error;
-
-      trackEvent('login', { method: 'email' });
-      setMessage('Login successful!');
+      setMessage({ text, ok: false });
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    setMessage(error.message || 'Something went wrong. Please try again.');
-  } finally {
-    setLoading(false);
   }
-}
-
 
   return (
-    <main className="auth-page">
-      <form className="auth-card" onSubmit={handleSubmit}>
-        <LanguageToggle />
-        <p className="eyebrow">MNEMOQ</p>
-        <h1>{isSignup ? t('auth.signupTitle') : t('auth.loginTitle')}</h1>
-        <p>{t('auth.tagline')}</p>
-        <p className="auth-new">
-          <b>New:</b> Digital SAT path. A free diagnostic, a 400-1600 score estimate and a map of every skill.
-        </p>
+    <form className={compact ? 'mq-auth compact' : 'mq-auth'} onSubmit={handleSubmit} noValidate={false}>
+      <div className="mq-auth-switch" role="tablist" aria-label="Sign up or log in">
+        <button type="button" role="tab" aria-selected={isSignup} className={isSignup ? 'active' : ''} onClick={() => setIsSignup(true)}>
+          Sign up free
+        </button>
+        <button type="button" role="tab" aria-selected={!isSignup} className={!isSignup ? 'active' : ''} onClick={() => setIsSignup(false)}>
+          {t('auth.loginBtn')}
+        </button>
+      </div>
 
-        <label htmlFor="auth-email">{t('auth.email')}</label>
-        <input
-          id="auth-email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
+      <h2>{isSignup ? t('auth.signupTitle') : t('auth.loginTitle')}</h2>
+      {isSignup && <p className="mq-auth-sub">Free forever plan. No card needed. Takes 20 seconds.</p>}
 
-        <label htmlFor="auth-password">{t('auth.password')}</label>
+      <label htmlFor="auth-email">{t('auth.email')}</label>
+      <input
+        id="auth-email"
+        type="email"
+        inputMode="email"
+        autoComplete="email"
+        placeholder="you@example.com"
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+        maxLength={200}
+        required
+      />
+
+      <label htmlFor="auth-password">{t('auth.password')}</label>
+      <div className="mq-password">
         <input
           id="auth-password"
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           autoComplete={isSignup ? 'new-password' : 'current-password'}
-          minLength={6}
+          placeholder={isSignup ? 'At least 8 characters' : ''}
+          minLength={isSignup ? 8 : 6}
+          maxLength={128}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required
         />
-
-        <button className="primary-button" type="submit" disabled={loading}>
-          {loading ? t('auth.wait') : isSignup ? t('auth.createBtn') : t('auth.loginBtn')}
+        <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+          {showPassword ? 'Hide' : 'Show'}
         </button>
+      </div>
 
-        {message && <p role="status">{message}</p>}
+      <button className="mq-btn mq-btn-primary mq-btn-block" type="submit" disabled={loading}>
+        {loading ? t('auth.wait') : isSignup ? 'Create my free account' : t('auth.loginBtn')}
+      </button>
 
-        <button
-          className="auth-toggle"
-          type="button"
-          onClick={() => {
-            setIsSignup(!isSignup);
-            setMessage('');
-          }}
-        >
-          {isSignup ? t('auth.haveAccount') : t('auth.noAccount')}
-        </button>
-      </form>
-    </main>
+      {message.text && (
+        <p className={message.ok ? 'mq-auth-msg ok' : 'mq-auth-msg'} role={message.ok ? 'status' : 'alert'}>
+          {message.text}
+        </p>
+      )}
+
+      {isSignup && <p className="mq-auth-fine">By signing up you agree to use Mnemoq for your own study. We never sell your data.</p>}
+    </form>
   );
 }

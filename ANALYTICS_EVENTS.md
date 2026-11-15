@@ -1,6 +1,12 @@
-# Mnemoq GA4 events
+# Mnemoq analytics events
 
-The existing GA4 measurement ID remains `G-ZC0907DDRK` in `index.html`.
+Every event goes to two places:
+- **Mnemoq's own Stats page** (`#/admin`, data in Supabase `site_events`, set up with `supabase/analytics.sql`). This is the easy one: visitors, where they came from, the sign-up funnel, live activity and every user.
+- **GA4** (`G-ZC0907DDRK`, loaded by `public/ga.js`). Until 2026-11-15 the GA script was missing from `index.html`, so GA has no data before that date.
+
+Track a social post by giving it its own link: the Stats page has a link builder (`?utm_source=facebook&utm_campaign=...`).
+
+Added 2026-11-15: `landing_view`, `cta_click` (`where`), `page_view` (`page`), `pilot_done`, `pro_redeemed` (`days`), `reminders_on`.
 
 | Event | Fires when | Parameters |
 |---|---|---|

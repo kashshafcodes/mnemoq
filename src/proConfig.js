@@ -19,11 +19,11 @@ export const PRO = {
 
   // TODO(owner): put your real payment details here. Leave a value empty to hide it.
   payment: {
-    bkash: '',
+    bkash: '01891966267',
     nagad: '',
     // Where a student sends proof of payment and receives the code.
-    contactLabel: '',
-    contactUrl: '',
+    contactLabel: 'WhatsApp',
+    contactUrl: 'https://wa.me/8801891966267',
     email: '',
   },
 

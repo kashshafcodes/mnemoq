@@ -168,6 +168,26 @@ export function vapidReady(env) {
   return Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY);
 }
 
+// Browsers' push services. A saved "device" whose address is anywhere else is
+// refused, so nobody can make this server send requests to a site of their choice.
+const PUSH_HOSTS = [
+  /^fcm\.googleapis\.com$/,
+  /^android\.googleapis\.com$/,
+  /(^|\.)push\.services\.mozilla\.com$/,
+  /(^|\.)notify\.windows\.com$/,
+  /(^|\.)push\.apple\.com$/,
+];
+
+export function isPushEndpoint(endpoint) {
+  try {
+    const url = new URL(endpoint);
+
+    return url.protocol === 'https:' && !url.port && PUSH_HOSTS.some((re) => re.test(url.hostname));
+  } catch {
+    return false;
+  }
+}
+
 // Sends one message to each device. Returns the endpoints that are gone for good.
 export async function sendToDevices(webpush, env, devices, message) {
   webpush.setVapidDetails(env.VAPID_SUBJECT || 'mailto:admin@example.com', env.VAPID_PUBLIC_KEY, env.VAPID_PRIVATE_KEY);
@@ -177,6 +197,11 @@ export async function sendToDevices(webpush, env, devices, message) {
 
   await Promise.all(
     devices.map(async (device) => {
+      if (!isPushEndpoint(device.endpoint)) {
+        dead.push(device.endpoint);
+        return;
+      }
+
       try {
         await webpush.sendNotification(
           { endpoint: device.endpoint, keys: { p256dh: device.p256dh, auth: device.auth } },

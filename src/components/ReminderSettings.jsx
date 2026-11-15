@@ -12,6 +12,7 @@ import {
   unsubscribeThisDevice,
 } from '../reminders';
 import AiBadge from './AiBadge';
+import { trackEvent } from '../googleAnalytics';
 
 // The "Reminders" card on the profile page.
 
@@ -29,6 +30,13 @@ export default function ReminderSettings({ userId }) {
     setState(next);
     setSettings(next.settings);
   }
+
+  // Arriving from the home page's "Turn on" link: bring this card into view.
+  useEffect(() => {
+    if (state && /reminders/.test(window.location.hash)) {
+      document.getElementById('reminders')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [state]);
 
   useEffect(() => {
     refresh();
@@ -58,6 +66,7 @@ export default function ReminderSettings({ userId }) {
       return;
     }
 
+    trackEvent('reminders_on');
     say('Reminders are on. Tap "Send a test" to see one now.');
     await refresh();
   }
@@ -96,7 +105,7 @@ export default function ReminderSettings({ userId }) {
   const on = state.settings.enabled && state.thisDevice;
 
   return (
-    <section className="profile-card reminders">
+    <section className="profile-card reminders" id="reminders">
       <h3>
         Reminders <AiBadge>Smart</AiBadge>
       </h3>
@@ -107,7 +116,7 @@ export default function ReminderSettings({ userId }) {
 
       {state.setup && (
         <p className="qa-message qa-error" role="alert">
-          Reminders need a one-time server update. If you run this site, run <code>supabase/stage4.sql</code> in Supabase.
+          Reminders need a one-time server update. If you run this site, run <code>supabase/reminders.sql</code> in Supabase.
         </p>
       )}
 

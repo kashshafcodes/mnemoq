@@ -1,31 +1,127 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { computeAnalytics, headline } from '../analytics';
+import { loadReminderState, pushSupported } from '../reminders';
 import { subjectAccent } from '../subjects';
 import { pageHref } from '../useRoute';
 import AiBadge from './AiBadge';
 
-// The home page: every section in short form, each with a link to its own page.
+// The home page: one clear next step, a few numbers, and short links to the
+// rest. Everything else lives on its own page.
 
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-function Tile({ title, to, linkLabel, className = '', children }) {
+// What should this person do right now? The most useful single action.
+function nextStep({ cards, dueCount, pathInfo, onReview }) {
+  if (dueCount > 0) {
+    return {
+      tone: 'due',
+      kicker: 'Ready now',
+      title: `${plural(dueCount, 'card')} ${dueCount === 1 ? 'is' : 'are'} fading`,
+      body: `Review ${dueCount === 1 ? 'it' : 'them'} now, while it counts most. About ${Math.max(1, Math.round(Math.min(dueCount, 10) * 0.4))} min.`,
+      action: { label: 'Start review', onClick: onReview },
+    };
+  }
+
+  if (pathInfo && !pathInfo.hasDiagnostic) {
+    return {
+      tone: 'path',
+      kicker: pathInfo.name,
+      title: pathInfo.engine === 'sat' ? 'Get your first SAT score estimate' : 'See where you stand',
+      body:
+        pathInfo.engine === 'sat'
+          ? 'A free 25-minute diagnostic gives you a 400–1600 estimate and a map of every skill.'
+          : 'The AI diagnostic checks every section and tells you what to fix first.',
+      action: { label: 'Start the diagnostic', href: pageHref('path') },
+    };
+  }
+
+  if (cards.length === 0) {
+    return {
+      tone: 'start',
+      kicker: 'Start here',
+      title: 'Save your first mistake',
+      body: 'Think of one question you got wrong recently. Add it, and Mnemoq will bring it back right before you forget.',
+      action: { label: 'Add a card', href: pageHref('add') },
+      second: pathInfo ? null : { label: 'Or choose your exam', href: pageHref('path') },
+    };
+  }
+
+  return {
+    tone: 'done',
+    kicker: 'All caught up',
+    title: 'Nothing is due right now',
+    body: pathInfo
+      ? `Use the time to practise for ${pathInfo.short}, or add today’s mistakes so they come back later.`
+      : 'Add today’s mistakes so they come back later, or pick an exam for a full plan.',
+    action: pathInfo ? { label: pathInfo.engine === 'sat' ? 'Practise SAT' : 'Take a mock test', href: pageHref(pathInfo.engine === 'sat' ? 'path' : 'mocks') } : { label: 'Add cards', href: pageHref('add') },
+    second: pathInfo ? { label: 'Add cards', href: pageHref('add') } : { label: 'Choose my exam', href: pageHref('path') },
+  };
+}
+
+function ReminderNudge({ userId }) {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    try {
+      if (localStorage.getItem('mnemoq-hide-reminder-nudge') === '1') return undefined;
+    } catch {
+      // ignore
+    }
+
+    if (!userId || !pushSupported()) return undefined;
+
+    loadReminderState(userId)
+      .then((state) => {
+        if (!cancelled && !state.setup && !(state.settings.enabled && state.thisDevice)) setShow(true);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  if (!show) return null;
+
   return (
-    <section className={`home-tile ${className}`.trim()}>
-      <header>
-        <h2>{title}</h2>
-        <a className="home-link" href={pageHref(to)}>
-          {linkLabel} <span aria-hidden="true">→</span>
+    <section className="mq-nudge">
+      <span className="mq-nudge-icon" aria-hidden="true">
+        🔔
+      </span>
+      <div>
+        <h2>Get a nudge when cards are due</h2>
+        <p>Spaced repetition only works if you come back on time. One tap, and your phone reminds you.</p>
+      </div>
+      <div className="mq-nudge-actions">
+        <a className="mq-btn mq-btn-primary" href={`${pageHref('profile')}?reminders`}>
+          Turn on
         </a>
-      </header>
-      {children}
+        <button
+          type="button"
+          className="mq-btn mq-btn-quiet"
+          onClick={() => {
+            setShow(false);
+            try {
+              localStorage.setItem('mnemoq-hide-reminder-nudge', '1');
+            } catch {
+              // ignore
+            }
+          }}
+        >
+          Not now
+        </button>
+      </div>
     </section>
   );
 }
 
-export default function Home({ cards, reviews, dueCount, onReview, pathInfo = null, pathLoading = false }) {
+export default function Home({ cards, reviews, dueCount, onReview, pathInfo = null, pathLoading = false, userId = null }) {
   const data = useMemo(() => computeAnalytics(cards, reviews, new Date()), [cards, reviews]);
   const { stats } = data;
   const message = headline(stats);
+  const step = nextStep({ cards, dueCount, pathInfo, onReview });
 
   const subjects = useMemo(() => {
     const counts = new Map();
@@ -36,136 +132,141 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
   }, [cards]);
 
   const latest = useMemo(
-    () => [...cards].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))).slice(0, 3),
+    () => [...cards].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))).slice(0, 4),
     [cards]
   );
 
   return (
-    <div className="home">
-      <section className="home-hero">
-        <h2>{message.title}</h2>
-        <p>{message.body}</p>
+    <div className="mq-home">
+      <section className={`mq-focus mq-focus-${step.tone}`}>
+        <p className="mq-focus-kicker">{step.kicker}</p>
+        <h2>{step.title}</h2>
+        <p>{step.body}</p>
+        <div className="mq-focus-actions">
+          {step.action.onClick ? (
+            <button type="button" className="mq-btn mq-btn-primary mq-btn-lg" onClick={step.action.onClick}>
+              {step.action.label} <span aria-hidden="true">→</span>
+            </button>
+          ) : (
+            <a className="mq-btn mq-btn-primary mq-btn-lg" href={step.action.href}>
+              {step.action.label} <span aria-hidden="true">→</span>
+            </a>
+          )}
+          {step.second && (
+            <a className="mq-btn mq-btn-ghost mq-btn-lg" href={step.second.href}>
+              {step.second.label}
+            </a>
+          )}
+        </div>
       </section>
 
-      <div className="home-grid">
+      {cards.length > 0 && (
+        <dl className="mq-stats">
+          <div>
+            <dt>Day streak</dt>
+            <dd>
+              {stats.streak.current}
+              {stats.streak.current > 0 && <span aria-hidden="true"> 🔥</span>}
+            </dd>
+          </div>
+          <div>
+            <dt>Cards</dt>
+            <dd>{stats.totalCards}</dd>
+          </div>
+          <div>
+            <dt>Mastered</dt>
+            <dd>{stats.mastered}</dd>
+          </div>
+          <div>
+            <dt>Due now</dt>
+            <dd>{dueCount}</dd>
+          </div>
+        </dl>
+      )}
+
+      {cards.length > 0 && <p className="mq-home-message">{message.title} {message.body}</p>}
+
+      <ReminderNudge userId={userId} />
+
+      <div className="mq-home-grid">
         {pathInfo ? (
-          <Tile
-            title={<>{pathInfo.name} <AiBadge /></>}
-            to="path"
-            linkLabel="Open my path"
-            className="home-path"
-          >
-            <div className="home-path-row">
-              <p className="home-big">
-                {pathInfo.daysLeft !== null ? pathInfo.daysLeft : '–'}{' '}
-                <span>{pathInfo.daysLeft === 1 ? 'day left' : pathInfo.daysLeft === null ? 'no exam date yet' : 'days left'}</span>
+          <a className="mq-tile" href={pageHref('path')}>
+            <header>
+              <h2>
+                {pathInfo.name} <AiBadge />
+              </h2>
+              <span className="mq-tile-arrow" aria-hidden="true">
+                →
+              </span>
+            </header>
+            <div className="mq-tile-numbers">
+              <p>
+                <b>{pathInfo.daysLeft !== null ? pathInfo.daysLeft : '–'}</b>
+                <span>{pathInfo.daysLeft === null ? 'no exam date yet' : pathInfo.daysLeft === 1 ? 'day left' : 'days left'}</span>
               </p>
-              <p className="home-big">
-                {pathInfo.readiness !== null ? pathInfo.readiness : '–'} <span>{pathInfo.word}, target {pathInfo.target}</span>
+              <p>
+                <b>{pathInfo.readiness !== null ? pathInfo.readiness : '–'}</b>
+                <span>
+                  {pathInfo.word}, target {pathInfo.target}
+                </span>
               </p>
             </div>
-            <p className="home-muted">
+            <p className="mq-tile-note">
               {pathInfo.hasDiagnostic
                 ? pathInfo.weakest
-                  ? `Weakest section: ${pathInfo.weakest.name}. ${pathInfo.progress.label}.`
+                  ? `Weakest: ${pathInfo.weakest.name}. ${pathInfo.progress.label}.`
                   : `${pathInfo.progress.label}.`
-                : pathInfo.engine === 'sat'
-                  ? 'Take the 25-minute diagnostic for a first score estimate and your skill map.'
-                  : 'Take the AI diagnostic to see where you stand in every section.'}
+                : 'No diagnostic yet.'}
             </p>
-            {!pathInfo.hasDiagnostic ? (
-              <a className="qa-primary home-button" href={pageHref('path')}>
-                {pathInfo.engine === 'sat' ? 'Start the diagnostic' : 'Start the AI diagnostic'}
-              </a>
-            ) : (
-              <a className="ghost-button home-button" href={pageHref(pathInfo.engine === 'sat' ? 'path' : 'mocks')}>
-                {pathInfo.engine === 'sat' ? 'Practise now' : 'Take a mock test'}
-              </a>
-            )}
-          </Tile>
+          </a>
         ) : (
           !pathLoading && (
-            <Tile title={<>Preparing for an exam? <AiBadge /></>} to="path" linkLabel="Choose my path" className="home-path">
-              <p className="home-muted">
-                Pick your exam and Mnemoq builds your preparation around it: a countdown, an AI diagnostic of every
-                section and a readiness score that moves as you practise.
+            <a className="mq-tile mq-tile-invite" href={pageHref('path')}>
+              <header>
+                <h2>
+                  Preparing for an exam? <AiBadge />
+                </h2>
+                <span className="mq-tile-arrow" aria-hidden="true">
+                  →
+                </span>
+              </header>
+              <p className="mq-tile-note">
+                Digital SAT or NSU admission: get a countdown, a diagnostic of every section and a score that moves as you practise.
               </p>
-              <a className="qa-primary home-button" href={pageHref('path')}>
-                Choose my exam path
-              </a>
-            </Tile>
+            </a>
           )
         )}
 
-        <Tile title="Review" to="review" linkLabel="Open review" className="home-review">
+        <a className="mq-tile" href={pageHref('library')}>
+          <header>
+            <h2>Your library</h2>
+            <span className="mq-tile-arrow" aria-hidden="true">
+              →
+            </span>
+          </header>
           {cards.length === 0 ? (
-            <p className="home-muted">Add your first card, then come back here to review it.</p>
-          ) : dueCount > 0 ? (
+            <p className="mq-tile-note">Nothing saved yet. Every card you add lives here.</p>
+          ) : (
             <>
-              <p className="home-big">
-                {dueCount} <span>{dueCount === 1 ? 'card due' : 'cards due'}</span>
+              <p className="mq-tile-note">
+                {plural(cards.length, 'card')} in {plural(subjects.length, 'subject')}
               </p>
-              <p className="home-muted">A short session takes about five minutes.</p>
-              <button type="button" className="qa-primary" onClick={onReview}>
-                Start review
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="home-big home-ok">All caught up</p>
-              <p className="home-muted">Your cards will come back when they are due.</p>
-            </>
-          )}
-        </Tile>
-
-        <Tile title="Progress" to="progress" linkLabel="See all progress" className="home-progress">
-          <dl className="home-stats">
-            <div>
-              <dt>Cards</dt>
-              <dd>{stats.totalCards}</dd>
-            </div>
-            <div>
-              <dt>Mastered</dt>
-              <dd>{stats.mastered}</dd>
-            </div>
-            <div>
-              <dt>Day streak</dt>
-              <dd>{stats.streak.current}</dd>
-            </div>
-          </dl>
-        </Tile>
-
-        <Tile title="Library" to="library" linkLabel="Open library" className="home-library">
-          {cards.length === 0 ? (
-            <p className="home-muted">Nothing saved yet.</p>
-          ) : (
-            <>
-              <p className="home-muted">{plural(cards.length, 'card')} across {plural(subjects.length, 'subject')}</p>
-              <ul className="home-subjects">
-                {subjects.slice(0, 5).map(([name, count]) => (
-                  <li key={name} style={{ '--accent': subjectAccent(name) }}>
+              <ul className="mq-subjects">
+                {subjects.slice(0, 4).map(([name, count]) => (
+                  <li key={name} style={{ '--subject': subjectAccent(name) }}>
                     <span className="subject-dot" aria-hidden="true" />
                     {name} <b>{count}</b>
                   </li>
                 ))}
               </ul>
-              <ul className="home-latest">
+              <ul className="mq-latest">
                 {latest.map((card) => (
                   <li key={card.id}>{card.question}</li>
                 ))}
               </ul>
             </>
           )}
-        </Tile>
-
-        <Tile title="Add cards" to="add" linkLabel="Add cards" className="home-add">
-          <p className="home-muted">
-            Save something you got wrong or want to remember. Only a question and the correct answer are needed.
-          </p>
-          <a className="qa-primary home-button" href={pageHref('add')}>
-            + Add a card
-          </a>
-        </Tile>
+        </a>
       </div>
     </div>
   );
