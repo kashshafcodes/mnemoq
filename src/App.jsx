@@ -12,8 +12,9 @@ import MnemoqLogo, { MnemoqMark } from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
-import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, ProIcon, ReviewIcon, StatsIcon } from './components/NavIcons';
+import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, PracticeIcon, ProIcon, ReviewIcon, StatsIcon } from './components/NavIcons';
 import AdminStats from './components/AdminStats';
+import Practice from './components/Practice';
 import { PRO } from './proConfig';
 import { launchActive, priceOf, taka } from './pricing';
 import { checkAdmin, identify, trackPage } from './track';
@@ -71,7 +72,7 @@ function App() {
   const { page, go } = useRoute();
   // mnemoq.../sat or .../nsu: the diagnostic anyone can take before signing up.
   const [tryExam] = useState(() => {
-    const match = /^\/(sat|nsu)\/?$/i.exec(window.location.pathname);
+    const match = /^\/(sat|nsu|brac)\/?$/i.exec(window.location.pathname);
 
     return match ? match[1].toLowerCase() : null;
   });
@@ -1119,6 +1120,22 @@ if (dataError) {
     }
   }
 
+  // Saves missed practice-library questions as review cards.
+  async function addPracticeCards(list) {
+    let added = 0;
+
+    for (const card of list) {
+      // eslint-disable-next-line no-await-in-loop
+      const result = await addCard(card);
+
+      if (result?.error) return { added, error: result.error };
+
+      added += 1;
+    }
+
+    return { added };
+  }
+
   // Turns missed diagnostic questions into review cards (with their wrong options for multiple choice).
   async function addDiagnosticCards(list) {
     let added = 0;
@@ -1209,6 +1226,7 @@ if (dataError) {
     ['home', HomeIcon, 'nav.home'],
     ['review', ReviewIcon, 'nav.review', dueMistakes.length],
     ['add', AddIcon, 'nav.add'],
+    ['practice', PracticeIcon, 'nav.practice'],
     ['path', PathIcon, pathLabel],
     ['progress', DashboardIcon, 'nav.dashboard'],
     ['library', LibraryIcon, 'nav.library'],
@@ -1218,8 +1236,8 @@ if (dataError) {
     ['home', HomeIcon, 'Home'],
     ['review', ReviewIcon, 'Review', dueMistakes.length],
     ['add', AddIcon, 'Add'],
+    ['practice', PracticeIcon, 'Practice'],
     ['path', PathIcon, pathInfo ? pathInfo.short : 'Path'],
-    ['progress', DashboardIcon, 'Progress'],
   ];
   const isActive = (name) => page === name || (name === 'path' && page === 'mocks');
 
@@ -1716,6 +1734,8 @@ if (dataError) {
         )}
 
         {page === 'admin' && isAdmin && <AdminStats />}
+
+        {page === 'practice' && <Practice plan={plan} onAddCards={addPracticeCards} />}
 
         {page === 'pro' && <ProPage plan={plan} onPlan={setPlan} email={session.user.email} />}
 

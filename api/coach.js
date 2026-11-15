@@ -76,6 +76,50 @@ export const SECTIONS = {
     brief:
       'Reading comprehension. First write an ORIGINAL passage of 160 to 220 words on a neutral topic (science, society, history, environment or technology). Then write questions that can be answered from the passage alone: one main idea, one detail, one inference, one vocabulary-in-context, and one about purpose or tone.',
   },
+  // BRAC University, section C: general mathematics at SSC/HSC level.
+  bmath: {
+    name: 'Mathematics',
+    asking: 10,
+    keep: 8,
+    min: 5,
+    topics: [
+      'Arithmetic & percentages',
+      'Ratio & proportion',
+      'Algebra & equations',
+      'Indices & logarithms',
+      'Geometry & mensuration',
+      'Trigonometry basics',
+      'Sets & functions',
+      'Statistics & probability',
+    ],
+    brief:
+      'General mathematics for a university admission test (SSC and HSC general maths): arithmetic, percentages, ratio, algebra, equations, indices, logarithms, geometry, mensuration, basic trigonometry, sets, statistics and probability. Solvable by hand in about a minute with small friendly numbers. Compute each answer step by step and double-check it before writing it.',
+  },
+  // BRAC University, section D: HSC higher mathematics and physics, for science and engineering.
+  hmphys: {
+    name: 'Higher Mathematics & Physics',
+    asking: 10,
+    keep: 8,
+    min: 5,
+    topics: [
+      'Differentiation',
+      'Integration',
+      'Vectors & coordinate geometry',
+      'Complex numbers & polynomials',
+      "Kinematics & Newton's laws",
+      'Work, energy & momentum',
+      'Electricity & circuits',
+      'Waves, optics & modern physics',
+    ],
+    brief:
+      'HSC Higher Mathematics and Physics, about half each. Maths: differentiation, integration, vectors, straight lines and circles, complex numbers, polynomials. Physics: kinematics, Newton’s laws, work and energy, momentum, gravitation, current electricity, waves, optics, modern physics. Use g = 9.8 m/s^2 unless stated. Every question must be solvable by hand in about a minute. Compute each answer step by step and check units.',
+  },
+};
+
+// Which sections each exam's AI diagnostic and mocks use (the essay is separate).
+export const PATH_SECTIONS = {
+  nsu: ['english', 'quant', 'reading'],
+  brac: ['english', 'bmath', 'hmphys'],
 };
 
 // The real NSU paper offers five choices (A to E).
@@ -756,7 +800,7 @@ export default async function handler(req, res, env = process.env) {
   let essayInput = null;
   let analysisInput = null;
 
-  if (action === 'diagnostic' && body.path !== 'nsu') {
+  if (action === 'diagnostic' && !PATH_SECTIONS[body.path]) {
     return send(res, 400, { error: 'That exam path is not available yet.', code: 'input' });
   }
 
@@ -765,10 +809,10 @@ export default async function handler(req, res, env = process.env) {
 
   if (action === 'mock') {
     mockIds = (Array.isArray(body.sections) ? body.sections : []).filter(
-      (id, i, all) => ['english', 'quant', 'reading'].includes(id) && all.indexOf(id) === i
+      (id, i, all) => (PATH_SECTIONS[body.path] || []).includes(id) && all.indexOf(id) === i
     );
 
-    if (body.path !== 'nsu' || mockIds.length === 0) {
+    if (!PATH_SECTIONS[body.path] || mockIds.length === 0) {
       return send(res, 400, { error: 'Choose at least one section for your mock test.', code: 'input' });
     }
   }
@@ -852,7 +896,7 @@ export default async function handler(req, res, env = process.env) {
 
     payload = { questions: outcome.result.questions };
   } else if (action === 'diagnostic' || action === 'mock') {
-    const ids = action === 'mock' ? mockIds : ['english', 'quant', 'reading'];
+    const ids = action === 'mock' ? mockIds : PATH_SECTIONS[body.path];
     const outcomes = await Promise.all(ids.map((id) => buildSection(env, id, startedAt)));
     const sections = outcomes.filter((o) => o.section).map((o) => o.section);
 

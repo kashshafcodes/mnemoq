@@ -117,3 +117,39 @@ describe('iPhone forwarder app', () => {
   });
 });
 
+describe('webhook setup problems are explained', () => {
+  const run = async (req, env) => {
+    const res = { status: vi.fn(() => res), json: vi.fn(() => res), setHeader: vi.fn() };
+
+    await smsHook({ method: 'POST', query: {}, headers: {}, body: {}, ...req }, res, env);
+
+    return { status: res.status.mock.calls[0][0], body: res.json.mock.calls[0][0] };
+  };
+  const secret = 'k'.repeat(40);
+
+  it('says when the server has no secret', async () => {
+    expect((await run({}, {})).body.reason).toBe('server-secret-missing');
+  });
+
+  it('ignores a pasted line break after the secret', async () => {
+    vi.stubGlobal('fetch', vi.fn());
+    const r = await run({ query: { key: secret }, body: { message: 'hi', sender: 'x' } }, { SMS_HOOK_SECRET: `${secret}\n`, SUPABASE_URL: 'https://db', SUPABASE_SERVICE_ROLE_KEY: 'k' });
+    vi.unstubAllGlobals();
+
+    expect(r.status).toBe(200);
+  });
+
+  it('says whether the key or the signature was wrong', async () => {
+    expect((await run({ query: { key: 'wrong' } }, { SMS_HOOK_SECRET: secret })).body.reason).toBe('key-does-not-match');
+    expect((await run({ headers: { 'x-signature': 'a'.repeat(64) } }, { SMS_HOOK_SECRET: secret })).body).toMatchObject({ reason: 'signature-does-not-match', signatureHeaders: ['x-signature'] });
+    expect((await run({}, { SMS_HOOK_SECRET: secret })).body.reason).toBe('no-key-or-signature');
+  });
+
+  it('accepts timestamped signatures over the raw text', async () => {
+    const raw = '{ "message": "hi",\n  "sender": "x" }';
+    const sig = createHmac('sha256', secret).update(`1700000000.${raw}`).digest('hex');
+
+    expect(signatureValid({ 'x-signature': `t=1700000000,v1=${sig}` }, JSON.parse(raw), raw, secret)).toBe(true);
+  });
+});
+

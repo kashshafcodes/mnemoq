@@ -61,6 +61,18 @@ export const SUBJECT_CATALOG = {
     cardSubject: 'Reading Comprehension',
     blurb: 'Understanding passages and drawing conclusions',
   },
+  bmath: {
+    id: 'bmath',
+    name: 'Mathematics',
+    cardSubject: 'Mathematics',
+    blurb: 'Arithmetic, algebra, geometry, trigonometry, statistics (SSC/HSC level)',
+  },
+  hmphys: {
+    id: 'hmphys',
+    name: 'Higher Math & Physics',
+    cardSubject: 'Physics',
+    blurb: 'Calculus, vectors, coordinate geometry, mechanics, electricity, waves',
+  },
   essay: {
     id: 'essay',
     name: 'Essay',
@@ -121,6 +133,35 @@ export const PATHS = {
         url: 'https://admissions.northsouth.edu/requirement',
       },
       note: 'The even weighting is our estimate, not an official split. Confirm the format on the latest NSU admissions page.',
+    },
+  },
+
+  brac: {
+    id: 'brac',
+    name: 'BRAC University Admission',
+    short: 'BRAC',
+    tagline: 'English, composition, mathematics, and higher maths and physics.',
+    target: 75,
+    // Sections A to D: the paper for CSE, EEE, ECE, CS, Physics, Maths and APE.
+    // Weighted by BRAC's published marks (20, 40, 15, 10).
+    subjects: [
+      { id: 'english', name: 'English Language', marks: 20 },
+      { id: 'essay', name: 'English Composition', marks: 40 },
+      { id: 'bmath', marks: 15 },
+      { id: 'hmphys', marks: 10 },
+    ],
+    exam: {
+      summary: 'Sections A to D, 1 hour 50 minutes: 20 English MCQs, one written composition (40 marks), 15 Mathematics MCQs and 10 Higher Mathematics & Physics MCQs.',
+      details: [
+        'You must pass every section separately. There is a written test and then an interview.',
+        'BBA, Economics, Biology and Microbiology sit only sections A to C (1 hour 30 minutes). Pharmacy adds Biology & Chemistry; Architecture adds Drawing.',
+        'Mathematics and the science sections are offered in English and Bangla.',
+      ],
+      source: {
+        label: 'BRAC University: sample questions for undergraduate programs',
+        url: 'https://www.bracu.ac.bd/sites/default/files/admission/SQ/Sample%20Question_UG_%20Updated%20_October%202022_2.pdf',
+      },
+      note: 'Based on BRAC University’s published sample paper. Confirm the sections for your program in the current admission notice.',
     },
   },
 
@@ -185,7 +226,7 @@ export const PATHS = {
 
 // Paths offered to students right now. The others are fully described above
 // but stay hidden until their diagnostics have been checked.
-export const ENABLED_PATHS = ['nsu', 'sat'];
+export const ENABLED_PATHS = ['nsu', 'brac', 'sat'];
 
 export const PATH_LIST = ENABLED_PATHS.map((id) => PATHS[id]);
 

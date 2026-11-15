@@ -143,7 +143,7 @@ export function createPreviewClient(mode) {
     mistakes: cards,
     reviews: mode === 'new' ? [] : sampleReviews(cards),
     user_paths:
-      mode === 'sat' || mode === 'nsu'
+      mode === 'sat' || mode === 'nsu' || mode === 'brac'
         ? [{ user_id: 'preview-user', path_id: mode, is_active: true, exam_date: iso(60).slice(0, 10), target_score: mode === 'sat' ? 1400 : 75, updated_at: iso(0) }]
         : [],
   };

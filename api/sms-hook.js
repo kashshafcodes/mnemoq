@@ -56,20 +56,40 @@ function canonical(value) {
   return JSON.stringify(value);
 }
 
+// Pieces of a signature header: "abc", "sha256=abc", "t=123,v1=abc", "sha256=abc; ts=1".
+function signatureParts(value) {
+  const text = String(value || '').trim();
+  const parts = new Set([text]);
+
+  for (const piece of text.split(/[,;\s]+/)) {
+    if (!piece) continue;
+    parts.add(piece);
+    if (piece.includes('=')) parts.add(piece.slice(piece.indexOf('=') + 1));
+  }
+
+  return [...parts].filter((p) => p.length >= 32);
+}
+
 export function signatureValid(headers, data, rawBody, secret) {
-  const given = Object.entries(headers || {})
-    .filter(([name]) => /signature|hmac/i.test(name))
-    .map(([, value]) => String(value).trim().replace(/^sha256=/i, ''));
+  const sigHeaders = Object.entries(headers || {}).filter(([name]) => /signature|hmac/i.test(name));
+  const given = sigHeaders.flatMap(([, value]) => signatureParts(value));
 
   if (given.length === 0) return false;
 
+  const timestamps = [
+    ...Object.entries(headers || {})
+      .filter(([name]) => /timestamp|-ts$|-time$/i.test(name))
+      .map(([, v]) => String(v).trim()),
+    ...sigHeaders.flatMap(([, v]) => [...String(v).matchAll(/\b(?:t|ts|timestamp)=([^,;\s]+)/gi)].map((m) => m[1])),
+  ];
   const bodies = [canonical(data), JSON.stringify(data)];
 
-  if (typeof rawBody === 'string') bodies.push(rawBody);
+  if (typeof rawBody === 'string' && rawBody) bodies.push(rawBody);
+
+  for (const t of timestamps) for (const b of [...bodies]) bodies.push(`${t}.${b}`, `${t}${b}`);
 
   for (const body of bodies) {
-    const mac = createHmac('sha256', secret).update(body, 'utf8');
-    const digest = mac.digest();
+    const digest = createHmac('sha256', secret).update(body, 'utf8').digest();
     const forms = [digest.toString('hex'), digest.toString('base64'), digest.toString('base64url')];
 
     if (given.some((g) => forms.some((f) => timingSafeEqual(g, f) || timingSafeEqual(g.toLowerCase(), f)))) return true;
@@ -78,20 +98,54 @@ export function signatureValid(headers, data, rawBody, secret) {
   return false;
 }
 
+// The exact bytes the app sent (signatures are made over these). Falls back to
+// the already-parsed body where the platform has read it.
+async function readRaw(req) {
+  if (typeof req.on === 'function' && !req.readableEnded) {
+    const chunks = [];
+
+    for await (const chunk of req) chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+
+    const text = Buffer.concat(chunks).toString('utf8');
+
+    if (text) return text;
+  }
+
+  return typeof req.body === 'string' ? req.body : null;
+}
+
+function parseRaw(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return Object.fromEntries(new URLSearchParams(raw));
+  }
+}
+
 export default async function handler(req, res, env = process.env) {
   if (req.method !== 'POST') {
     res.setHeader?.('Allow', 'POST');
     return send(res, 405, { error: 'Use POST.' });
   }
 
-  const secret = env.SMS_HOOK_SECRET || '';
-  const given = String(req.headers?.['x-hook-secret'] || req.query?.key || '');
-  const data = readBody(req);
-  const allowed =
-    secret.length >= 16 &&
-    (timingSafeEqual(given, secret) || signatureValid(req.headers, data, typeof req.body === 'string' ? req.body : null, secret));
+  // Pasted secrets often carry a trailing space or line break: ignore it.
+  const secret = String(env.SMS_HOOK_SECRET || '').trim();
 
-  if (!allowed) return send(res, 401, { error: 'Not allowed.' });
+  if (secret.length < 16) {
+    return send(res, 503, { error: 'Not set up: add SMS_HOOK_SECRET (16+ characters) in Vercel and redeploy.', reason: 'server-secret-missing' });
+  }
+
+  const raw = await readRaw(req).catch(() => null);
+  const data = raw ? parseRaw(raw) : readBody(req);
+  const key = String(req.headers?.['x-hook-secret'] || req.query?.key || '').trim();
+  const sigHeaders = Object.keys(req.headers || {}).filter((name) => /signature|hmac/i.test(name));
+
+  if (!timingSafeEqual(key, secret) && !signatureValid(req.headers, data, raw, secret)) {
+    // Say which check failed (never the secret itself) so setup problems are easy to fix.
+    const reason = key ? 'key-does-not-match' : sigHeaders.length ? 'signature-does-not-match' : 'no-key-or-signature';
+
+    return send(res, 401, { error: 'Not allowed.', reason, signatureHeaders: sigHeaders });
+  }
 
   const cfg = adminConfig(env);
 

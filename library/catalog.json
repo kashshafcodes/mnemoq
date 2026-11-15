@@ -1,0 +1,200 @@
+{
+ "setSize": 20,
+ "total": 11600,
+ "collections": [
+  {
+   "id": "vocab",
+   "title": "Vocabulary builder",
+   "group": "English",
+   "blurb": "Words that turn up in SAT, IELTS and admission tests. Learn the meaning, then keep it with review cards.",
+   "source": {
+    "name": "Princeton WordNet",
+    "url": "https://wordnet.princeton.edu/",
+    "license": "WordNet licence"
+   },
+   "sets": 17,
+   "questions": 340,
+   "topics": [
+    "Vocabulary"
+   ],
+   "worked": true
+  },
+  {
+   "id": "word-problems",
+   "title": "Maths word problems",
+   "group": "Maths",
+   "blurb": "Everyday problems solved step by step: money, time, rates, percentages.",
+   "source": {
+    "name": "GSM8K (OpenAI)",
+    "url": "https://huggingface.co/datasets/openai/gsm8k",
+    "license": "MIT"
+   },
+   "sets": 165,
+   "questions": 3300,
+   "topics": [
+    "Word problems"
+   ],
+   "worked": true
+  },
+  {
+   "id": "quant",
+   "title": "Quantitative reasoning",
+   "group": "Maths",
+   "blurb": "Algebra, ratios, speed, profit and probability, with a worked solution for each. Great for NSU, BRAC and IBA-style tests.",
+   "source": {
+    "name": "AQuA-RAT (DeepMind)",
+    "url": "https://huggingface.co/datasets/deepmind/aqua_rat",
+    "license": "Apache-2.0"
+   },
+   "sets": 198,
+   "questions": 3960,
+   "topics": [
+    "Quantitative reasoning"
+   ],
+   "worked": true
+  },
+  {
+   "id": "school-maths",
+   "title": "School mathematics",
+   "group": "Maths",
+   "blurb": "Arithmetic, algebra, geometry and statistics at SSC/HSC level.",
+   "source": {
+    "name": "MMLU (Hendrycks et al.)",
+    "url": "https://huggingface.co/datasets/cais/mmlu",
+    "license": "MIT"
+   },
+   "sets": 47,
+   "questions": 940,
+   "topics": [
+    "Mathematics",
+    "Statistics",
+    "Elementary mathematics"
+   ],
+   "worked": false
+  },
+  {
+   "id": "higher-maths",
+   "title": "Higher mathematics",
+   "group": "Maths",
+   "blurb": "University-entry calculus, linear algebra and harder problem solving.",
+   "source": {
+    "name": "MMLU (Hendrycks et al.)",
+    "url": "https://huggingface.co/datasets/cais/mmlu",
+    "license": "MIT"
+   },
+   "sets": 5,
+   "questions": 100,
+   "topics": [
+    "Higher mathematics"
+   ],
+   "worked": false
+  },
+  {
+   "id": "physics",
+   "title": "Physics",
+   "group": "Science",
+   "blurb": "Mechanics, electricity, waves, heat and modern physics, from concepts to calculation.",
+   "source": {
+    "name": "MMLU (Hendrycks et al.)",
+    "url": "https://huggingface.co/datasets/cais/mmlu",
+    "license": "MIT"
+   },
+   "sets": 33,
+   "questions": 660,
+   "topics": [
+    "Astronomy",
+    "Conceptual physics",
+    "Physics"
+   ],
+   "worked": false
+  },
+  {
+   "id": "chemistry",
+   "title": "Chemistry",
+   "group": "Science",
+   "blurb": "Atoms, bonding, reactions, equilibrium, acids and organic chemistry.",
+   "source": {
+    "name": "MMLU (Hendrycks et al.)",
+    "url": "https://huggingface.co/datasets/cais/mmlu",
+    "license": "MIT"
+   },
+   "sets": 16,
+   "questions": 320,
+   "topics": [
+    "Chemistry"
+   ],
+   "worked": false
+  },
+  {
+   "id": "biology",
+   "title": "Biology",
+   "group": "Science",
+   "blurb": "Cells, genetics, physiology, anatomy and nutrition. Useful for medical admission.",
+   "source": {
+    "name": "MMLU (Hendrycks et al.)",
+    "url": "https://huggingface.co/datasets/cais/mmlu",
+    "license": "MIT"
+   },
+   "sets": 49,
+   "questions": 980,
+   "topics": [
+    "Biology",
+    "Nutrition",
+    "Anatomy"
+   ],
+   "worked": false
+  },
+  {
+   "id": "computer-science",
+   "title": "Computer science",
+   "group": "More subjects",
+   "blurb": "Programming logic, algorithms and how computers work.",
+   "source": {
+    "name": "MMLU (Hendrycks et al.)",
+    "url": "https://huggingface.co/datasets/cais/mmlu",
+    "license": "MIT"
+   },
+   "sets": 5,
+   "questions": 100,
+   "topics": [
+    "Computer science"
+   ],
+   "worked": false
+  },
+  {
+   "id": "economics",
+   "title": "Economics",
+   "group": "More subjects",
+   "blurb": "Demand and supply, markets, money and the wider economy. Handy for BBA and economics.",
+   "source": {
+    "name": "MMLU (Hendrycks et al.)",
+    "url": "https://huggingface.co/datasets/cais/mmlu",
+    "license": "MIT"
+   },
+   "sets": 34,
+   "questions": 680,
+   "topics": [
+    "Macroeconomics",
+    "Microeconomics"
+   ],
+   "worked": false
+  },
+  {
+   "id": "geography",
+   "title": "Geography",
+   "group": "More subjects",
+   "blurb": "People, places, climate and the world map.",
+   "source": {
+    "name": "MMLU (Hendrycks et al.)",
+    "url": "https://huggingface.co/datasets/cais/mmlu",
+    "license": "MIT"
+   },
+   "sets": 11,
+   "questions": 220,
+   "topics": [
+    "Geography"
+   ],
+   "worked": false
+  }
+ ]
+}

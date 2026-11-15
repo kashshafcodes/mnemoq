@@ -4,6 +4,7 @@ import { loadReminderState, pushSupported } from '../reminders';
 import { subjectAccent } from '../subjects';
 import { pageHref } from '../useRoute';
 import AiBadge from './AiBadge';
+import CATALOG from '../../library/catalog.json';
 
 // The home page: one clear next step, a few numbers, and short links to the
 // rest. Everything else lives on its own page.
@@ -236,6 +237,19 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
             </a>
           )
         )}
+
+        <a className="mq-tile mq-tile-invite" href={pageHref('practice')}>
+          <header>
+            <h2>Practice library</h2>
+            <span className="mq-tile-arrow" aria-hidden="true">
+              →
+            </span>
+          </header>
+          <p className="mq-tile-note">
+            {CATALOG.total.toLocaleString()} questions from vocabulary to physics, in sets of {CATALOG.setSize}. The first set of each is free, and every
+            mistake can become a review card.
+          </p>
+        </a>
 
         <a className="mq-tile" href={pageHref('library')}>
           <header>

@@ -117,3 +117,13 @@ export function StatsIcon() {
     </Icon>
   );
 }
+
+export function PracticeIcon() {
+  return (
+    <Icon>
+      <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z" />
+      <path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z" />
+      <path d="M7 8h1.5M7 11h1.5M16 8h1.5M16 11h1.5" />
+    </Icon>
+  );
+}

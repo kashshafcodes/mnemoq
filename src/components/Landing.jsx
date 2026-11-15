@@ -19,7 +19,7 @@ const COPY = {
     lead: 'Mnemoq saves every question you get wrong and brings it back right before you would forget it. A few minutes a day, and the mistakes stop coming back on test day.',
     ctaMain: 'Start free',
     ctaSat: 'Take the free SAT diagnostic',
-    nsuTry: 'Preparing for NSU admission?',
+    nsuTry: 'University admission? Take a free check:',
     nsuTryLink: 'Take the free NSU check',
     tryFree: 'Try it free, no sign-up',
     trust: ['Free plan, no card needed', 'Works on your phone', 'English and বাংলা'],
@@ -33,8 +33,8 @@ const COPY = {
     pathKicker: 'Exam paths',
     pathTitle: 'Built around the exam you are actually taking.',
     sat: ['Digital SAT', 'A 25-minute diagnostic, a 400–1600 score estimate, a map of all 27 skills and timed practice modules.'],
-    nsu: ['NSU admission', 'An AI diagnostic of every section, mock tests with a readiness score and a countdown to your exam date.'],
-    any: ['Any subject', 'HSC, A levels, IELTS vocabulary, medical or engineering admission: if you can get it wrong, Mnemoq can help you remember it.'],
+    nsu: ['NSU and BRAC admission', 'Free checks for NSU and BRAC University, an AI diagnostic of every section, mock tests in the real format and a readiness score.'],
+    any: ['A practice library', 'Over 11,000 questions: vocabulary, maths word problems, quantitative reasoning, physics, chemistry, biology and more, with worked solutions.'],
     whyKicker: 'Why it works',
     whyTitle: 'Re-reading feels productive. Recalling actually is.',
     why: 'Most of what we study fades within days unless we come back to it. Testing yourself just as it starts to fade (spaced repetition and active recall) is one of the most studied ways to make knowledge last. Mnemoq does the scheduling, so you only do the remembering.',
@@ -65,7 +65,7 @@ const COPY = {
     lead: 'যে প্রশ্নগুলো ভুল করেন, Mnemoq সেগুলো সংরক্ষণ করে এবং ভুলে যাওয়ার ঠিক আগে আবার সামনে আনে। দিনে কয়েক মিনিট, আর পরীক্ষার দিন সেই ভুলগুলো আর ফিরে আসে না।',
     ctaMain: 'ফ্রি শুরু করুন',
     ctaSat: 'ফ্রি SAT ডায়াগনস্টিক দিন',
-    nsuTry: 'NSU ভর্তির প্রস্তুতি নিচ্ছেন?',
+    nsuTry: 'বিশ্ববিদ্যালয় ভর্তি? ফ্রি চেক দিন:',
     nsuTryLink: 'ফ্রি NSU চেক দিন',
     tryFree: 'সাইন আপ ছাড়াই ফ্রি চেষ্টা করুন',
     trust: ['ফ্রি প্ল্যান, কার্ড লাগবে না', 'ফোনেই চলে', 'English ও বাংলা'],
@@ -79,8 +79,8 @@ const COPY = {
     pathKicker: 'পরীক্ষার পথ',
     pathTitle: 'আপনার আসল পরীক্ষাকে ঘিরেই সাজানো।',
     sat: ['ডিজিটাল SAT', '২৫ মিনিটের ডায়াগনস্টিক, ৪০০–১৬০০ স্কোর অনুমান, ২৭টি দক্ষতার মানচিত্র এবং টাইমড প্র্যাকটিস মডিউল।'],
-    nsu: ['NSU ভর্তি', 'প্রতিটি সেকশনের এআই ডায়াগনস্টিক, রেডিনেস স্কোরসহ মক টেস্ট এবং পরীক্ষার দিনের কাউন্টডাউন।'],
-    any: ['যেকোনো বিষয়', 'HSC, A level, IELTS শব্দভাণ্ডার, মেডিকেল বা ইঞ্জিনিয়ারিং ভর্তি: যা ভুল হতে পারে, Mnemoq তা মনে রাখতে সাহায্য করে।'],
+    nsu: ['NSU ও BRAC ভর্তি', 'NSU ও BRAC বিশ্ববিদ্যালয়ের ফ্রি চেক, প্রতিটি সেকশনের এআই ডায়াগনস্টিক, আসল ফরম্যাটে মক টেস্ট এবং রেডিনেস স্কোর।'],
+    any: ['প্র্যাকটিস লাইব্রেরি', '১১,০০০+ প্রশ্ন: শব্দভাণ্ডার, গণিতের সমস্যা, কোয়ান্টিটেটিভ, পদার্থ, রসায়ন, জীববিজ্ঞান এবং আরও, ধাপে ধাপে সমাধানসহ।'],
     whyKicker: 'কেন কাজ করে',
     whyTitle: 'বারবার পড়া মনে হয় কাজের। নিজেকে প্রশ্ন করাই আসল কাজ।',
     why: 'যা পড়ি তার বেশিরভাগই কয়েক দিনের মধ্যে ঝাপসা হয়ে যায়। ঠিক ভুলে যাওয়ার মুখে নিজেকে পরীক্ষা করা (স্পেসড রিপিটিশন ও অ্যাক্টিভ রিকল) দীর্ঘদিন মনে রাখার সবচেয়ে পরীক্ষিত উপায়গুলোর একটি। সময়সূচি Mnemoq করে, আপনি শুধু মনে করেন।',
@@ -195,7 +195,11 @@ export default function Landing() {
           <p className="lp-also">
             {c.nsuTry}{' '}
             <a href="/nsu" onClick={() => track('cta_click', { page: 'landing', where: 'hero_nsu' })}>
-              {c.nsuTryLink} →
+              NSU →
+            </a>{' '}
+            ·{' '}
+            <a href="/brac" onClick={() => track('cta_click', { page: 'landing', where: 'hero_brac' })}>
+              BRAC →
             </a>
           </p>
           <ul className="lp-trust">

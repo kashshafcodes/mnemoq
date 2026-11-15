@@ -6,6 +6,7 @@ import { LanguageToggle } from '../i18n';
 import { NSU_ENGLISH } from '../mockBank/nsuEnglish.js';
 import { NSU_QUANT } from '../mockBank/nsuQuant.js';
 import { NSU_READING } from '../mockBank/nsuReading.js';
+import { preparedFor } from '../mockBank';
 import { SUBJECT_CATALOG } from '../paths';
 import { FREE_BANK } from '../sat/bank';
 import '../sat/sat.css';
@@ -27,6 +28,16 @@ const EXAMS = {
     minutes: 25,
     resultLabel: 'Your SAT estimate',
     resultLower: 'your 400–1600 SAT estimate',
+  },
+  brac: {
+    name: 'BRAC University admission',
+    kicker: 'Free BRAC admission check',
+    title: 'How ready are you for BRAC University?',
+    lead: 'Answer 24 questions in English, Mathematics, and Higher Maths & Physics, in the style of the BRAC admission test (four options, like the real paper). No sign-up to start.',
+    gets: ['A readiness score out of 100', 'Your score in each section', 'The topics to fix first, as review cards'],
+    minutes: 20,
+    resultLabel: 'Your BRAC readiness',
+    resultLower: 'your BRAC readiness score',
   },
   nsu: {
     name: 'NSU admission',
@@ -52,8 +63,21 @@ function nsuSections() {
   ];
 }
 
-function NsuQuiz({ onFinish, onQuit }) {
-  const sections = useMemo(nsuSections, []);
+// 8 English, 8 Mathematics and 8 Higher Maths & Physics from the BRAC sets
+// that the mock tests use last, so the free check does not spoil mock 1.
+function bracSections() {
+  const bank = preparedFor('brac').sections;
+  const lastOf = (list) => list[list.length - 1].questions;
+
+  return [
+    { id: 'english', name: 'English Language', questions: lastOf(bank.english).slice(0, 8) },
+    { id: 'bmath', name: SUBJECT_CATALOG.bmath.name, questions: lastOf(bank.bmath).slice(0, 8) },
+    { id: 'hmphys', name: SUBJECT_CATALOG.hmphys.name, questions: lastOf(bank.hmphys).slice(0, 8) },
+  ];
+}
+
+function QuickQuiz({ build, onFinish, onQuit }) {
+  const sections = useMemo(build, [build]);
   const flat = useMemo(() => sections.flatMap((s) => s.questions.map((q) => ({ ...q, section: s }))), [sections]);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -159,7 +183,7 @@ export default function TryDiagnostic({ exam }) {
             <SatTest key={run} config={{ kind: 'diag', title: 'SAT diagnostic' }} bank={FREE_BANK} seen={new Set()} onFinish={finish} onQuit={() => setPhase('intro')} />
           </div>
         ) : (
-          <NsuQuiz key={run} onFinish={finish} onQuit={() => setPhase('intro')} />
+          <QuickQuiz key={run} build={exam === 'brac' ? bracSections : nsuSections} onFinish={finish} onQuit={() => setPhase('intro')} />
         )}
       </div>
     );

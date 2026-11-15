@@ -13,7 +13,7 @@ import MockSession from './MockSession';
 // The Mock Tests page: prepared mocks for each section (unlocked one by one),
 // your own custom mocks, and every past report.
 
-const ORDER = ['english', 'quant', 'reading', 'essay'];
+const ORDER = ['english', 'quant', 'bmath', 'hmphys', 'reading', 'essay'];
 
 export default function MockCenter({ state, cards, reviews, onSaveMock, onAddBank, onDeleteBank, onAddCards, onReload }) {
   const [view, setView] = useState({ name: 'home' }); // home | prepared | essay | custom | report

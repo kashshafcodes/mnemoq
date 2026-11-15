@@ -1,7 +1,8 @@
 {
   "functions": {
     "api/*.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "library/**"
     }
   },
   "headers": [
@@ -59,7 +60,7 @@
   ],
   "rewrites": [
     {
-      "source": "/(sat|nsu|engineering-diagnostic)",
+      "source": "/(sat|nsu|brac|engineering-diagnostic)",
       "destination": "/index.html"
     }
   ]
