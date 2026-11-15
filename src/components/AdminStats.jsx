@@ -30,6 +30,8 @@ const EVENT_LABELS = {
   mock_done: 'Finished a mock test',
   pilot_done: 'Finished the exam debrief',
   pro_redeemed: 'Became Pro',
+  guest_diag_start: 'Started a free diagnostic',
+  guest_diag_done: 'Finished a free diagnostic',
   reminders_on: 'Turned on reminders',
 };
 
@@ -129,16 +131,18 @@ export default function AdminStats() {
   const [recent, setRecent] = useState([]);
   const [users, setUsers] = useState([]);
   const [health, setHealth] = useState(null);
+  const [payments, setPayments] = useState(null);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('live');
 
   const load = useCallback(async () => {
-    const [overview, feed, people, reminders] = await Promise.all([
+    const [overview, feed, people, reminders, paid] = await Promise.all([
       supabase.rpc('admin_overview', { p_days: days }),
       supabase.rpc('admin_recent', { p_limit: 80 }),
       supabase.rpc('admin_users', { p_limit: 500 }),
       supabase.rpc('admin_reminder_health'),
+      supabase.rpc('admin_payments', { p_limit: 50 }),
     ]);
 
     if (overview.error) {
@@ -155,6 +159,7 @@ export default function AdminStats() {
     setRecent(feed.data || []);
     setUsers(people.data || []);
     setHealth(reminders.data || null);
+    setPayments(paid.error ? null : paid.data || []);
   }, [days]);
 
   useEffect(() => {
@@ -399,6 +404,50 @@ export default function AdminStats() {
                       <tr key={d}>
                         <td>{d}</td>
                         <td>{n(count)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <section className="st-card">
+            <h2>Payments</h2>
+            {payments === null ? (
+              <p className="st-muted">
+                Not set up yet. Run <code>supabase/payments.sql</code> and follow docs/payments.md.
+              </p>
+            ) : payments.length === 0 ? (
+              <p className="st-muted">No bKash or Nagad payments received yet.</p>
+            ) : (
+              <div className="st-scroll">
+                <table className="st-table">
+                  <thead>
+                    <tr>
+                      <th>When</th>
+                      <th>Method</th>
+                      <th>Amount</th>
+                      <th>TrxID</th>
+                      <th>Given to</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.map((p) => (
+                      <tr key={p.trx_id}>
+                        <td>{ago(p.received_at)}</td>
+                        <td>{p.method}</td>
+                        <td>৳{n(p.amount)}</td>
+                        <td>
+                          <code>{p.trx_id}</code>
+                        </td>
+                        <td>
+                          {p.email ? (
+                            `${p.email} · ${p.days} days`
+                          ) : (
+                            <span className="st-pill st-pill-bad">{p.waiting_claims > 0 ? 'Claim blocked: check number' : 'Not claimed yet'}</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

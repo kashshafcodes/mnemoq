@@ -3,9 +3,10 @@ import { supabase } from './supabaseClient';
 import { useI18n } from './i18n';
 import { trackEvent } from './googleAnalytics';
 import { trafficSource } from './track';
+import { guestMetadata } from './guestResult';
 
 // The sign-up / log-in form. Shown inside the landing page (Landing.jsx).
-export default function Auth({ startWith = 'signup', compact = false }) {
+export default function Auth({ startWith = 'signup', compact = false, title = '', subtitle = '' }) {
   const { t } = useI18n();
   const [isSignup, setIsSignup] = useState(startWith !== 'login');
   const [email, setEmail] = useState('');
@@ -26,7 +27,7 @@ export default function Auth({ startWith = 'signup', compact = false }) {
           email: email.trim(),
           password,
           // Which post or site brought them, so the Stats page can credit it.
-          options: { data: { source: src.source, campaign: src.campaign || null } },
+          options: { data: { source: src.source, campaign: src.campaign || null, ...guestMetadata() } },
         });
 
         if (error) throw error;
@@ -73,8 +74,8 @@ export default function Auth({ startWith = 'signup', compact = false }) {
         </button>
       </div>
 
-      <h2>{isSignup ? t('auth.signupTitle') : t('auth.loginTitle')}</h2>
-      {isSignup && <p className="mq-auth-sub">Free forever plan. No card needed. Takes 20 seconds.</p>}
+      <h2>{title && isSignup ? title : isSignup ? t('auth.signupTitle') : t('auth.loginTitle')}</h2>
+      {isSignup && <p className="mq-auth-sub">{subtitle || 'Free forever plan. No card needed. Takes 20 seconds.'}</p>}
 
       <label htmlFor="auth-email">{t('auth.email')}</label>
       <input

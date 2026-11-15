@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { supabase } from './supabaseClient';
 import Landing from './components/Landing';
+import RichText from './components/RichText';
+import TryDiagnostic from './components/TryDiagnostic';
+import { clearGuestResult, pendingGuestResult } from './guestResult';
 import { trackEvent } from './googleAnalytics';
 
 import MnemoqLogo, { MnemoqMark } from './components/MnemoqLogo';
@@ -12,6 +15,7 @@ import Dashboard from './components/Dashboard';
 import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, ProIcon, ReviewIcon, StatsIcon } from './components/NavIcons';
 import AdminStats from './components/AdminStats';
 import { PRO } from './proConfig';
+import { launchActive, priceOf, taka } from './pricing';
 import { checkAdmin, identify, trackPage } from './track';
 import DueBadge from './components/DueBadge';
 import MockCenter from './components/MockCenter';
@@ -65,6 +69,12 @@ function App() {
   const [dataError, setDataError] = useState('');
   const formRef = useRef(null);
   const { page, go } = useRoute();
+  // mnemoq.../sat or .../nsu: the diagnostic anyone can take before signing up.
+  const [tryExam] = useState(() => {
+    const match = /^\/(sat|nsu)\/?$/i.exec(window.location.pathname);
+
+    return match ? match[1].toLowerCase() : null;
+  });
   const [session, setSession] = useState(null);
 const [authLoading, setAuthLoading] = useState(true);
   const [mistakes, setMistakes] = useState(() => {
@@ -111,8 +121,17 @@ const [authLoading, setAuthLoading] = useState(true);
 
     setPilot(saved);
 
+    // People who arrive with a diagnostic result go straight to it instead.
+    if (!saved && (tryExam || pendingGuestResult(session.user))) {
+      const skipped = { status: 'skipped' };
+
+      savePilot(userId, skipped);
+      setPilot(skipped);
+      return;
+    }
+
     if (!saved && mistakes.length === 0) setPilotOpen(true);
-  }, [session, dataLoading, mistakes.length]);
+  }, [session, dataLoading, mistakes.length, tryExam]);
 
   // The student's exam path and latest diagnostic (Supabase).
   const [pathState, setPathState] = useState({ status: 'loading', path: null, diagnostic: null });
@@ -163,6 +182,58 @@ const [authLoading, setAuthLoading] = useState(true);
       cancelled = true;
     };
   }, [session?.user?.id]);
+
+  // A diagnostic taken before signing up (TryDiagnostic.jsx): save it to the
+  // account once, choose that exam's path, and open it.
+  const importingGuest = useRef(false);
+
+  useEffect(() => {
+    const user = session?.user;
+
+    if (!user || dataLoading || pathState.status !== 'ready' || importingGuest.current) return;
+
+    const pending = pendingGuestResult(user);
+
+    if (!pending) {
+      if (tryExam) {
+        window.history.replaceState(null, '', '/');
+        go('path');
+      }
+      return;
+    }
+
+    importingGuest.current = true;
+
+    (async () => {
+      const { exam, result } = pending;
+      const config = getPath(exam);
+
+      if (!config) return;
+
+      if (pathState.path?.pathId !== exam) {
+        const saved = await savePath(user.id, { pathId: exam, examDate: null, target: config.target });
+
+        if (saved.error) {
+          importingGuest.current = false;
+          return;
+        }
+      }
+
+      const kind = pathState.path?.pathId === exam && pathState.diagnostic ? 'retest' : 'initial';
+      const diag = await saveDiagnostic(user.id, { pathId: exam, kind, sections: result.sections, essay: null, analysis: null });
+
+      if (diag.error) {
+        importingGuest.current = false;
+        return;
+      }
+
+      await clearGuestResult(user);
+      trackEvent('diagnostic_done', { path: exam, kind: 'guest' });
+      setPathState({ path: null, diagnostic: null, ...(await loadPathState(user.id)) });
+      window.history.replaceState(null, '', '/');
+      go('path');
+    })();
+  }, [session, dataLoading, pathState, tryExam, go]);
 
   // Mnemoq Pro: the person's plan (supabase/stage5.sql).
   const [plan, setPlan] = useState(FREE_PLAN);
@@ -924,7 +995,7 @@ if (authLoading) {
 }
 
 if (!session) {
-  return <Landing />;
+  return tryExam ? <TryDiagnostic exam={tryExam} /> : <Landing />;
 }
 
 if (dataLoading) {
@@ -1228,7 +1299,9 @@ if (dataError) {
               <ProIcon />
               <span>
                 <b>Go Pro</b>
-                <small>Full tests, AI coach · from {PRO.offers[0].price}/mo</small>
+                <small>
+                  {launchActive() ? `${PRO.launch.name}: 50% off · from ${taka(priceOf(PRO.offers[0]).now)}` : `Full tests, AI coach · from ${taka(priceOf(PRO.offers[0]).now)}/mo`}
+                </small>
               </span>
             </a>
           )}
@@ -1555,19 +1628,23 @@ if (dataError) {
           </span>
         </div>
 
-        <h3>{mistake.question}</h3>
+        <h3>
+          <RichText text={mistake.question} graphs={false} />
+        </h3>
         {mistake.yourAnswer && (
           <p>
-            <strong>Your answer:</strong> {mistake.yourAnswer}
+            <strong>Your answer:</strong> <RichText text={mistake.yourAnswer} graphs={false} />
           </p>
         )}
         <p>
           <strong>Correct answer:</strong>{' '}
-          <span className="correct-text">{mistake.correctAnswer}</span>
+          <span className="correct-text">
+            <RichText text={mistake.correctAnswer} graphs={false} />
+          </span>
         </p>
         {mistake.explanation && (
           <p className="explanation">
-            <strong>Memory hook:</strong> {mistake.explanation}
+            <strong>Memory hook:</strong> <RichText text={mistake.explanation} graphs={false} />
           </p>
         )}
 

@@ -83,3 +83,28 @@ export async function fetchProBank() {
     return { unavailable: true };
   }
 }
+
+// Reports a bKash / Nagad payment (api/pay.js).
+// -> { status: 'granted', plan, days } | { status: 'waiting' } | { status, error }
+export async function claimPayment(trxId, last4) {
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+
+  if (!token) return { status: 'auth', error: 'Please log in again.' };
+
+  try {
+    const response = await fetch('/api/pay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ trxId, last4 }),
+    });
+    const body = await response.json().catch(() => null);
+
+    if (!body) return { status: 'failed', error: 'Payments are not available yet. Try again in a minute.' };
+    if (body.status === 'granted') return { status: 'granted', days: body.days, plan: { ...describePlan(body.proUntil), setup: false } };
+
+    return { status: body.status || 'failed', error: body.error || 'Could not check the payment.' };
+  } catch {
+    return { status: 'failed', error: 'Could not reach the server. Check your connection.' };
+  }
+}

@@ -6,6 +6,7 @@
 //   ?preview        signed-in app with sample cards
 //   ?preview=new    signed-in app as a brand-new person (no cards)
 //   ?preview=admin  as above, and the Stats page is unlocked
+//   ?preview=sat    as ?preview, following the Digital SAT path (=nsu for NSU)
 //   ?preview=out    signed out (the landing page)
 //   ?preview=off    leave preview mode
 
@@ -39,6 +40,8 @@ function sampleCards() {
     ['English', 'Reading', 'An author who "equivocates" is…', 'decisive', 'deliberately vague', -4, 3, 2],
     ['Math', 'Data', 'Median of 3, 9, 4, 7, 10?', '6.6', '7', -12, 6, 20],
     ['Biology', 'Genetics', 'Where does transcription happen in eukaryotes?', 'ribosome', 'nucleus', -1, 0, 0],
+    ['Physics', 'Kinematics', String.raw`A ball is thrown at speed $v$ and angle $\theta$. Its range is $$R = \frac{v^2 \sin 2\theta}{g}$$ Which angle gives the longest range? [graph: y = x*tan(t) - 9.8*x^2/(2*(v*cos(t))^2); v = 20 [5, 40]; t = 0.8 [0.1, 1.5]; x = 0..50]`, '30°', String.raw`$45^\circ$`, -0.5, 0, 0],
+    ['Math', 'Algebra', 'Where does $y = x^2 - 5x + 6$ cross the x-axis? [graph: y = x^2 - b*x + c; b = 5; c = 6; x = -2..7]', 'x = 1 and 6', '$x = 2$ and $x = 3$', -0.4, 0, 0],
   ];
 
   return rows.map(([subject, category, question, yours, correct, created, count, interval], i) => ({
@@ -139,6 +142,10 @@ export function createPreviewClient(mode) {
   const db = {
     mistakes: cards,
     reviews: mode === 'new' ? [] : sampleReviews(cards),
+    user_paths:
+      mode === 'sat' || mode === 'nsu'
+        ? [{ user_id: 'preview-user', path_id: mode, is_active: true, exam_date: iso(60).slice(0, 10), target_score: mode === 'sat' ? 1400 : 75, updated_at: iso(0) }]
+        : [],
   };
   const user = { id: 'preview-user', email: 'preview@mnemoq.test', user_metadata: { name: 'Preview' } };
   const session = signedIn ? { user, access_token: 'preview' } : null;

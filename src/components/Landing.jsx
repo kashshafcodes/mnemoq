@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import Auth from '../Auth';
 import { LanguageToggle, useI18n } from '../i18n';
 import { PRO } from '../proConfig';
+import { launchActive, priceOf, taka } from '../pricing';
 import { track } from '../track';
 import MnemoqLogo from './MnemoqLogo';
 
@@ -18,6 +19,9 @@ const COPY = {
     lead: 'Mnemoq saves every question you get wrong and brings it back right before you would forget it. A few minutes a day, and the mistakes stop coming back on test day.',
     ctaMain: 'Start free',
     ctaSat: 'Take the free SAT diagnostic',
+    nsuTry: 'Preparing for NSU admission?',
+    nsuTryLink: 'Take the free NSU check',
+    tryFree: 'Try it free, no sign-up',
     trust: ['Free plan, no card needed', 'Works on your phone', 'English and বাংলা'],
     howKicker: 'How it works',
     howTitle: 'Three steps. Two minutes a day.',
@@ -61,6 +65,9 @@ const COPY = {
     lead: 'যে প্রশ্নগুলো ভুল করেন, Mnemoq সেগুলো সংরক্ষণ করে এবং ভুলে যাওয়ার ঠিক আগে আবার সামনে আনে। দিনে কয়েক মিনিট, আর পরীক্ষার দিন সেই ভুলগুলো আর ফিরে আসে না।',
     ctaMain: 'ফ্রি শুরু করুন',
     ctaSat: 'ফ্রি SAT ডায়াগনস্টিক দিন',
+    nsuTry: 'NSU ভর্তির প্রস্তুতি নিচ্ছেন?',
+    nsuTryLink: 'ফ্রি NSU চেক দিন',
+    tryFree: 'সাইন আপ ছাড়াই ফ্রি চেষ্টা করুন',
     trust: ['ফ্রি প্ল্যান, কার্ড লাগবে না', 'ফোনেই চলে', 'English ও বাংলা'],
     howKicker: 'কীভাবে কাজ করে',
     howTitle: 'তিনটি ধাপ। দিনে দুই মিনিট।',
@@ -181,10 +188,16 @@ export default function Landing() {
             <button type="button" className="mq-btn mq-btn-primary mq-btn-lg" onClick={() => goSignup('hero')}>
               {c.ctaMain} <span aria-hidden="true">→</span>
             </button>
-            <button type="button" className="mq-btn mq-btn-ghost mq-btn-lg" onClick={() => goSignup('hero_sat')}>
+            <a className="mq-btn mq-btn-ghost mq-btn-lg" href="/sat" onClick={() => track('cta_click', { page: 'landing', where: 'hero_sat' })}>
               {c.ctaSat}
-            </button>
+            </a>
           </div>
+          <p className="lp-also">
+            {c.nsuTry}{' '}
+            <a href="/nsu" onClick={() => track('cta_click', { page: 'landing', where: 'hero_nsu' })}>
+              {c.nsuTryLink} →
+            </a>
+          </p>
           <ul className="lp-trust">
             {c.trust.map((item) => (
               <li key={item}>
@@ -218,14 +231,19 @@ export default function Landing() {
         <h2>{c.pathTitle}</h2>
         <div className="lp-paths">
           {[
-            [c.sat, 'lp-path-sat', 'New'],
-            [c.nsu, 'lp-path-nsu', null],
-            [c.any, 'lp-path-any', null],
-          ].map(([[title, body], cls, tag]) => (
+            [c.sat, 'lp-path-sat', 'New', '/sat'],
+            [c.nsu, 'lp-path-nsu', null, '/nsu'],
+            [c.any, 'lp-path-any', null, null],
+          ].map(([[title, body], cls, tag, href]) => (
             <article key={title} className={`lp-path ${cls}`}>
               {tag && <span className="lp-tag">{tag}</span>}
               <h3>{title}</h3>
               <p>{body}</p>
+              {href && (
+                <a className="lp-path-link" href={href}>
+                  {c.tryFree} →
+                </a>
+              )}
             </article>
           ))}
         </div>
@@ -269,11 +287,13 @@ export default function Landing() {
           </article>
           <article className="lp-price lp-price-pro">
             <h3>Pro</h3>
+            {launchActive() && <span className="lp-offer">{PRO.launch.name} · 50% off</span>}
             <p className="lp-amount">
-              {from.price} <small>{c.perMonth}</small>
+              {taka(priceOf(from).now)} {priceOf(from).was && <s>{taka(priceOf(from).was)}</s>} <small>{c.perMonth}</small>
             </p>
             <p className="lp-price-note">
-              {best.label}: {best.price}. {c.pay}.
+              {best.label}: {taka(priceOf(best).now)}
+              {priceOf(best).was ? ` (regular ${taka(priceOf(best).was)})` : ''}. {c.pay}.
             </p>
             <ul>
               {c.proList.map((item) => (

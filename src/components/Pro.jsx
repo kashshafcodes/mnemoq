@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { redeemCode } from '../plan';
-import { PRO, hasPaymentDetails } from '../proConfig';
+import { claimPayment, redeemCode } from '../plan';
+import { PRO } from '../proConfig';
+import { launchActive, launchDaysLeft, percentOff, priceOf, taka } from '../pricing';
 import { NO_SUGGEST } from '../noSuggest';
 import { pageHref } from '../useRoute';
 import { trackEvent } from '../googleAnalytics';
@@ -67,7 +68,7 @@ export function Paywall({ prompt, onClose }) {
         </ul>
         <div className="pro-sheet-actions">
           <a className="qa-primary" href={pageHref('pro')} onClick={onClose}>
-            See Pro plans{from ? ` · from ${from.price}` : ''}
+            See Pro plans{from ? ` · from ${taka(priceOf(from).now)}` : ''}
           </a>
           <button type="button" className="ghost-button" ref={closeRef} onClick={onClose}>
             Not now
@@ -95,11 +96,163 @@ const COMPARE = [
 
 const cell = (value) => (value === true ? <span className="pro-yes">Included</span> : value === false ? <span className="pro-no">Not included</span> : value);
 
+// Pay by bKash / Nagad "Send Money", then type the TrxID: Pro starts as soon as
+// the payment SMS reaches the server (api/pay.js, api/sms-hook.js).
+function PayBox({ offer, email, onPlan }) {
+  const pay = PRO.payment;
+  const price = priceOf(offer);
+  const [trx, setTrx] = useState('');
+  const [last4, setLast4] = useState('');
+  const [state, setState] = useState({ phase: 'idle' }); // idle | checking | waiting | done | error
+  const [copied, setCopied] = useState(false);
+  const timer = useRef(null);
+  const tries = useRef(0);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const number = pay.bkash || pay.nagad;
+
+  async function check() {
+    const result = await claimPayment(trx, last4);
+
+    if (result.status === 'granted') {
+      trackEvent('pro_redeemed', { days: result.days, method: 'sms' });
+      setState({ phase: 'done', days: result.days, until: result.plan.proUntil });
+      onPlan(result.plan);
+      return;
+    }
+
+    if (result.status === 'waiting' && tries.current < 24) {
+      tries.current += 1;
+      setState({ phase: 'waiting' });
+      timer.current = setTimeout(check, 10000);
+      return;
+    }
+
+    setState({
+      phase: 'error',
+      text:
+        result.status === 'waiting'
+          ? 'We have not received this payment yet. If you sent it, message us with the transaction ID and we will switch Pro on by hand.'
+          : result.error,
+    });
+  }
+
+  function submit(event) {
+    event.preventDefault();
+    clearTimeout(timer.current);
+    tries.current = 0;
+    setState({ phase: 'checking' });
+    check();
+  }
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(number);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  if (!number) return null;
+
+  if (state.phase === 'done') {
+    return (
+      <section className="path-card pay-box pay-done" role="status">
+        <h3>You are on Pro 🎉</h3>
+        <p>
+          Payment received. {state.days} days of Pro added, until <b>{longDate(state.until)}</b>. Everything is unlocked now.
+        </p>
+      </section>
+    );
+  }
+
+  const busy = state.phase === 'checking' || state.phase === 'waiting';
+
+  return (
+    <section className="path-card pay-box">
+      <header>
+        <h3>
+          Get {offer.label} of Pro for {taka(price.now)}
+          {price.was && <s>{taka(price.was)}</s>}
+        </h3>
+        <p>Pay with {pay.bkash && pay.nagad ? 'bKash or Nagad' : pay.bkash ? 'bKash' : 'Nagad'}. Pro starts automatically, usually within a minute.</p>
+      </header>
+      <ol className="pay-steps">
+        <li>
+          Open {pay.bkash && pay.nagad ? 'bKash or Nagad' : pay.bkash ? 'bKash' : 'Nagad'} and choose <b>Send Money</b>.
+        </li>
+        <li>
+          Send <b>{taka(price.now)}</b> to{' '}
+          <span className="pay-number">
+            <b>{number}</b>
+            <button type="button" className="mq-btn mq-btn-ghost" onClick={copy}>
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </span>
+        </li>
+        <li>Type the transaction ID (TrxID) from the confirmation SMS and the last 4 digits of the number you paid from.</li>
+      </ol>
+      <form className="pay-form" onSubmit={submit}>
+        <label>
+          Transaction ID
+          <input
+            value={trx}
+            onChange={(e) => setTrx(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+            placeholder="e.g. BKA1B2C3D4"
+            maxLength={20}
+            required
+            {...NO_SUGGEST}
+          />
+        </label>
+        <label>
+          Your number, last 4 digits
+          <input
+            value={last4}
+            onChange={(e) => setLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            inputMode="numeric"
+            placeholder="5678"
+            maxLength={4}
+            required
+          />
+        </label>
+        <button type="submit" className="mq-btn mq-btn-primary" disabled={busy || trx.length < 6 || last4.length !== 4}>
+          {busy ? 'Checking…' : 'Activate Pro'}
+        </button>
+      </form>
+      {state.phase === 'waiting' && (
+        <p className="pay-wait" role="status">
+          <span className="pay-spinner" aria-hidden="true" /> Waiting for your payment to arrive. Keep this page open; it usually takes under a minute.
+        </p>
+      )}
+      {state.phase === 'error' && (
+        <p className="pro-message" role="alert">
+          {state.text}
+        </p>
+      )}
+      <p className="sat-fineprint">
+        One payment, no automatic renewal. Paying again adds days to what you have left.
+        {pay.contactUrl && (
+          <>
+            {' '}Need help?{' '}
+            <a href={pay.contactUrl} target="_blank" rel="noreferrer">
+              {pay.contactLabel || 'Contact us'}
+            </a>
+            {email ? ` (mention ${email})` : ''}.
+          </>
+        )}
+      </p>
+    </section>
+  );
+}
+
 export default function ProPage({ plan, onPlan, email }) {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(null); // { ok, text }
-  const pay = PRO.payment;
+  const [chosen, setChosen] = useState((PRO.offers.find((o) => o.best) || PRO.offers[0]).id);
 
   async function submit(event) {
     event.preventDefault();
@@ -143,6 +296,46 @@ export default function ProPage({ plan, onPlan, email }) {
         )}
       </section>
 
+      <section className="path-card">
+        <header>
+          <h3>Choose your plan</h3>
+          <p>One payment, no automatic renewal. Buying again adds days to what you have left.</p>
+        </header>
+        {launchActive() && (
+          <p className="pro-launch">
+            <b>{PRO.launch.name}: half price</b> for everyone who joins now. Ends {longDate(PRO.launch.endsAt)}
+            {launchDaysLeft() <= 14 && <> ({launchDaysLeft()} {launchDaysLeft() === 1 ? 'day' : 'days'} left)</>}. After that, the regular
+            price applies.
+          </p>
+        )}
+        <div className="pro-offers">
+          {PRO.offers.map((offer) => {
+            const price = priceOf(offer);
+
+            return (
+              <button
+                key={offer.id}
+                type="button"
+                className={`${offer.best ? 'pro-offer best' : 'pro-offer'}${chosen === offer.id ? ' chosen' : ''}`}
+                aria-pressed={chosen === offer.id}
+                onClick={() => setChosen(offer.id)}
+              >
+                {offer.best && <span className="pro-offer-tag">Most popular</span>}
+                <strong>{offer.label}</strong>
+                <span className="pro-price">
+                  <b>{taka(price.now)}</b>
+                  {price.was && <s aria-label={`regular price ${taka(price.was)}`}>{taka(price.was)}</s>}
+                </span>
+                {price.was ? <span className="pro-save">Save {percentOff(offer)}%</span> : null}
+                <small>{offer.note}</small>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <PayBox offer={PRO.offers.find((o) => o.id === chosen) || PRO.offers[0]} email={email} onPlan={onPlan} />
+
       <section className="pro-benefits">
         {PRO.benefits.map((b) => (
           <article key={b.id}>
@@ -153,82 +346,32 @@ export default function ProPage({ plan, onPlan, email }) {
       </section>
 
       <section className="path-card">
-        <header>
-          <h3>Choose your plan</h3>
-          <p>One payment, no automatic renewal. Buying again adds days to what you have left.</p>
-        </header>
-        <div className="pro-offers">
-          {PRO.offers.map((offer) => (
-            <div key={offer.id} className={offer.best ? 'pro-offer best' : 'pro-offer'}>
-              {offer.best && <span className="pro-offer-tag">Most popular</span>}
-              <strong>{offer.label}</strong>
-              <b>{offer.price}</b>
-              <small>{offer.note}</small>
+        <details className="pro-code-box">
+          <summary>Have an access code?</summary>
+          <form className="pro-redeem" onSubmit={submit}>
+            <label htmlFor="pro-code">Access code</label>
+            <div>
+              <input
+                id="pro-code"
+                type="text"
+                value={code}
+                onChange={(event) => setCode(event.target.value.toUpperCase())}
+                placeholder="MNQ-XXXX-XXXX-XXXX"
+                maxLength={24}
+                {...NO_SUGGEST}
+              />
+              <button type="submit" className="qa-primary" disabled={busy || code.trim().length < 8}>
+                {busy ? 'Checking...' : 'Redeem'}
+              </button>
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="path-card">
-        <header>
-          <h3>How to get Pro</h3>
-        </header>
-        {hasPaymentDetails() ? (
-          <ol className="pro-steps">
-            <li>
-              Send the amount for your plan
-              {pay.bkash && <> by bKash to <b>{pay.bkash}</b></>}
-              {pay.bkash && pay.nagad && ' or'}
-              {pay.nagad && <> by Nagad to <b>{pay.nagad}</b></>}
-              .
-            </li>
-            <li>
-              Send your payment reference and the email you use for Mnemoq{email ? <> (<b>{email}</b>)</> : ''}
-              {pay.contactUrl && (
-                <>
-                  {' '}to{' '}
-                  <a href={pay.contactUrl} target="_blank" rel="noreferrer">
-                    {pay.contactLabel || 'our support'}
-                  </a>
-                </>
-              )}
-              {pay.email && (
-                <>
-                  {pay.contactUrl ? ' or ' : ' to '}
-                  <a href={`mailto:${pay.email}`}>{pay.email}</a>
-                </>
-              )}
-              .
-            </li>
-            <li>You receive an access code. Enter it below and Pro starts at once.</li>
-          </ol>
-        ) : (
-          <p className="sat-muted">Pro is unlocked with an access code. Ask the Mnemoq team for one, then enter it below.</p>
-        )}
-
-        <form className="pro-redeem" onSubmit={submit}>
-          <label htmlFor="pro-code">Access code</label>
-          <div>
-            <input
-              id="pro-code"
-              type="text"
-              value={code}
-              onChange={(event) => setCode(event.target.value.toUpperCase())}
-              placeholder="MNQ-XXXX-XXXX-XXXX"
-              maxLength={24}
-              {...NO_SUGGEST}
-            />
-            <button type="submit" className="qa-primary" disabled={busy || code.trim().length < 8}>
-              {busy ? 'Checking...' : 'Redeem'}
-            </button>
-          </div>
-          {message && (
-            <p className={message.ok ? 'pro-message ok' : 'pro-message'} role={message.ok ? 'status' : 'alert'}>
-              {message.text}
-            </p>
-          )}
-          {plan.setup && <p className="sat-fineprint">Site owner: run supabase/stage5.sql in Supabase to switch Pro on.</p>}
-        </form>
+            {message && (
+              <p className={message.ok ? 'pro-message ok' : 'pro-message'} role={message.ok ? 'status' : 'alert'}>
+                {message.text}
+              </p>
+            )}
+            {plan.setup && <p className="sat-fineprint">Site owner: run supabase/stage5.sql in Supabase to switch Pro on.</p>}
+          </form>
+        </details>
       </section>
 
       <section className="path-card">

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import RichText, { hasRich } from './RichText';
 import {
   DEFAULT_SUBJECT,
   canonicalCategory,
@@ -587,6 +588,23 @@ export default function QuickAdd({ cards = [], onSave, onClose, onReviewNow }) {
           enterKeyHint={enterHint(questionRef)}
           {...NO_SUGGEST}
         />
+
+        {hasRich(question) && (
+          <div className="qa-preview" aria-label="Preview">
+            <span>Preview</span>
+            <RichText text={question} />
+          </div>
+        )}
+        <details className="qa-mathhelp">
+          <summary>Maths, physics and graphs</summary>
+          <p>
+            Write a formula between dollar signs: <code>$v = u + at$</code>, <code>$rac{1}{2}mv^2$</code>, <code>$x^2 - 5x + 6 = 0$</code>.
+          </p>
+          <p>
+            Add a graph you can play with: <code>[graph: y = a*x^2 + b]</code>. Every letter except x gets a slider. More: <code>[graph: y = sin(x) | y = cos(x)]</code>, or a
+            range and starting values: <code>[graph: y = x*tan(t) - 4.9*x^2/(v*cos(t))^2; v = 20 [5, 40]; t = 0.8 [0.1, 1.5]; x = 0..50]</code>.
+          </p>
+        </details>
 
         <label htmlFor="qa-answer">Correct answer</label>
         <input

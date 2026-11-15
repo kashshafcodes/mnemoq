@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import RichText from './RichText';
 import { buildChoices, checkTypedAnswer, normalizeText, scheduleNext } from '../quiz';
 import { formatDays } from '../analytics';
 import { subjectAccent } from '../subjects';
@@ -284,9 +285,9 @@ export default function ReviewCard({ card, cards, position, onRate }) {
         </div>
       )}
 
-      <h3 className="review-question" id="review-question-text">
-        {card.question}
-      </h3>
+      <div className="review-question" id="review-question-text" role="heading" aria-level={3}>
+        <RichText text={card.question} />
+      </div>
 
       {choiceFallback && !answered && (
         <p className="review-note">
@@ -321,7 +322,9 @@ export default function ReviewCard({ card, cards, position, onRate }) {
                 <span className="mcq-letter" aria-hidden="true">
                   {LETTERS[index]}
                 </span>
-                <span className="mcq-text">{option.text}</span>
+                <span className="mcq-text">
+                  <RichText text={option.text} graphs={false} />
+                </span>
               </button>
             );
           })}
@@ -399,13 +402,17 @@ export default function ReviewCard({ card, cards, position, onRate }) {
               {card.yourAnswer && (
                 <div className="answer-block">
                   <p className="eyebrow">YOUR ORIGINAL ANSWER</p>
-                  <p>{card.yourAnswer}</p>
+                  <div className="rich-p">
+                    <RichText text={card.yourAnswer} graphs={false} />
+                  </div>
                 </div>
               )}
 
               <div className="answer-block correct-answer-block">
                 <p className="eyebrow">CORRECT ANSWER</p>
-                <p>{card.correctAnswer}</p>
+                <div className="rich-p">
+                  <RichText text={card.correctAnswer} />
+                </div>
               </div>
 
               <details className="rating-help">
@@ -418,7 +425,9 @@ export default function ReviewCard({ card, cards, position, onRate }) {
           {card.explanation && (
             <div className="answer-block">
               <p className="eyebrow">MEMORY HOOK</p>
-              <p>{card.explanation}</p>
+              <div className="rich-p">
+                <RichText text={card.explanation} />
+              </div>
             </div>
           )}
 

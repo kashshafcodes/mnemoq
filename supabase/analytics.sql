@@ -140,6 +140,8 @@ begin
     ), '[]'::jsonb),
     'funnel', jsonb_build_array(
       jsonb_build_object('step', 'Visited the site', 'count', (select count(distinct visitor_id) from ev)),
+      jsonb_build_object('step', 'Started a free diagnostic', 'count', (select count(distinct visitor_id) from ev where event = 'guest_diag_start')),
+      jsonb_build_object('step', 'Finished it', 'count', (select count(distinct visitor_id) from ev where event = 'guest_diag_done')),
       jsonb_build_object('step', 'Clicked sign up', 'count', (select count(distinct visitor_id) from ev where event in ('cta_click', 'signup_open', 'sign_up'))),
       jsonb_build_object('step', 'Created an account', 'count', (select count(distinct visitor_id) from ev where event = 'sign_up')),
       jsonb_build_object('step', 'Saved a first card or took a diagnostic', 'count', (select count(distinct visitor_id) from ev where event in ('first_mistake_saved', 'diagnostic_done', 'pilot_done'))),

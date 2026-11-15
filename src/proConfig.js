@@ -9,13 +9,22 @@
 export const PRO = {
   name: 'Mnemoq Pro',
 
-  // Priced for students in Bangladesh: about the cost of a few cups of tea a
-  // month. Change these freely; `days` must match the codes you create.
+  // Priced for students in Bangladesh. `price` is what a student pays during
+  // the launch offer; `regular` is the real price after the offer ends (it is
+  // shown crossed out until then). Amounts are in taka. `days` is how long Pro
+  // lasts. The payment checker (api/_payments.js) uses these same numbers.
   offers: [
-    { id: 'month', label: '1 month', price: '৳99', days: 30, note: 'Try everything' },
-    { id: 'season', label: '4 months', price: '৳299', days: 120, note: 'Covers one full SAT preparation', best: true },
-    { id: 'year', label: '12 months', price: '৳599', days: 365, note: 'Covers every retake' },
+    { id: 'month', label: '1 month', price: 99, regular: 199, days: 30, note: 'Try everything' },
+    { id: 'season', label: '4 months', price: 299, regular: 599, days: 120, note: 'Covers one full SAT preparation', best: true },
+    { id: 'year', label: '12 months', price: 599, regular: 1199, days: 365, note: 'Covers every retake' },
   ],
+
+  // The launch offer. After `endsAt` every plan costs its `regular` price.
+  // To run another offer later, set a new end date (and prices) here.
+  launch: {
+    name: 'Launch offer',
+    endsAt: '2026-12-15T23:59:59+06:00',
+  },
 
   // TODO(owner): put your real payment details here. Leave a value empty to hide it.
   payment: {
