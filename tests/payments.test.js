@@ -143,6 +143,7 @@ describe('webhook setup problems are explained', () => {
     expect((await run({ query: { key: 'wrong' } }, { SMS_HOOK_SECRET: secret })).body.reason).toBe('key-does-not-match');
     expect((await run({ headers: { 'x-signature': 'a'.repeat(64) } }, { SMS_HOOK_SECRET: secret })).body).toMatchObject({ reason: 'signature-does-not-match', signatureHeaders: ['x-signature'] });
     expect((await run({}, { SMS_HOOK_SECRET: secret })).body.reason).toBe('no-key-or-signature');
+    expect((await run({ headers: { 'x-vercel-proxy-signature': 'Bearer abc' } }, { SMS_HOOK_SECRET: secret })).body.reason).toBe('no-key-or-signature');
   });
 
   it('accepts timestamped signatures over the raw text', async () => {

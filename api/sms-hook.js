@@ -70,15 +70,18 @@ function signatureParts(value) {
   return [...parts].filter((p) => p.length >= 32);
 }
 
+// Signature headers from the sender app (Vercel adds its own x-vercel-* ones).
+const isAppSignature = (name) => /signature|hmac/i.test(name) && !/^x-vercel-/i.test(name);
+
 export function signatureValid(headers, data, rawBody, secret) {
-  const sigHeaders = Object.entries(headers || {}).filter(([name]) => /signature|hmac/i.test(name));
+  const sigHeaders = Object.entries(headers || {}).filter(([name]) => isAppSignature(name));
   const given = sigHeaders.flatMap(([, value]) => signatureParts(value));
 
   if (given.length === 0) return false;
 
   const timestamps = [
     ...Object.entries(headers || {})
-      .filter(([name]) => /timestamp|-ts$|-time$/i.test(name))
+      .filter(([name]) => /timestamp|-ts$|-time$/i.test(name) && !/^x-vercel-/i.test(name))
       .map(([, v]) => String(v).trim()),
     ...sigHeaders.flatMap(([, v]) => [...String(v).matchAll(/\b(?:t|ts|timestamp)=([^,;\s]+)/gi)].map((m) => m[1])),
   ];
@@ -138,7 +141,7 @@ export default async function handler(req, res, env = process.env) {
   const raw = await readRaw(req).catch(() => null);
   const data = raw ? parseRaw(raw) : readBody(req);
   const key = String(req.headers?.['x-hook-secret'] || req.query?.key || '').trim();
-  const sigHeaders = Object.keys(req.headers || {}).filter((name) => /signature|hmac/i.test(name));
+  const sigHeaders = Object.keys(req.headers || {}).filter(isAppSignature);
 
   if (!timingSafeEqual(key, secret) && !signatureValid(req.headers, data, raw, secret)) {
     // Say which check failed (never the secret itself) so setup problems are easy to fix.
