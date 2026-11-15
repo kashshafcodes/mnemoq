@@ -5,7 +5,8 @@
 // practice means more weight on practice, up to 60%. It is an estimate of
 // where the student stands against the target, not a prediction of the exam.
 
-import { getPath } from './paths';
+import { getPath, scaleOf } from './paths';
+import { estimateScore } from './sat/score';
 import { daysUntil } from './pilot';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -126,21 +127,45 @@ export function computeReadiness(pathId, diagnostic, reviews = [], now = new Dat
   };
 }
 
-// Where the student stands against their own target.
-export function describeProgress(overall, target, daysLeft = null) {
+// Readiness for any path, in the shape the rest of the app expects. A SAT
+// path reports an estimated score (400-1600) instead of a 0-100 readiness.
+export function readinessFor(pathId, diagnostic, reviews = [], now = new Date(), mocks = []) {
+  const path = getPath(pathId);
+
+  if (!path) return null;
+  if (path.engine !== 'sat') return computeReadiness(pathId, diagnostic, reviews, now, mocks);
+
+  const estimate = estimateScore(diagnostic, mocks, now);
+  const sections = estimate.sections.map((s) => ({ ...s, marks: 800 }));
+  const measured = sections.filter((s) => s.score !== null);
+
+  return {
+    overall: estimate.overall,
+    low: estimate.low,
+    high: estimate.high,
+    sections,
+    weakest: measured.length > 1 ? [...measured].sort((a, b) => a.score - b.score)[0] : null,
+    coverage: measured.length / sections.length,
+  };
+}
+
+// Where the student stands against their own target. `scale` comes from
+// scaleOf(path): how close counts as "close" differs between 0-100 and 400-1600.
+export function describeProgress(overall, target, daysLeft = null, scale = { close: 10, building: 25, step: 1 }) {
   if (overall === null) return { band: 'unmeasured', label: 'Not measured yet', gap: null, perWeek: null };
 
   const gap = Math.max(0, target - overall);
   let band = 'early';
 
   if (overall >= target) band = 'ready';
-  else if (overall >= target - 10) band = 'close';
-  else if (overall >= target - 25) band = 'building';
+  else if (overall >= target - scale.close) band = 'close';
+  else if (overall >= target - scale.building) band = 'building';
 
   const label = { ready: 'On target', close: 'Close to target', building: 'Building up', early: 'Early days' }[band];
   const weeks = daysLeft !== null && daysLeft > 0 ? daysLeft / 7 : null;
+  const step = scale.step || 1;
 
-  return { band, label, gap, perWeek: weeks && gap > 0 ? Math.max(1, Math.ceil(gap / weeks)) : null };
+  return { band, label, gap, perWeek: weeks && gap > 0 ? Math.max(step, Math.ceil(gap / weeks / step) * step) : null };
 }
 
 export function daysLeftFor(examDate, now = new Date()) {
@@ -153,6 +178,7 @@ export function analysisPayload(pathId, diagnostic, examDate, target, now = new 
 
   return {
     action: 'analyze',
+    path: pathId,
     daysLeft: daysLeftFor(examDate, now),
     target,
     sections: (diagnostic.sections || []).map((s) => ({

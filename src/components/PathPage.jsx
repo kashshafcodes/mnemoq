@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getPath } from '../paths';
+import { PATHS, getPath } from '../paths';
 import { missedAsCards } from '../diagnosticScore';
 import { daysLeftFor } from '../readiness';
 import Diagnostic from './Diagnostic';
 import PathDashboard from './PathDashboard';
 import PathSetup from './PathSetup';
+import SatPath from './sat/SatPath';
 
 // The "My path" page. It decides what to show: loading, setup help, choosing a
 // path, taking the diagnostic, or the dashboard.
@@ -24,14 +25,17 @@ export default function PathPage({
   cards,
   reviews,
   onSavePath,
+  onSwitchPath,
   onSaveDiagnostic,
+  onSaveMock,
+  plan,
   onAnalyze,
   onAddCards,
   onReviewSubject,
   canReview,
   onReload,
 }) {
-  const [view, setView] = useState('dashboard'); // dashboard | diagnostic
+  const [view, setView] = useState('dashboard'); // dashboard | diagnostic | add
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -102,6 +106,59 @@ export default function PathPage({
   }
 
   const path = getPath(state.path.pathId);
+  const myPaths = state.paths || [state.path];
+
+  if (view === 'add') {
+    return (
+      <PathSetup
+        saving={saving}
+        error={error}
+        exclude={myPaths.map((p) => p.pathId)}
+        replaces={state.multi ? '' : path.short}
+        onCancel={() => {
+          setError('');
+          setView('dashboard');
+        }}
+        onSave={async (choice) => {
+          setSaving(true);
+          setError('');
+
+          const result = await onSavePath(choice);
+
+          setSaving(false);
+
+          if (result?.error) setError(result.error);
+          else setView('dashboard');
+        }}
+      />
+    );
+  }
+
+  const switchTo = async (other) => {
+    const result = await onSwitchPath(other);
+
+    if (result?.error) setNotice(result.error);
+  };
+
+  if (path.engine === 'sat') {
+    return (
+      <SatPath
+        state={state}
+        plan={plan}
+        cards={cards}
+        reviews={reviews}
+        notice={notice}
+        onDismissNotice={() => setNotice('')}
+        onSavePath={onSavePath}
+        onSwitchPath={switchTo}
+        onAddExam={() => setView('add')}
+        onSaveDiagnostic={onSaveDiagnostic}
+        onSaveMock={onSaveMock}
+        onAnalyze={onAnalyze}
+        onAddCards={onAddCards}
+      />
+    );
+  }
 
   if (view === 'diagnostic') {
     return (
@@ -125,6 +182,20 @@ export default function PathPage({
   }
 
   return (
+    <>
+      <nav className="sat-switch" aria-label="Your exams">
+        <span className="sat-switch-chip on">{path.short}</span>
+        {myPaths
+          .filter((p) => p.pathId !== state.path.pathId)
+          .map((p) => (
+            <button key={p.pathId} type="button" className="sat-switch-chip" onClick={() => switchTo(p)}>
+              {PATHS[p.pathId]?.short || p.pathId}
+            </button>
+          ))}
+        <button type="button" className="sat-switch-chip add" onClick={() => setView('add')}>
+          + Add an exam
+        </button>
+      </nav>
     <PathDashboard
       pathCfg={state.path}
       diagnostic={diagnostic}
@@ -167,5 +238,6 @@ export default function PathPage({
       canReview={canReview}
       onReviewSubject={onReviewSubject}
     />
+    </>
   );
 }

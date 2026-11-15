@@ -90,6 +90,14 @@ export function PathIcon() {
   );
 }
 
+export function ProIcon() {
+  return (
+    <Icon>
+      <path d="M12 3.5l2.4 5.2 5.6.7-4.1 3.9 1.1 5.6L12 16.1 7 18.9l1.1-5.6L4 9.4l5.6-.7z" />
+    </Icon>
+  );
+}
+
 export function ProfileIcon() {
   return (
     <Icon>

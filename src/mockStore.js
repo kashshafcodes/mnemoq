@@ -33,7 +33,7 @@ const toQuestion = (row) => ({
 // -> { setup: boolean, mocks, bank }. A missing table means stage3.sql has not been run.
 export async function loadMockData(userId, pathId) {
   const [mockResult, bankResult] = await Promise.all([
-    supabase.from('mock_results').select('*').eq('user_id', userId).eq('path_id', pathId).order('created_at', { ascending: false }).limit(30),
+    supabase.from('mock_results').select('*').eq('user_id', userId).eq('path_id', pathId).order('created_at', { ascending: false }).limit(80),
     supabase.from('my_questions').select('*').eq('user_id', userId).eq('path_id', pathId).order('created_at', { ascending: true }).limit(500),
   ]);
 

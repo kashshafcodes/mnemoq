@@ -151,13 +151,48 @@ export const PATHS = {
       note: 'Guidelines are published each year. Confirm the marks and rules in the latest DGME circular.',
     },
   },
+
+  // The digital SAT. Its sections, skills and scoring live in src/sat/; this
+  // entry only tells the rest of the app that the path exists and that its
+  // score is on the 400-1600 scale instead of 0-100.
+  sat: {
+    id: 'sat',
+    name: 'Digital SAT',
+    short: 'SAT',
+    engine: 'sat',
+    tagline: 'Reading and Writing plus Math, on the real 400-1600 scale.',
+    target: 1400,
+    scale: { min: 400, max: 1600, step: 10, targetMin: 900, close: 50, building: 150, word: 'estimated score' },
+    subjects: [
+      { id: 'rw', name: 'Reading and Writing', cardSubject: 'SAT Reading & Writing', blurb: 'Short passages, grammar, transitions', marks: 800 },
+      { id: 'math', name: 'Math', cardSubject: 'SAT Math', blurb: 'Algebra, advanced math, data analysis, geometry', marks: 800 },
+    ],
+    exam: {
+      summary: '2 hours 14 minutes on a computer: Reading and Writing (64 minutes), a 10-minute break, then Math (70 minutes).',
+      details: [
+        'Each section has two modules. How you do on the first decides whether the second is harder or easier.',
+        'Each section is scored from 200 to 800, for a total of 400 to 1600. Wrong answers cost nothing.',
+        'Mnemoq questions are original. For official practice, use the free Bluebook app and log your scores here.',
+      ],
+      source: {
+        label: 'College Board: how the SAT is structured',
+        url: 'https://satsuite.collegeboard.org/sat/whats-on-the-test/structure',
+      },
+      note: 'Checked against College Board on 15 November 2026. Test dates, fees and policies change: confirm them on the College Board site.',
+    },
+  },
 };
 
 // Paths offered to students right now. The others are fully described above
 // but stay hidden until their diagnostics have been checked.
-export const ENABLED_PATHS = ['nsu'];
+export const ENABLED_PATHS = ['nsu', 'sat'];
 
 export const PATH_LIST = ENABLED_PATHS.map((id) => PATHS[id]);
+
+// Most paths measure readiness from 0 to 100.
+export const DEFAULT_SCALE = { min: 0, max: 100, step: 1, targetMin: 40, targetMax: 95, close: 10, building: 25, word: 'readiness' };
+
+export const scaleOf = (path) => ({ ...DEFAULT_SCALE, targetMax: path?.scale ? path.scale.max : DEFAULT_SCALE.targetMax, ...(path?.scale || {}) });
 
 export function getPath(id) {
   const path = PATHS[id];

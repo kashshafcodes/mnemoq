@@ -61,7 +61,7 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
                 <span>{pathInfo.daysLeft === 1 ? 'day left' : pathInfo.daysLeft === null ? 'no exam date yet' : 'days left'}</span>
               </p>
               <p className="home-big">
-                {pathInfo.readiness !== null ? pathInfo.readiness : '–'} <span>readiness, target {pathInfo.target}</span>
+                {pathInfo.readiness !== null ? pathInfo.readiness : '–'} <span>{pathInfo.word}, target {pathInfo.target}</span>
               </p>
             </div>
             <p className="home-muted">
@@ -69,15 +69,17 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
                 ? pathInfo.weakest
                   ? `Weakest section: ${pathInfo.weakest.name}. ${pathInfo.progress.label}.`
                   : `${pathInfo.progress.label}.`
-                : 'Take the AI diagnostic to see where you stand in every section.'}
+                : pathInfo.engine === 'sat'
+                  ? 'Take the 25-minute diagnostic for a first score estimate and your skill map.'
+                  : 'Take the AI diagnostic to see where you stand in every section.'}
             </p>
             {!pathInfo.hasDiagnostic ? (
               <a className="qa-primary home-button" href={pageHref('path')}>
-                Start the AI diagnostic
+                {pathInfo.engine === 'sat' ? 'Start the diagnostic' : 'Start the AI diagnostic'}
               </a>
             ) : (
-              <a className="ghost-button home-button" href={pageHref('mocks')}>
-                Take a mock test
+              <a className="ghost-button home-button" href={pageHref(pathInfo.engine === 'sat' ? 'path' : 'mocks')}>
+                {pathInfo.engine === 'sat' ? 'Practise now' : 'Take a mock test'}
               </a>
             )}
           </Tile>

@@ -26,6 +26,22 @@ Mnemoq turns your saved learning cards into multiple-choice review questions, le
 
 Multiple-choice review makes revision more engaging while helping you identify gaps in your understanding. For stronger recall, you can switch to typed-answer mode and retrieve the answer without seeing the options.
 
+### 🎓 Digital SAT Path
+
+A full preparation path for the digital SAT, built for students applying to US universities from abroad.
+
+- **Score estimate on the real scale.** 400-1600 with a likely range, from a 25-minute diagnostic, your practice, and the official Bluebook scores you log.
+- **Skill map.** 27 skills across the eight official SAT content domains, rated from your own answers, with one-tap drills on the weakest.
+- **Adaptive practice tests.** Four timed modules with a break; the second module of each section gets harder or easier, like the real test.
+- **Real test screen.** Passage beside the question, a clock per module, mark for review, cross-out, typed answers for Math.
+- **Mistakes that stick.** Every miss can become a review card, so spaced repetition brings it back.
+- **A plan to test day.** Phases and score milestones from today to your SAT date.
+- **Original questions.** More than 560, every Math key computed by a generator, every question with an explanation.
+
+The diagnostic, estimate, skill map and a daily drill are free. Full adaptive tests, the whole question bank, every explanation, the AI coach and the study plan are part of **Mnemoq Pro**, unlocked with an access code. Pro questions are served only to Pro accounts by the server.
+
+How it works, including the score model and how Pro is enforced: [docs/sat-path.md](docs/sat-path.md).
+
 ### 🧠 Active Recall
 
 Go beyond recognizing answers and practise retrieving information from memory.

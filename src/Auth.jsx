@@ -67,6 +67,9 @@ async function handleSubmit(event) {
         <p className="eyebrow">MNEMOQ</p>
         <h1>{isSignup ? t('auth.signupTitle') : t('auth.loginTitle')}</h1>
         <p>{t('auth.tagline')}</p>
+        <p className="auth-new">
+          <b>New:</b> Digital SAT path. A free diagnostic, a 400-1600 score estimate and a map of every skill.
+        </p>
 
         <label htmlFor="auth-email">{t('auth.email')}</label>
         <input

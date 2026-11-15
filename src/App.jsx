@@ -9,15 +9,17 @@ import MnemoqLogo from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
 import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
-import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, ProfileIcon, ReviewIcon } from './components/NavIcons';
+import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, ProIcon, ProfileIcon, ReviewIcon } from './components/NavIcons';
 import DueBadge from './components/DueBadge';
 import MockCenter from './components/MockCenter';
 import PathPage from './components/PathPage';
-import { SUBJECT_CATALOG, getPath } from './paths';
+import { SUBJECT_CATALOG, getPath, scaleOf } from './paths';
+import ProPage from './components/Pro';
+import { FREE_PLAN, loadPlan } from './plan';
 import { deleteQuestion, saveMock, saveQuestions } from './mockStore';
 import { loadPathState, saveAnalysis, saveDiagnostic, savePath } from './pathStore';
 import { requestAnalysis } from './coachApi';
-import { analysisPayload, computeReadiness, daysLeftFor, describeProgress } from './readiness';
+import { analysisPayload, daysLeftFor, describeProgress, readinessFor } from './readiness';
 import Profile from './components/Profile';
 import { readProfile } from './profile';
 import Home from './components/Home';
@@ -138,6 +140,28 @@ const [authLoading, setAuthLoading] = useState(true);
 
     loadPathState(userId).then((next) => {
       if (!cancelled) setPathState({ path: null, diagnostic: null, ...next });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id]);
+
+  // Mnemoq Pro: the person's plan (supabase/stage5.sql).
+  const [plan, setPlan] = useState(FREE_PLAN);
+
+  useEffect(() => {
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      setPlan(FREE_PLAN);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    loadPlan(userId).then((next) => {
+      if (!cancelled) setPlan(next);
     });
 
     return () => {
@@ -947,20 +971,31 @@ if (dataError) {
     setPathState({ path: null, diagnostic: null, ...(await loadPathState(session.user.id)) });
   }
 
+  // Saves a path and makes it the active one. Choosing a different exam
+  // loads that exam's own diagnostic and results.
   async function choosePath(choice) {
+    const changed = pathState.path?.pathId !== choice.pathId;
     const result = await savePath(session.user.id, choice);
 
     if (result.error) return { error: result.error };
 
-    setPathState((current) => ({
-      status: 'ready',
-      path: result.path,
-      diagnostic: current.path?.pathId === result.path.pathId ? current.diagnostic : null,
-    }));
+    if (changed) {
+      setPathState({ path: null, diagnostic: null, ...(await loadPathState(session.user.id)) });
+    } else {
+      setPathState((current) => ({
+        ...current,
+        path: result.path,
+        paths: (current.paths || []).map((p) => (p.pathId === result.path.pathId ? result.path : p)),
+      }));
+    }
+
     trackEvent('path_saved', { path: result.path.pathId });
 
     return {};
   }
+
+  // Switches to another exam the person already follows, keeping its date and target.
+  const switchPath = (other) => choosePath({ pathId: other.pathId, examDate: other.examDate, target: other.target });
 
   async function recordDiagnostic(result) {
     const saved = await saveDiagnostic(session.user.id, {
@@ -1001,7 +1036,7 @@ if (dataError) {
     for (const item of list) {
       // eslint-disable-next-line no-await-in-loop
       const result = await addCard({
-        subject: SUBJECT_CATALOG[item.sectionId]?.cardSubject || 'English',
+        subject: item.subject || SUBJECT_CATALOG[item.sectionId]?.cardSubject || 'English',
         category: String(item.topic || 'Diagnostic').slice(0, 40),
         question: item.question,
         correctAnswer: item.correctAnswer,
@@ -1058,18 +1093,22 @@ if (dataError) {
   const pathInfo = pathCfg
     ? (() => {
         const config = getPath(pathCfg.pathId);
-        const readiness = computeReadiness(pathCfg.pathId, pathState.diagnostic, reviewLog, new Date(), pathState.mocks || []);
+        const readiness = readinessFor(pathCfg.pathId, pathState.diagnostic, reviewLog, new Date(), pathState.mocks || []);
         const daysLeft = daysLeftFor(pathCfg.examDate);
+        const scale = scaleOf(config);
 
         return {
           name: config.name,
           short: config.short,
           daysLeft,
+          engine: config.engine || 'classic',
+          word: scale.word,
           readiness: readiness.overall,
           target: pathCfg.target,
-          progress: describeProgress(readiness.overall, pathCfg.target, daysLeft),
+          progress: describeProgress(readiness.overall, pathCfg.target, daysLeft, scale),
           weakest: readiness.weakest,
-          hasDiagnostic: Boolean(pathState.diagnostic),
+          // A logged score is as good a starting point as a diagnostic.
+          hasDiagnostic: Boolean(pathState.diagnostic) || readiness.overall !== null,
         };
       })()
     : null;
@@ -1125,6 +1164,7 @@ if (dataError) {
             ['home', HomeIcon, 'nav.home'],
             ['progress', DashboardIcon, 'nav.dashboard'],
             ['path', PathIcon, 'nav.path'],
+            ['pro', ProIcon, 'nav.pro'],
             ['add', AddIcon, 'nav.add'],
             ['library', LibraryIcon, 'nav.library'],
             ['review', ReviewIcon, 'nav.review'],
@@ -1518,8 +1558,11 @@ if (dataError) {
           </>
         )}
 
-        {page === 'path' && (
+        {(page === 'path' || (page === 'mocks' && pathInfo?.engine === 'sat')) && (
           <PathPage
+            plan={plan}
+            onSwitchPath={switchPath}
+            onSaveMock={recordMock}
             state={pathState}
             cards={mistakes}
             reviews={reviewLog}
@@ -1533,7 +1576,9 @@ if (dataError) {
           />
         )}
 
-        {page === 'mocks' && (
+        {page === 'pro' && <ProPage plan={plan} onPlan={setPlan} email={session.user.email} />}
+
+        {page === 'mocks' && pathInfo?.engine !== 'sat' && (
           <MockCenter
             state={pathState}
             cards={mistakes}
@@ -1573,7 +1618,7 @@ if (dataError) {
       <span>
         <b>{pathInfo.short} prep</b>
         {pathInfo.daysLeft !== null && ` · ${pathInfo.daysLeft} ${pathInfo.daysLeft === 1 ? 'day' : 'days'} left`}
-        {pathInfo.readiness !== null && ` · readiness ${pathInfo.readiness} of ${pathInfo.target}`}
+        {pathInfo.readiness !== null && ` · ${pathInfo.word} ${pathInfo.readiness} of ${pathInfo.target}`}
       </span>
       {pathInfo.weakest &&
         reviewTabs.some((tab) => sameName(tab.name, pathInfo.weakest.cardSubject)) &&
