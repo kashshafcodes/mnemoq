@@ -338,20 +338,24 @@ describe('free and Pro', () => {
   const drill = { source: 'sat:drill:rw:bnd', createdAt: NOW, sections: [] };
   const timed = { source: 'sat:module:rw', createdAt: daysAgo(3), sections: [] };
 
-  it('gives a free account one drill a day and one module per section', () => {
+  it('gives a free account three drills a day and a module per section each week', () => {
     const fresh = accessFor({ pro: false }, [], NOW);
 
     expect(fresh.drill.allowed).toBe(true);
     expect(fresh.module('rw').allowed).toBe(true);
     expect(fresh.fullTest.allowed).toBe(false);
-    expect(fresh.explanations).toBe(FREE.explanationsPerReport);
+    expect(fresh.explanations).toBe(Infinity);
+    expect(fresh.drill.left).toBe(FREE.drillsPerDay);
 
-    const used = accessFor({ pro: false }, [drill, timed], NOW);
+    expect(accessFor({ pro: false }, [drill, drill], NOW).drill.allowed).toBe(true);
+
+    const used = accessFor({ pro: false }, [drill, drill, drill, timed], NOW);
 
     expect(used.drill.allowed).toBe(false);
     expect(used.module('rw').allowed).toBe(false);
     expect(used.module('math').allowed).toBe(true);
     expect(accessFor({ pro: false }, [{ ...drill, createdAt: daysAgo(1) }], NOW).drill.allowed).toBe(true);
+    expect(accessFor({ pro: false }, [{ ...timed, createdAt: daysAgo(8) }], NOW).module('rw').allowed).toBe(true);
   });
 
   it('removes every limit for Pro', () => {

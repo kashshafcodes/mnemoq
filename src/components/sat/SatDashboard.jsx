@@ -524,7 +524,7 @@ export default function SatDashboard({
         </p>
         {!access.pro && (
           <p className="sat-fineprint">
-            Free plan: {access.drill.allowed ? 'one drill today' : 'today\'s free drill is used'}, from a starter set of {bank.length} questions.{' '}
+            Free plan: {access.drill.allowed ? `${access.drill.left} of 3 drills left today` : 'today\'s 3 free drills are used'}, from a starter set of {bank.length} questions.{' '}
             <button type="button" className="text-link" onClick={() => onUpgrade('bank', `Pro unlocks ${lockedQuestions} more questions and unlimited drills.`)}>
               Unlock {lockedQuestions} more questions
             </button>
@@ -550,7 +550,7 @@ export default function SatDashboard({
                 <button type="button" className={gate.allowed ? 'qa-primary' : 'ghost-button'} onClick={() => onStart({ kind: 'module', section: id })}>
                   {!gate.allowed && <LockIcon />} Start
                 </button>
-                {!access.pro && <small>{gate.allowed ? 'One free module' : 'Free module used'}</small>}
+                {!access.pro && <small>{gate.allowed ? 'One free module a week' : 'This week\'s free module is used'}</small>}
               </article>
             );
           })}

@@ -88,10 +88,12 @@ There is no total until both sections have been measured.
 | | Free | Pro |
 |---|---|---|
 | Diagnostic, estimate, skill map, score log, essentials decks | Yes | Yes |
-| Drills | One a day, from the free questions | Unlimited, whole bank |
-| Timed modules | One per section | Unlimited |
-| Explanations and misses to cards | First 3 per report | All |
+| Explanations for every miss, misses to review cards | Yes | Yes |
+| Drills | 3 a day, from the free questions | Unlimited, whole bank |
+| Timed modules | One per section each week | Unlimited |
 | Full adaptive tests, AI coach, study plan | No | Yes |
+
+The free plan is deliberately generous: most students in Bangladesh will not pay, and they should still be able to prepare properly. Pro is priced low (see `src/proConfig.js`) for those who want the whole bank and full tests.
 
 The limits are set in `src/sat/access.js`.
 
@@ -109,7 +111,7 @@ A free user who edits the page can remove a daily limit on the free questions, a
 3. When a student pays, create a code in the SQL editor and send it to them:
 
    ```sql
-   select * from create_pro_codes(1, 30, 'Rahim, bKash, 15 Nov');
+   select * from create_pro_codes(1, 120, 'Rahim, bKash, 15 Nov');
    ```
 
    The numbers are how many codes and how many days each gives. The student redeems it on the Pro page. Redeeming again adds days.

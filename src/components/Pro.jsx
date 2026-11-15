@@ -81,11 +81,12 @@ export function Paywall({ prompt, onClose }) {
 const COMPARE = [
   ['Diagnostic, score estimate and skill map', true, true],
   ['Bluebook score log and score history', true, true],
-  ['Skill drills', 'One a day', 'Unlimited'],
-  ['Timed modules', 'One per section', 'Unlimited'],
+  ['Skill drills', '3 a day', 'Unlimited'],
+  ['Timed modules', 'One per section each week', 'Unlimited'],
   ['Question bank', 'Starter set', 'Everything'],
-  ['Explanations for missed questions', 'First 3 per report', 'All'],
-  ['Misses to review cards', 'First 3 per report', 'All, in one tap'],
+  ['Explanation for every missed question', true, true],
+  ['Misses to review cards', true, true],
+  ['SAT essentials decks', true, true],
   ['Full adaptive practice tests', false, true],
   ['AI coach analysis', false, true],
   ['Study plan to your test day', false, true],
@@ -127,8 +128,8 @@ export default function ProPage({ plan, onPlan, email }) {
         <p className="eyebrow">MNEMOQ PRO</p>
         <h2>Everything you need to reach your target score</h2>
         <p>
-          The free plan shows you where you stand. Pro is the full training ground: adaptive tests, the whole question
-          bank, every explanation and a plan to your test day.
+          The free plan is enough to start and keep improving. Pro is the full training ground: adaptive tests, the
+          whole question bank, unlimited practice and a plan to your test day.
         </p>
         {plan.pro ? (
           <p className="pro-status on">

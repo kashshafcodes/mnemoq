@@ -38,7 +38,7 @@ A full preparation path for the digital SAT, built for students applying to US u
 - **A plan to test day.** Phases and score milestones from today to your SAT date.
 - **Original questions.** More than 560, every Math key computed by a generator, every question with an explanation.
 
-The diagnostic, estimate, skill map and a daily drill are free. Full adaptive tests, the whole question bank, every explanation, the AI coach and the study plan are part of **Mnemoq Pro**, unlocked with an access code. Pro questions are served only to Pro accounts by the server.
+The diagnostic, estimate, skill map, every explanation, three drills a day and a weekly timed module per section are free. Full adaptive tests, the whole question bank, unlimited practice, the AI coach and the study plan are part of **Mnemoq Pro**, a low-cost plan unlocked with an access code. Pro questions are served only to Pro accounts by the server.
 
 How it works, including the score model and how Pro is enforced: [docs/sat-path.md](docs/sat-path.md).
 
