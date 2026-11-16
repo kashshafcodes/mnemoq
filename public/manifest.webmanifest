@@ -1,14 +1,15 @@
 {
   "name": "Mnemoq",
   "short_name": "Mnemoq",
-  "description": "Stop making the same mistake twice. Smart review of every mistake, plus SAT and NSU admission prep.",
+  "description": "Stop making the same mistake twice. Smart review of every mistake, plus SAT, NSU and BRAC admission prep.",
   "start_url": "/#/home",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f7f5f0",
-  "theme_color": "#4f46e5",
+  "background_color": "#111114",
+  "theme_color": "#111114",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "/icon-192.png?v=2", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
