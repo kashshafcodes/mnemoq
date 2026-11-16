@@ -12,7 +12,8 @@ export class CoachError extends Error {
 
 const MESSAGES = {
   auth: 'Please log in again to use the AI coach.',
-  limit: 'You have used your AI coach for today. It comes back within 24 hours.',
+  limit: 'You have used your AI for today. It comes back within 24 hours.',
+  pro: 'This part of the AI coach is in Mnemoq Pro.',
   busy: 'The AI coach is busy right now. Try again in a minute.',
   failed: 'The AI coach could not finish that this time. Try again.',
   config: 'The AI coach is not available yet. If the site was just updated, try again in a minute.',

@@ -17,12 +17,13 @@
 // uses (table coach_usage, see supabase/stage1.sql).
 //
 // Settings (Vercel > Environment Variables), on top of /api/suggest's:
-//   AI_COACH_DAILY_LIMIT   coach uses per person per 24 hours (default 30)
+//   AI_FREE_DAILY_LIMIT / AI_PRO_DAILY_LIMIT  one daily AI allowance shared with
+//                          the other AI features (api/_aiLimit.js)
 //   AI_UNLIMITED_EMAILS    comma-separated emails with no daily AI limits
 //   GEMINI_GENERATE_MODEL  default "gemini-flash-latest"
 
+import { aiAllowance, limitMessage, usedFreeAnalysis } from './_aiLimit.js';
 import { BUDGET_MESSAGE, globalAiBudgetOk } from './_guard.js';
-import { hasPro } from './_plan.js';
 import { ProviderError, clean, getUser, hasUnlimitedAi, norm, supabaseConfig } from './suggest.js';
 
 export const config = { maxDuration: 60 };
@@ -178,6 +179,7 @@ Rules:
 - Use ONLY the numbers and topics in the data. Never invent scores, topics or facts about the student.
 - A topic with fewer than 2 questions is weak evidence: say "too few questions to be sure" instead of calling it a weakness.
 - "summary": 2 sentences, at most 280 characters: where the student stands and the single biggest lever, taking the days left into account.
+- "mistakes" (when present) are real questions they got wrong. Use them to name concrete patterns (for example confusing "since" and "for", or dropping a negative sign), quoting a short phrase. Do not just repeat the questions.
 - "strengths": up to 3. "weaknesses": up to 4, ordered by how many marks they could win back (a section's weight is its marks). "section" is the section id from the data. "fix" is one specific action (what to practise, how).
 - "focus": exactly 3 ordered next steps for the coming week, each at most 140 characters.
 - Be encouraging but never flatter. Every string is at most 220 characters.
@@ -506,6 +508,13 @@ export function sanitizeAnalysis(raw, known = []) {
 // The exams the analysis knows about, and the scale each target is on.
 export const ANALYSIS_EXAMS = {
   nsu: { name: 'NSU admission test', scale: 'Readiness from 0 to 100.', min: 30, max: 100, fallback: 75 },
+  brac: {
+    name: 'BRAC University admission test (sections A-D)',
+    scale: 'Readiness from 0 to 100. Section marks: English Language 20, English Composition 40 (written), Mathematics 15, Higher Mathematics & Physics 10. Every section must be passed separately.',
+    min: 30,
+    max: 100,
+    fallback: 75,
+  },
   sat: {
     name: 'Digital SAT',
     scale:
@@ -545,6 +554,18 @@ export function readAnalysisInput(body) {
 
   if (sections.length === 0 && !essay) return null;
 
+  // A few of the actual questions they got wrong, so the coach can name patterns.
+  const mistakes = (Array.isArray(body?.mistakes) ? body.mistakes : [])
+    .slice(0, 10)
+    .map((m) => ({
+      section: clean(m?.section, 20),
+      topic: clean(m?.topic, 60),
+      question: clean(m?.question, 180),
+      their_answer: clean(m?.picked, 80) || '(skipped)',
+      correct_answer: clean(m?.correct, 80),
+    }))
+    .filter((m) => m.question && m.correct_answer);
+
   const days = Number(body?.daysLeft);
   const exam = ANALYSIS_EXAMS[body?.path] || ANALYSIS_EXAMS.nsu;
 
@@ -555,6 +576,7 @@ export function readAnalysisInput(body) {
     target_score: Math.max(exam.min, Math.min(exam.max, Math.round(Number(body?.target) || exam.fallback))),
     sections,
     essay,
+    mistakes,
   };
 }
 
@@ -843,14 +865,18 @@ export default async function handler(req, res, env = process.env) {
 
   if (!user) return send(res, 401, { error: 'Please log in again.', code: 'auth' });
 
-  // The AI coach on the SAT path is part of Mnemoq Pro.
-  if (action === 'analyze' && body.path === 'sat' && !(await hasPro(env, cfg, token, user))) {
-    return send(res, 403, { error: 'The AI coach for the SAT path is part of Mnemoq Pro.', code: 'pro' });
-  }
-
   const unlimited = hasUnlimitedAi(env, user);
-  const limit = unlimited ? Infinity : Math.max(1, Number(env.AI_COACH_DAILY_LIMIT) || 30);
-  const used = unlimited ? 0 : await countCoachUse(cfg, token).catch(() => null);
+  const allowance = await aiAllowance(env, cfg, token, user, { unlimited });
+  const { limit, used } = allowance;
+
+  // The AI coach's analysis is free once (the first diagnostic report); after
+  // that it is part of Mnemoq Pro.
+  if (action === 'analyze' && !allowance.pro && !unlimited && (await usedFreeAnalysis(cfg, token))) {
+    return send(res, 403, {
+      error: 'You have had your free AI coach analysis. Mnemoq Pro gives you a full analysis after every diagnostic and mock test.',
+      code: 'pro',
+    });
+  }
 
   // Fail closed: without a working usage counter there is no safe limit.
   if (used === null) {
@@ -858,11 +884,7 @@ export default async function handler(req, res, env = process.env) {
   }
 
   if (used >= limit) {
-    return send(res, 429, {
-      error: `You have used your ${limit} AI coach uses for today. They come back within 24 hours.`,
-      code: 'limit',
-      remaining: 0,
-    });
+    return send(res, 429, { error: limitMessage(allowance), code: 'limit', pro: allowance.pro, remaining: 0 });
   }
 
   if (!unlimited && !(await globalAiBudgetOk(env))) {

@@ -4,6 +4,7 @@ import { loadReminderState, pushSupported } from '../reminders';
 import { subjectAccent } from '../subjects';
 import { pageHref } from '../useRoute';
 import AiBadge from './AiBadge';
+import RichText, { inlinePreview } from './RichText';
 import CATALOG from '../../library/catalog.json';
 
 // The home page: one clear next step, a few numbers, and short links to the
@@ -275,7 +276,9 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
               </ul>
               <ul className="mq-latest">
                 {latest.map((card) => (
-                  <li key={card.id}>{card.question}</li>
+                  <li key={card.id}>
+                    <RichText text={inlinePreview(card.question)} graphs={false} />
+                  </li>
                 ))}
               </ul>
             </>

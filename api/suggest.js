@@ -10,11 +10,13 @@
 //   GROQ_API_KEY       optional, used if Gemini is busy or not set
 //   GEMINI_MODEL       optional, default "gemini-flash-lite-latest"
 //   GROQ_MODEL         optional, default "openai/gpt-oss-120b"
-//   AI_USER_DAILY_LIMIT optional, suggestions per user per 24 hours (default 10)
+//   AI_FREE_DAILY_LIMIT / AI_PRO_DAILY_LIMIT  AI uses per person per 24 hours,
+//                      shared by every AI feature (default 5 free, 50 Pro; api/_aiLimit.js)
 //   AI_UNLIMITED_EMAILS optional, comma-separated emails with no daily AI limits
 // It also reads the Supabase URL and publishable key you already set for the
 // site (VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY).
 
+import { aiAllowance, limitMessage } from './_aiLimit.js';
 import { BUDGET_MESSAGE, globalAiBudgetOk } from './_guard.js';
 
 const LIMITS = { question: 500, answer: 300, wrong: 300, hook: 300, subject: 60 };
@@ -440,8 +442,8 @@ export default async function handler(req, res, env = process.env) {
 
   // Unlimited accounts get Infinity, which JSON sends as null (counter hidden).
   const unlimited = hasUnlimitedAi(env, user);
-  const limit = unlimited ? Infinity : Math.max(1, Number(env.AI_USER_DAILY_LIMIT) || 10);
-  const used = unlimited ? 0 : await countRecentUse(cfg, token).catch(() => null);
+  const allowance = await aiAllowance(env, cfg, token, user, { unlimited });
+  const { limit, used } = allowance;
 
   // Fail closed: without a working usage counter there is no safe limit.
   if (used === null) {
@@ -449,11 +451,7 @@ export default async function handler(req, res, env = process.env) {
   }
 
   if (used >= limit) {
-    return send(res, 429, {
-      error: `You have used your ${limit} AI suggestions for today. They come back within 24 hours.`,
-      code: 'limit',
-      remaining: 0,
-    });
+    return send(res, 429, { error: limitMessage(allowance), code: 'limit', pro: allowance.pro, remaining: 0 });
   }
 
   if (!unlimited && !(await globalAiBudgetOk(env))) {

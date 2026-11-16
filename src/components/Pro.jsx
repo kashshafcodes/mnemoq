@@ -90,7 +90,9 @@ const COMPARE = [
   ['Misses to review cards', true, true],
   ['SAT essentials decks', true, true],
   ['Full adaptive practice tests', false, true],
-  ['AI coach analysis', false, true],
+  ['AI coach analysis', 'First one', 'After every test'],
+  ['AI uses a day', '5', '50'],
+  ['Practice library (11,000+ questions)', 'First set of each', 'Everything'],
   ['Study plan to your test day', false, true],
 ];
 

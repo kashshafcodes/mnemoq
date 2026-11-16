@@ -18,11 +18,11 @@
 //   GEMINI_GENERATE_MODEL   default "gemini-flash-latest" (a stronger model than
 //                           the one used for single-card suggestions)
 
+import { aiAllowance, limitMessage } from './_aiLimit.js';
 import { BUDGET_MESSAGE, globalAiBudgetOk } from './_guard.js';
 import {
   ProviderError,
   clean,
-  countRecentUse,
   getUser,
   hasUnlimitedAi,
   norm,
@@ -416,17 +416,13 @@ export default async function handler(req, res, env = process.env) {
   if (!user) return send(res, 401, { error: 'Please log in again.', code: 'auth' });
 
   const unlimited = hasUnlimitedAi(env, user);
-  const limit = unlimited ? Infinity : Math.max(1, Number(env.AI_USER_DAILY_LIMIT) || 10);
-  const used = unlimited ? 0 : await countRecentUse(cfg, token).catch(() => null);
+  const allowance = await aiAllowance(env, cfg, token, user, { unlimited });
+  const { limit, used } = allowance;
 
   if (used === null) return send(res, 503, { error: 'AI suggestions are not set up yet.', code: 'config' });
 
   if (used >= limit) {
-    return send(res, 429, {
-      error: `You have used your ${limit} AI uses for today. They come back within 24 hours.`,
-      code: 'limit',
-      remaining: 0,
-    });
+    return send(res, 429, { error: limitMessage(allowance), code: 'limit', pro: allowance.pro, remaining: 0 });
   }
 
   if (!unlimited && !(await globalAiBudgetOk(env))) {

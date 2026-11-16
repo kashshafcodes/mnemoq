@@ -11,6 +11,29 @@ function devLibrary() {
     name: 'mnemoq-dev-library',
     apply: 'serve',
     configureServer(server) {
+      // A canned AI coach analysis, so the report page can be previewed offline.
+      server.middlewares.use('/api/coach', (req, res, next) => {
+        if (req.method !== 'POST') return next()
+
+        setTimeout(() => {
+          res.setHeader('Content-Type', 'application/json')
+          res.end(
+            JSON.stringify({
+              analysis: {
+                summary: 'Preview analysis: you are strongest in English and losing most marks in maths word problems. Fixing two algebra habits is the fastest way up.',
+                strengths: [{ area: 'Vocabulary', detail: 'You got every meaning-in-context question right.' }],
+                weaknesses: [
+                  { section: 'english', area: 'Since vs for', detail: 'You chose "for" with a starting point ("for 2015").', fix: 'Use "since" with a point in time, "for" with a length of time. Review the card daily this week.' },
+                  { section: 'bmath', area: 'Percent change', detail: 'You divided by the new price instead of the original.', fix: 'Always divide the change by the starting value. Do 10 percent-change drills.' },
+                ],
+                focus: ['Review your 12 new cards every day', 'Do one Mathematics practice set', 'Retake the diagnostic next Friday'],
+              },
+              remaining: 29,
+            })
+          )
+        }, 1200)
+      })
+
       server.middlewares.use('/api/library', (req, res) => {
         const url = new URL(req.url, 'http://localhost')
         const id = (url.searchParams.get('c') || '').replace(/[^a-z0-9-]/g, '')

@@ -190,5 +190,46 @@ export function analysisPayload(pathId, diagnostic, examDate, target, now = new 
       topics: s.topics,
     })),
     essay: diagnostic.essay ? { score: diagnostic.essay.score, criteria: diagnostic.essay.criteria } : null,
+    mistakes: mistakesOf(diagnostic).slice(0, 10).map((m) => ({
+      section: m.sectionId,
+      topic: m.topic,
+      question: m.question,
+      picked: m.pickedText,
+      correct: m.correctText,
+    })),
   };
+}
+
+// Every question a diagnostic got wrong, in one shape for every exam:
+// { sectionId, sectionName, topic, question, passage, options, correctIndex, pickedIndex, correctText, pickedText, explain }
+export function mistakesOf(diagnostic) {
+  const out = [];
+
+  for (const section of diagnostic?.sections || []) {
+    for (const m of section.missed || []) {
+      if (!m.question) continue;
+
+      const options = Array.isArray(m.options) ? m.options : null;
+      const correctIndex = Number.isInteger(m.correct) ? m.correct : null;
+      const pickedIndex = Number.isInteger(m.picked) ? m.picked : null;
+
+      out.push({
+        sectionId: section.id,
+        sectionName: section.name,
+        topic: m.topic || section.name,
+        question: m.question,
+        passage: m.passage || '',
+        // Long passages (NSU reading) cannot fit on a card; short SAT passages go on the card.
+        needsPassage: Boolean(m.needsPassage) || String(m.passage || '').length > 700,
+        options,
+        correctIndex,
+        pickedIndex,
+        correctText: m.correctText || (options && correctIndex !== null ? options[correctIndex] : ''),
+        pickedText: m.pickedText || (options && pickedIndex !== null ? options[pickedIndex] : ''),
+        explain: m.explain || '',
+      });
+    }
+  }
+
+  return out;
 }

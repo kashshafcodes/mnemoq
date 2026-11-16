@@ -194,7 +194,8 @@ export default function SatPath({
           const result = await onAnalyze();
 
           setAnalyzing(false);
-          if (result?.error) setLocalNotice(result.error);
+          if (result?.code === 'pro' || (result?.code === 'limit' && !livePlan.pro)) upgrade('coach', result.error);
+          else if (result?.error) setLocalNotice(result.error);
         }}
       />
       {sheet}

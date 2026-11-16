@@ -39,8 +39,9 @@ export const PRO = {
   benefits: [
     { id: 'full', title: 'Full adaptive practice tests', detail: 'Four timed modules that get harder or easier with you, like the real test, with a 400-1600 estimate.' },
     { id: 'bank', title: 'The whole question bank', detail: 'Every set in the practice library (over 11,000 questions, from vocabulary to physics) and hundreds more original SAT questions across all 27 skills.' },
+    { id: 'coach', title: 'AI coach after every test', detail: 'Your first analysis is free. With Pro, the coach reads every diagnostic and mock test you take and tells you what to fix next.' },
+    { id: 'ai', title: '50 AI uses a day', detail: 'Ten times the free allowance of 5: AI card suggestions, AI-made practice sets and coach analyses.' },
     { id: 'drills', title: 'Unlimited drills and modules', detail: 'Practise your weakest skill as often as you like, with no daily or weekly limit.' },
-    { id: 'coach', title: 'AI coach', detail: 'A written analysis of your diagnostic: what to fix first, how to fix it, and what to do this week.' },
     { id: 'plan', title: 'A plan to your test day', detail: 'Phases and score milestones from today to your SAT date, updated as your estimate moves.' },
   ],
 };

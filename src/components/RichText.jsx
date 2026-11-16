@@ -53,6 +53,16 @@ export function splitRich(text) {
   return parts;
 }
 
+// One-line version for lists: graphs become a small label and block formulas
+// sit inside the line.
+export function inlinePreview(text) {
+  if (!hasRich(text)) return String(text ?? '');
+
+  return splitRich(text)
+    .map((p) => (p.type === 'text' ? p.value.replace(/\s+/g, ' ') : p.type === 'graph' ? ' 📈 graph ' : `$${p.value}$`))
+    .join('');
+}
+
 export default function RichText({ text, graphs = true }) {
   const parts = useMemo(() => (hasRich(text) ? splitRich(text) : null), [text]);
 

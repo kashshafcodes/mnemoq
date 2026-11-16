@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   DEFAULT_SETTINGS,
   isInstalledApp,
@@ -11,16 +11,27 @@ import {
   subscribeThisDevice,
   unsubscribeThisDevice,
 } from '../reminders';
-import AiBadge from './AiBadge';
 import { trackEvent } from '../googleAnalytics';
 
-// The "Reminders" card on the profile page.
+// The "Reminders" card on the profile page. One switch and one time; the smart
+// parts (alerts when cards pile up, the evening streak nudge, quiet hours at
+// night) work on their own with sensible defaults.
+
+const TIMES = [
+  ['07:00', 'Morning, 7 am'],
+  ['13:00', 'Afternoon, 1 pm'],
+  ['18:00', 'Evening, 6 pm'],
+  ['21:00', 'Night, 9 pm'],
+];
+
+const label = (time) => TIMES.find(([t]) => t === time)?.[1] || time;
 
 export default function ReminderSettings({ userId }) {
   const [state, setState] = useState(null);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState({ text: '', error: false });
+  const saveTimer = useRef(null);
   const supported = pushSupported();
   const iosNeedsInstall = isIos() && !isInstalledApp();
 
@@ -31,19 +42,22 @@ export default function ReminderSettings({ userId }) {
     setSettings(next.settings);
   }
 
-  // Arriving from the home page's "Turn on" link: bring this card into view.
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // Arriving from the home page's "Turn on" button: bring this card into view.
   useEffect(() => {
     if (state && /reminders/.test(window.location.hash)) {
       document.getElementById('reminders')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [state]);
 
-  useEffect(() => {
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  useEffect(() => () => clearTimeout(saveTimer.current), []);
 
   const say = (text, error = false) => setMessage({ text, error });
+  const on = Boolean(state?.settings.enabled && state?.thisDevice);
 
   async function turnOn() {
     setBusy(true);
@@ -67,7 +81,7 @@ export default function ReminderSettings({ userId }) {
     }
 
     trackEvent('reminders_on');
-    say('Reminders are on. Tap "Send a test" to see one now.');
+    say(`Done. You will get a reminder around ${label(settings.time).toLowerCase()} when cards are due.`);
     await refresh();
   }
 
@@ -80,14 +94,17 @@ export default function ReminderSettings({ userId }) {
     await refresh();
   }
 
-  async function save(event) {
-    event.preventDefault();
-    setBusy(true);
+  // Changes save by themselves, a moment after the last tap.
+  function change(patch) {
+    const next = { ...settings, ...patch };
 
-    const saved = await saveReminderSettings(userId, settings);
+    setSettings(next);
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      const saved = await saveReminderSettings(userId, next);
 
-    setBusy(false);
-    say(saved.error || 'Saved.', Boolean(saved.error));
+      say(saved.error || 'Saved.', Boolean(saved.error));
+    }, 500);
   }
 
   async function test() {
@@ -97,109 +114,94 @@ export default function ReminderSettings({ userId }) {
     const result = await sendTestReminder();
 
     setBusy(false);
-    say(result.error || 'Test sent. It should arrive in a moment.', Boolean(result.error));
+    say(result.error || 'Sent. It should arrive in a few seconds.', Boolean(result.error));
   }
 
-  if (!state) return <section className="profile-card"><h3>Reminders</h3><p className="path-hint">Loading...</p></section>;
+  if (!state) {
+    return (
+      <section className="profile-card rm" id="reminders">
+        <h3>Reminders</h3>
+        <p className="rm-muted">Loading…</p>
+      </section>
+    );
+  }
 
-  const on = state.settings.enabled && state.thisDevice;
+  const blocker = state.setup
+    ? 'Reminders are not switched on for this site yet.'
+    : !supported
+      ? iosNeedsInstall
+        ? 'On iPhone: tap Share, then "Add to Home Screen", and open Mnemoq from there. Then come back here.'
+        : 'This browser cannot show reminders. Try Chrome on your phone.'
+      : serverKeyMissing()
+        ? 'Reminders are not switched on for this site yet.'
+        : state.permission === 'denied'
+          ? 'Notifications are blocked for Mnemoq. Allow them in your browser settings, then reload this page.'
+          : '';
 
   return (
-    <section className="profile-card reminders" id="reminders">
-      <h3>
-        Reminders <AiBadge>Smart</AiBadge>
-      </h3>
-      <p className="path-hint">
-        Spaced repetition only works if you come back at the right time. Mnemoq nudges you when cards are due, and only
-        when there is something to review.
-      </p>
-
-      {state.setup && (
-        <p className="qa-message qa-error" role="alert">
-          Reminders need a one-time server update. If you run this site, run <code>supabase/reminders.sql</code> in Supabase.
-        </p>
-      )}
-
-      {!state.setup && !supported && (
-        <p className="path-hint">
-          This browser cannot show reminders.{' '}
-          {iosNeedsInstall
-            ? 'On iPhone, tap the Share button, choose Add to Home Screen, then open Mnemoq from your Home Screen.'
-            : 'Try Chrome, Edge or Firefox, or install Mnemoq on your phone.'}
-        </p>
-      )}
-
-      {!state.setup && supported && iosNeedsInstall && (
-        <p className="path-hint">
-          On iPhone, reminders work after you tap Share, choose Add to Home Screen and open Mnemoq from your Home Screen.
-        </p>
-      )}
-
-      {!state.setup && supported && serverKeyMissing() && (
-        <p className="path-hint">
-          The site is missing its reminder key (<code>VITE_VAPID_PUBLIC_KEY</code>), so reminders cannot start yet. If you run this
-          site, add it in Vercel and redeploy.
-        </p>
-      )}
-
-      {!state.setup && supported && !on && (
-        <div className="reminder-actions">
-          {state.permission === 'denied' ? (
-            <p className="path-hint">Notifications are blocked for this site. Allow them in your browser settings, then reload.</p>
-          ) : (
-            <button type="button" className="qa-primary" disabled={busy} onClick={turnOn}>
-              {busy ? 'Turning on...' : state.settings.enabled ? 'Turn on for this device' : 'Turn on reminders'}
-            </button>
-          )}
+    <section className="profile-card rm" id="reminders">
+      <div className="rm-head">
+        <div>
+          <h3>Reminders</h3>
+          <p className="rm-muted">We remind you only when cards are due, never for nothing.</p>
         </div>
+        {!blocker && (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={on}
+            aria-label="Reminders"
+            className={on ? 'rm-switch on' : 'rm-switch'}
+            disabled={busy}
+            onClick={on ? turnOff : turnOn}
+          >
+            <span />
+          </button>
+        )}
+      </div>
+
+      {blocker && <p className="rm-note">{blocker}</p>}
+
+      {!blocker && on && (
+        <>
+          <p className="rm-label">What time suits you?</p>
+          <div className="rm-times" role="radiogroup" aria-label="Reminder time">
+            {TIMES.map(([time, text]) => (
+              <button
+                key={time}
+                type="button"
+                role="radio"
+                aria-checked={settings.time === time}
+                className={settings.time === time ? 'active' : ''}
+                onClick={() => change({ time })}
+              >
+                {text}
+              </button>
+            ))}
+          </div>
+
+          <details className="rm-more">
+            <summary>More</summary>
+            <label className="rm-check">
+              <input type="checkbox" checked={settings.dueAlerts} onChange={(e) => change({ dueAlerts: e.target.checked })} />
+              <span>Also tell me when lots of cards pile up during the day</span>
+            </label>
+            <label className="rm-check">
+              <input type="checkbox" checked={settings.streakNudge} onChange={(e) => change({ streakNudge: e.target.checked })} />
+              <span>Nudge me at 8 pm if my streak is about to end</span>
+            </label>
+            <p className="rm-muted">We never send anything between 10 pm and 7 am, at most a few a day.</p>
+            <button type="button" className="text-link" disabled={busy} onClick={test}>
+              Send me a test reminder
+            </button>
+          </details>
+        </>
       )}
 
-      {!state.setup && supported && on && (
-        <form className="reminder-form" onSubmit={save}>
-          <label htmlFor="remind-time">Remind me every day at</label>
-          <input id="remind-time" type="time" value={settings.time} onChange={(e) => setSettings({ ...settings, time: e.target.value || '18:00' })} />
-          <label className="reminder-check">
-            <input type="checkbox" checked={settings.streakNudge} onChange={(e) => setSettings({ ...settings, streakNudge: e.target.checked })} />
-            <span>Also nudge me in the evening if my streak is about to end</span>
-          </label>
-          <label className="reminder-check">
-            <input type="checkbox" checked={settings.dueAlerts} onChange={(e) => setSettings({ ...settings, dueAlerts: e.target.checked })} />
-            <span>Alert me during the day when cards are due (at most 3 a day, never in quiet hours)</span>
-          </label>
-          {settings.dueAlerts && (
-            <div className="reminder-sub">
-              <label htmlFor="due-min">Only when at least</label>
-              <select id="due-min" value={settings.dueMin} onChange={(e) => setSettings({ ...settings, dueMin: Number(e.target.value) })}>
-                {[1, 3, 5, 10, 20].map((n) => (
-                  <option key={n} value={n}>
-                    {n} {n === 1 ? 'card is' : 'cards are'} due
-                  </option>
-                ))}
-              </select>
-              <label htmlFor="quiet-start">Quiet hours (no alerts)</label>
-              <div className="reminder-quiet">
-                <input id="quiet-start" type="time" value={settings.quietStart} onChange={(e) => setSettings({ ...settings, quietStart: e.target.value || '22:00' })} />
-                <span>to</span>
-                <input id="quiet-end" type="time" aria-label="Quiet hours end" value={settings.quietEnd} onChange={(e) => setSettings({ ...settings, quietEnd: e.target.value || '07:00' })} />
-              </div>
-            </div>
-          )}
-          <div className="reminder-actions">
-            <button type="submit" className="qa-primary" disabled={busy}>
-              Save
-            </button>
-            <button type="button" className="ghost-button" disabled={busy} onClick={test}>
-              Send a test
-            </button>
-            <button type="button" className="text-link" disabled={busy} onClick={turnOff}>
-              Turn off
-            </button>
-          </div>
-        </form>
-      )}
+      {!blocker && !on && !message.text && <p className="rm-muted">Turn on to get a nudge on this phone when it is time to review.</p>}
 
       {message.text && (
-        <p className={message.error ? 'qa-message qa-error' : 'path-hint'} role="status">
+        <p className={message.error ? 'qa-message qa-error' : 'rm-ok'} role="status">
           {message.text}
         </p>
       )}

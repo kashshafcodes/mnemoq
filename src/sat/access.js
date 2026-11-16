@@ -57,7 +57,8 @@ export function accessFor(plan, mocks = [], now = new Date()) {
         ? open
         : { allowed: false, feature: 'modules', reason: 'You have taken this week\'s free timed module for this section. It comes back in a few days, or go Pro for unlimited modules from the full question bank.' },
     fullTest: pro ? open : { allowed: false, feature: 'full', reason: 'Full adaptive practice tests are part of Mnemoq Pro.' },
-    coach: pro ? open : { allowed: false, feature: 'coach', reason: 'The AI coach is part of Mnemoq Pro.' },
+    // The AI coach's analysis of a diagnostic is free for everyone.
+    coach: open,
     plan: pro ? open : { allowed: false, feature: 'plan', reason: 'Your week-by-week study plan is part of Mnemoq Pro.' },
     explanations: pro ? Infinity : FREE.explanationsPerReport,
     cardsPerReport: pro ? Infinity : FREE.cardsPerReport,

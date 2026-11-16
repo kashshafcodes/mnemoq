@@ -15,6 +15,7 @@ import Dashboard from './components/Dashboard';
 import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, PracticeIcon, ProIcon, ReviewIcon, StatsIcon } from './components/NavIcons';
 import AdminStats from './components/AdminStats';
 import Practice from './components/Practice';
+import DiagnosticReport from './components/DiagnosticReport';
 import { PRO } from './proConfig';
 import { launchActive, priceOf, taka } from './pricing';
 import { checkAdmin, identify, trackPage } from './track';
@@ -187,6 +188,7 @@ const [authLoading, setAuthLoading] = useState(true);
   // A diagnostic taken before signing up (TryDiagnostic.jsx): save it to the
   // account once, choose that exam's path, and open it.
   const importingGuest = useRef(false);
+  const [freshReport, setFreshReport] = useState(false);
 
   useEffect(() => {
     const user = session?.user;
@@ -232,7 +234,8 @@ const [authLoading, setAuthLoading] = useState(true);
       trackEvent('diagnostic_done', { path: exam, kind: 'guest' });
       setPathState({ path: null, diagnostic: null, ...(await loadPathState(user.id)) });
       window.history.replaceState(null, '', '/');
-      go('path');
+      setFreshReport(true);
+      go('report');
     })();
   }, [session, dataLoading, pathState, tryExam, go]);
 
@@ -1116,7 +1119,7 @@ if (dataError) {
 
       return saved.error ? { error: `The analysis ran but could not be saved: ${saved.error}` } : {};
     } catch (caught) {
-      return { error: caught?.message || 'The AI analysis could not run.' };
+      return { error: caught?.message || 'The AI analysis could not run.', code: caught?.code || 'failed' };
     }
   }
 
@@ -1715,6 +1718,16 @@ if (dataError) {
           </>
         )}
 
+        {page === 'path' && pathState.diagnostic && (
+          <a className="mq-report-link" href={pageHref('report')}>
+            <span>
+              <b>Your diagnostic report</b>
+              {pathState.diagnostic.analysis ? 'AI coach analysis, every mistake, and cards to fix them' : 'Get the AI coach analysis and fix every mistake'}
+            </span>
+            <span aria-hidden="true">→</span>
+          </a>
+        )}
+
         {(page === 'path' || (page === 'mocks' && pathInfo?.engine === 'sat')) && (
           <PathPage
             plan={plan}
@@ -1736,6 +1749,21 @@ if (dataError) {
         {page === 'admin' && isAdmin && <AdminStats />}
 
         {page === 'practice' && <Practice plan={plan} onAddCards={addPracticeCards} />}
+
+        {page === 'report' &&
+          (pathState.status === 'loading' ? (
+            <p className="path-loading">Loading your report…</p>
+          ) : (
+            <DiagnosticReport
+              key={pathState.diagnostic?.id || 'none'}
+              pathInfo={pathInfo}
+              pathState={pathState}
+              fresh={freshReport}
+              onAnalyze={rerunAnalysis}
+              onAddCards={addDiagnosticCards}
+              onReview={goToReview}
+            />
+          ))}
 
         {page === 'pro' && <ProPage plan={plan} onPlan={setPlan} email={session.user.email} />}
 
