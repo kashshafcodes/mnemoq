@@ -53,15 +53,23 @@ export function missedAsCards(diagnostic) {
 
   for (const section of diagnostic?.sections || []) {
     for (const m of section.missed || []) {
-      if (m.needsPassage) continue;
+      if (!m || m.needsPassage) continue;
+
+      // Not every question has options: SAT maths has typed answers, and a
+      // result saved from another device keeps no question text at all.
+      const options = Array.isArray(m.options) ? m.options : [];
+      const correctAnswer = m.correctText || (Number.isInteger(m.correct) ? options[m.correct] : '') || '';
+      const yourAnswer = m.pickedText || (Number.isInteger(m.picked) ? options[m.picked] : '') || '';
+
+      if (!m.question || !correctAnswer) continue;
 
       cards.push({
         sectionId: section.id,
         topic: m.topic,
         question: m.question,
-        correctAnswer: m.options[m.correct],
-        yourAnswer: m.picked === null ? '' : m.options[m.picked],
-        distractors: m.options.filter((_, i) => i !== m.correct),
+        correctAnswer,
+        yourAnswer,
+        distractors: options.filter((_, i) => i !== m.correct),
         explain: m.explain || '',
       });
     }

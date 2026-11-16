@@ -3505,6 +3505,25 @@ code {
   .mq-latest .katex { font-size: 1em; }
 }
 
+/* ---- A page that crashed (PageErrorBoundary) ---- */
+
+.mq-crash {
+  max-width: 560px;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.mq-crash h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.mq-crash p {
+  color: var(--ink-2);
+}
+
 /* ---- Report: upgrade card when the free analysis is used ---- */
 
 .rp-upsell {

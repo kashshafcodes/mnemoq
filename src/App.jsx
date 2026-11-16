@@ -15,6 +15,7 @@ import Dashboard from './components/Dashboard';
 import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, PracticeIcon, ProIcon, ReviewIcon, StatsIcon } from './components/NavIcons';
 import AdminStats from './components/AdminStats';
 import Practice from './components/Practice';
+import PageErrorBoundary from './components/PageErrorBoundary';
 import DiagnosticReport from './components/DiagnosticReport';
 import { PRO } from './proConfig';
 import { launchActive, priceOf, taka } from './pricing';
@@ -1386,6 +1387,7 @@ if (dataError) {
       </nav>
 
       <main className="mq-main">
+        <PageErrorBoundary key={page} page={page}>
         {page === 'home' && (
           <>
         <header className="mq-greeting">
@@ -1895,6 +1897,7 @@ if (dataError) {
           </>
         )}
 
+        </PageErrorBoundary>
       </main>
 
       {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
