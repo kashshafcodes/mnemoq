@@ -5,6 +5,7 @@ import { trackEvent } from '../googleAnalytics';
 import { pageHref } from '../useRoute';
 import AiBadge from './AiBadge';
 import RichText from './RichText';
+import ShareResult from './ShareResult';
 import { PRO } from '../proConfig';
 import { priceOf, taka } from '../pricing';
 
@@ -32,7 +33,7 @@ function Gauge({ value, max, min = 0, label }) {
   );
 }
 
-export default function DiagnosticReport({ pathInfo, pathState, onAnalyze, onAddCards, onReview, fresh = false }) {
+export default function DiagnosticReport({ pathInfo, pathState, onAnalyze, onAddCards, onReview, userId, fresh = false }) {
   const diagnostic = pathState.diagnostic;
   const pathId = pathState.path?.pathId;
   const config = getPath(pathId);
@@ -150,6 +151,22 @@ ${m.question}` : m.question,
           );
         })}
       </section>
+
+      {pathInfo?.readiness !== null && pathInfo?.readiness !== undefined && (
+        <ShareResult
+          userId={userId}
+          data={{
+            pathId,
+            examName: config.name,
+            short: config.short || config.name,
+            isSat,
+            score: pathInfo.readiness,
+            scaleMin: isSat ? 400 : 0,
+            scaleMax: isSat ? 1600 : 100,
+            sections: diagnostic.sections.map((s) => ({ name: s.name, correct: s.correct || 0, total: s.total || 0 })),
+          }}
+        />
+      )}
 
       <section className="rp-card rp-coach">
         <h2>

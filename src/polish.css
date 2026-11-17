@@ -3689,3 +3689,63 @@ code {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* Share card on the diagnostic report (ShareResult.jsx) */
+.rp-share {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: clamp(18px, 3vw, 32px);
+  align-items: center;
+  background:
+    radial-gradient(120% 140% at 100% 100%, var(--accent-soft), transparent 60%),
+    var(--surface);
+}
+
+.rp-share-text {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rp-share-text h2 {
+  font-family: "Noto Sans Bengali", var(--font-display);
+}
+
+.rp-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.rp-share-status {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.rp-share-preview img,
+.rp-share-skeleton {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+}
+
+.rp-share-skeleton {
+  background: linear-gradient(160deg, #0b1030, #1e1b4b);
+}
+
+@media (max-width: 640px) {
+  .rp-share {
+    grid-template-columns: 1fr;
+  }
+
+  .rp-share-preview {
+    width: min(220px, 70%);
+    justify-self: center;
+    order: -1;
+  }
+}

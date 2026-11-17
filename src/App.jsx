@@ -1764,6 +1764,7 @@ if (dataError) {
               onAnalyze={rerunAnalysis}
               onAddCards={addDiagnosticCards}
               onReview={goToReview}
+              userId={session.user.id}
             />
           ))}
 
