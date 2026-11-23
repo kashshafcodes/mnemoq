@@ -6,6 +6,7 @@ import { pageHref } from '../useRoute';
 import AiBadge from './AiBadge';
 import RichText, { inlinePreview } from './RichText';
 import CATALOG from '../../library/catalog.json';
+import DailyTile, { dailyStatus } from '../daily/DailyTile';
 
 // The home page: one clear next step, a few numbers, and short links to the
 // rest. Everything else lives on its own page.
@@ -13,7 +14,7 @@ import CATALOG from '../../library/catalog.json';
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 // What should this person do right now? The most useful single action.
-function nextStep({ cards, dueCount, pathInfo, onReview }) {
+function nextStep({ cards, dueCount, pathInfo, onReview, dailyPlayed }) {
   if (dueCount > 0) {
     return {
       tone: 'due',
@@ -45,6 +46,18 @@ function nextStep({ cards, dueCount, pathInfo, onReview }) {
       body: 'Think of one question you got wrong recently. Add it, and Mnemoq will bring it back right before you forget.',
       action: { label: 'Add a card', href: pageHref('add') },
       second: pathInfo ? null : { label: 'Or choose your exam', href: pageHref('path') },
+    };
+  }
+
+  // Nothing due and tonight's puzzle not played yet: that is the fun next step.
+  if (!dailyPlayed) {
+    return {
+      tone: 'done',
+      kicker: 'All caught up',
+      title: 'Nothing is due. Five lanterns are.',
+      body: 'Today’s Daily puzzle takes about three minutes, and every miss can become a card.',
+      action: { label: 'Play the Daily', href: '/daily' },
+      second: pathInfo ? { label: pathInfo.engine === 'sat' ? 'Practise SAT' : 'Take a mock test', href: pageHref(pathInfo.engine === 'sat' ? 'path' : 'mocks') } : { label: 'Add cards', href: pageHref('add') },
     };
   }
 
@@ -123,7 +136,7 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
   const data = useMemo(() => computeAnalytics(cards, reviews, new Date()), [cards, reviews]);
   const { stats } = data;
   const message = headline(stats);
-  const step = nextStep({ cards, dueCount, pathInfo, onReview });
+  const step = nextStep({ cards, dueCount, pathInfo, onReview, dailyPlayed: Boolean(dailyStatus().today) });
 
   const subjects = useMemo(() => {
     const counts = new Map();
@@ -188,6 +201,12 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
 
       {cards.length > 0 && <p className="mq-home-message">{message.title} {message.body}</p>}
 
+      {cards.length > 0 && (
+        <a className="mq-stats-link" href={pageHref('progress')}>
+          See your full progress <span aria-hidden="true">→</span>
+        </a>
+      )}
+
       <ReminderNudge userId={userId} />
 
       <div className="mq-home-grid">
@@ -238,6 +257,8 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
             </a>
           )
         )}
+
+        <DailyTile />
 
         <a className="mq-tile mq-tile-invite" href={pageHref('practice')}>
           <header>

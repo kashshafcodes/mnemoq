@@ -6,8 +6,9 @@ import { launchActive, priceOf, taka } from '../pricing';
 import { track } from '../track';
 import MnemoqLogo from './MnemoqLogo';
 
-// The page everyone who is not signed in sees: what Mnemoq is, who it is for,
-// and a sign-up form that is never more than one tap away.
+// The page everyone who is not signed in sees: what Mnemoq is and who it is for.
+// The main action is a free diagnostic with no sign-up (TryDiagnostic.jsx);
+// signing up reveals the score. The sign-up form is still one tap away.
 
 const COPY = {
   en: {
@@ -18,9 +19,15 @@ const COPY = {
     title2: 'same mistake twice.',
     lead: 'Mnemoq saves every question you get wrong and brings it back right before you would forget it. A few minutes a day, and the mistakes stop coming back on test day.',
     ctaMain: 'Start free',
-    ctaSat: 'Take the free SAT diagnostic',
-    nsuTry: 'University admission? Take a free check:',
-    nsuTryLink: 'Take the free NSU check',
+    tryTitle: 'See where you stand in 20 minutes. Free, no sign-up.',
+    tryPick: 'Pick your exam:',
+    tryExams: [
+      ['sat', 'Digital SAT', '24 questions · 25 min · 400–1600 estimate'],
+      ['nsu', 'NSU admission', '25 questions · 20 min · readiness score'],
+      ['brac', 'BRAC admission', '24 questions · 20 min · readiness score'],
+    ],
+    orAccount: 'Or create a free account',
+    ctaTry: 'Take the free check',
     tryFree: 'Try it free, no sign-up',
     trust: ['Free plan, no card needed', 'Works on your phone', 'English and বাংলা'],
     howKicker: 'How it works',
@@ -64,9 +71,15 @@ const COPY = {
     title2: 'আর দ্বিতীয়বার নয়।',
     lead: 'যে প্রশ্নগুলো ভুল করেন, Mnemoq সেগুলো সংরক্ষণ করে এবং ভুলে যাওয়ার ঠিক আগে আবার সামনে আনে। দিনে কয়েক মিনিট, আর পরীক্ষার দিন সেই ভুলগুলো আর ফিরে আসে না।',
     ctaMain: 'ফ্রি শুরু করুন',
-    ctaSat: 'ফ্রি SAT ডায়াগনস্টিক দিন',
-    nsuTry: 'বিশ্ববিদ্যালয় ভর্তি? ফ্রি চেক দিন:',
-    nsuTryLink: 'ফ্রি NSU চেক দিন',
+    tryTitle: '২০ মিনিটে জানুন আপনি কোথায় আছেন। ফ্রি, সাইন আপ ছাড়াই।',
+    tryPick: 'আপনার পরীক্ষা বেছে নিন:',
+    tryExams: [
+      ['sat', 'ডিজিটাল SAT', '২৪টি প্রশ্ন · ২৫ মিনিট · ৪০০–১৬০০ স্কোর অনুমান'],
+      ['nsu', 'NSU ভর্তি', '২৫টি প্রশ্ন · ২০ মিনিট · রেডিনেস স্কোর'],
+      ['brac', 'BRAC ভর্তি', '২৪টি প্রশ্ন · ২০ মিনিট · রেডিনেস স্কোর'],
+    ],
+    orAccount: 'অথবা ফ্রি অ্যাকাউন্ট খুলুন',
+    ctaTry: 'ফ্রি চেক দিন',
     tryFree: 'সাইন আপ ছাড়াই ফ্রি চেষ্টা করুন',
     trust: ['ফ্রি প্ল্যান, কার্ড লাগবে না', 'ফোনেই চলে', 'English ও বাংলা'],
     howKicker: 'কীভাবে কাজ করে',
@@ -156,6 +169,11 @@ export default function Landing() {
     track('landing_view', { page: 'landing' });
   }, []);
 
+  function goTry(where) {
+    track('cta_click', { page: 'landing', where });
+    document.getElementById('try')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   function goSignup(where) {
     track('cta_click', { page: 'landing', where });
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -184,24 +202,22 @@ export default function Landing() {
             {c.title1} <span className="lp-hl">{c.title2}</span>
           </h1>
           <p className="lp-lead">{c.lead}</p>
-          <div className="lp-ctas">
-            <button type="button" className="mq-btn mq-btn-primary mq-btn-lg" onClick={() => goSignup('hero')}>
-              {c.ctaMain} <span aria-hidden="true">→</span>
+          <div className="lp-try" id="try">
+            <p className="lp-try-title">{c.tryTitle}</p>
+            <p className="lp-try-pick">{c.tryPick}</p>
+            <div className="lp-try-exams">
+              {c.tryExams.map(([id, name, meta]) => (
+                <a key={id} className="lp-try-exam" href={`/${id}`} onClick={() => track('cta_click', { page: 'landing', where: `hero_${id}` })}>
+                  <span className="lp-try-name">{name}</span>
+                  <span className="lp-try-meta">{meta}</span>
+                  <span className="lp-try-go" aria-hidden="true">→</span>
+                </a>
+              ))}
+            </div>
+            <button type="button" className="lp-try-account" onClick={() => goSignup('hero')}>
+              {c.orAccount}
             </button>
-            <a className="mq-btn mq-btn-ghost mq-btn-lg" href="/sat" onClick={() => track('cta_click', { page: 'landing', where: 'hero_sat' })}>
-              {c.ctaSat}
-            </a>
           </div>
-          <p className="lp-also">
-            {c.nsuTry}{' '}
-            <a href="/nsu" onClick={() => track('cta_click', { page: 'landing', where: 'hero_nsu' })}>
-              NSU →
-            </a>{' '}
-            ·{' '}
-            <a href="/brac" onClick={() => track('cta_click', { page: 'landing', where: 'hero_brac' })}>
-              BRAC →
-            </a>
-          </p>
           <ul className="lp-trust">
             {c.trust.map((item) => (
               <li key={item}>
@@ -326,9 +342,14 @@ export default function Landing() {
       <section className="lp-final">
         <h2>{c.finalTitle}</h2>
         <p>{c.finalLead}</p>
-        <button type="button" className="mq-btn mq-btn-primary mq-btn-lg" onClick={() => goSignup('final')}>
-          {c.ctaMain} <span aria-hidden="true">→</span>
-        </button>
+        <div className="lp-ctas lp-ctas-center">
+          <button type="button" className="mq-btn mq-btn-primary mq-btn-lg" onClick={() => goTry('final_try')}>
+            {c.ctaTry} <span aria-hidden="true">→</span>
+          </button>
+          <button type="button" className="mq-btn mq-btn-ghost mq-btn-lg" onClick={() => goSignup('final')}>
+            {c.ctaMain}
+          </button>
+        </div>
       </section>
 
       <footer className="lp-footer">
@@ -338,8 +359,8 @@ export default function Landing() {
       </footer>
 
       <div className="lp-sticky">
-        <button type="button" className="mq-btn mq-btn-primary mq-btn-block" onClick={() => goSignup('sticky')}>
-          {c.ctaMain} <span aria-hidden="true">→</span>
+        <button type="button" className="mq-btn mq-btn-primary mq-btn-block" onClick={() => goTry('sticky_try')}>
+          {c.ctaTry} <span aria-hidden="true">→</span>
         </button>
       </div>
     </div>

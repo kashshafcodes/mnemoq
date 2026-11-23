@@ -1,0 +1,151 @@
+// Text for the Daily puzzle in both languages. Kept next to the feature
+// instead of in i18n.jsx so the whole Daily lives in one folder.
+
+export const STRINGS = {
+  en: {
+    title: 'Mnemoq Daily',
+    tagline: 'Five lanterns, one night. Light them with what you know.',
+    lineup: 'Tonight’s lanterns',
+    rule1: 'Pick an answer.',
+    rule2: 'Hold the lantern to say how sure you are.',
+    rule3: 'Sure and right lights it brightest: +3. Sure and wrong: −2.',
+    start: 'Light the first lantern',
+    streakNote: '{n}-day streak. Keep it glowing.',
+    question: 'Lantern {n} of {total}',
+    level: 'Level {n}',
+    pickFirst: 'Pick an answer first',
+    holdToLight: 'Hold to light',
+    holdHint: 'Hold longer if you are surer. Or tap:',
+    bet_guess: 'Guessing',
+    bet_think: 'I think so',
+    bet_sure: 'Certain',
+    right: 'Lit!',
+    wrong: 'Not this time',
+    answerWas: 'The answer: {answer}',
+    bright: 'Bright mistake',
+    hypercorrect: 'You were certain, and it was wrong. Mistakes like this are the ones memory corrects best, so it waits for you at the end.',
+    next: 'Next lantern',
+    finish: 'See tonight’s glow',
+    resultTitle: 'Puzzle #{n}',
+    points: 'points',
+    streak: 'Streak',
+    played: 'Played',
+    best: 'Best',
+    calibration: 'Certain {n} times, right {right} of them.',
+    calibrationNone: 'You never said “certain”. Trust yourself a little more tomorrow.',
+    share: 'Share',
+    saveImage: 'Save image',
+    copied: 'Result copied. Paste it anywhere.',
+    nextIn: 'Next puzzle in {time}',
+    missedTitle: 'Worth remembering',
+    save: 'Save {n} as review cards',
+    saving: 'Saving…',
+    saved: 'Saved. Mnemoq will bring them back right before you forget.',
+    saveFailed: 'Could not save. Try again.',
+    signupTitle: 'Don’t lose these',
+    signupBody: 'Mnemoq turns your mistakes into review cards and brings each one back right before you would forget it. Free.',
+    signup: 'Start free',
+    openApp: 'Back to Mnemoq',
+    perfect: 'Not a single miss tonight.',
+    settings: 'Settings',
+    sound: 'Sound effects',
+    music: 'Music',
+    haptics: 'Vibration',
+    language: 'Language',
+    close: 'Close',
+    rank_5: 'Lighthouse',
+    rank_4: 'Lantern',
+    rank_3: 'Firefly',
+    rank_2: 'Spark',
+    rank_1: 'Ember',
+    rankLine_5: 'You lit up the whole river.',
+    rankLine_4: 'A steady, bright light.',
+    rankLine_3: 'Glowing nicely. Jonaki approves.',
+    rankLine_2: 'A spark tonight, a flame tomorrow.',
+    rankLine_1: 'Every lantern starts as an ember.',
+  },
+  bn: {
+    title: 'Mnemoq ডেইলি',
+    tagline: 'এক রাতে পাঁচটি লণ্ঠন। যা জানেন, তা দিয়ে জ্বালান।',
+    lineup: 'আজ রাতের লণ্ঠন',
+    rule1: 'উত্তর বাছুন।',
+    rule2: 'কতটা নিশ্চিত, তা বোঝাতে লণ্ঠনটি চেপে ধরুন।',
+    rule3: 'নিশ্চিত ও সঠিক হলে সবচেয়ে উজ্জ্বল: +৩। নিশ্চিত কিন্তু ভুল: −২।',
+    start: 'প্রথম লণ্ঠন জ্বালান',
+    streakNote: '{n} দিনের ধারা। আলো জ্বালিয়ে রাখুন।',
+    question: 'লণ্ঠন {n} / {total}',
+    level: 'ধাপ {n}',
+    pickFirst: 'আগে একটি উত্তর বাছুন',
+    holdToLight: 'চেপে ধরুন',
+    holdHint: 'যত নিশ্চিত, তত বেশি সময় ধরুন। অথবা ট্যাপ করুন:',
+    bet_guess: 'আন্দাজ',
+    bet_think: 'মনে হয়',
+    bet_sure: 'নিশ্চিত',
+    right: 'জ্বলেছে!',
+    wrong: 'এবার হলো না',
+    answerWas: 'উত্তর: {answer}',
+    bright: 'উজ্জ্বল ভুল',
+    hypercorrect: 'আপনি নিশ্চিত ছিলেন, কিন্তু ভুল হয়েছে। এমন ভুলই স্মৃতি সবচেয়ে ভালোভাবে শুধরে নেয়, তাই শেষে এটি আপনার জন্য রাখা থাকবে।',
+    next: 'পরের লণ্ঠন',
+    finish: 'আজকের আলো দেখুন',
+    resultTitle: 'ধাঁধা #{n}',
+    points: 'পয়েন্ট',
+    streak: 'ধারা',
+    played: 'খেলেছেন',
+    best: 'সেরা',
+    calibration: '{n} বার নিশ্চিত, তার {right}টি সঠিক।',
+    calibrationNone: 'একবারও "নিশ্চিত" বলেননি। কাল নিজের ওপর আরেকটু ভরসা রাখুন।',
+    share: 'শেয়ার',
+    saveImage: 'ছবি সেভ করুন',
+    copied: 'ফলাফল কপি হয়েছে। যেকোনো জায়গায় পেস্ট করুন।',
+    nextIn: 'পরের ধাঁধা {time} পরে',
+    missedTitle: 'মনে রাখার মতো',
+    save: '{n}টি রিভিউ কার্ড হিসেবে রাখুন',
+    saving: 'রাখা হচ্ছে…',
+    saved: 'রাখা হয়েছে। ভুলে যাওয়ার ঠিক আগে Mnemoq এগুলো ফিরিয়ে আনবে।',
+    saveFailed: 'রাখা গেল না। আবার চেষ্টা করুন।',
+    signupTitle: 'এগুলো হারাবেন না',
+    signupBody: 'Mnemoq ভুলগুলোকে রিভিউ কার্ড বানায় এবং ভুলে যাওয়ার ঠিক আগে প্রতিটি ফিরিয়ে আনে। বিনামূল্যে।',
+    signup: 'বিনামূল্যে শুরু করুন',
+    openApp: 'Mnemoq-এ ফিরে যান',
+    perfect: 'আজ রাতে একটিও ভুল নেই।',
+    settings: 'সেটিংস',
+    sound: 'সাউন্ড ইফেক্ট',
+    music: 'মিউজিক',
+    haptics: 'ভাইব্রেশন',
+    language: 'ভাষা',
+    close: 'বন্ধ করুন',
+    rank_5: 'বাতিঘর',
+    rank_4: 'লণ্ঠন',
+    rank_3: 'জোনাকি',
+    rank_2: 'স্ফুলিঙ্গ',
+    rank_1: 'অঙ্গার',
+    rankLine_5: 'পুরো নদী আলোয় ভরিয়ে দিয়েছেন।',
+    rankLine_4: 'স্থির, উজ্জ্বল আলো।',
+    rankLine_3: 'সুন্দর জ্বলছে। জোনাকি খুশি।',
+    rankLine_2: 'আজ স্ফুলিঙ্গ, কাল শিখা।',
+    rankLine_1: 'প্রতিটি লণ্ঠন শুরু হয় অঙ্গার থেকে।',
+  },
+};
+
+const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
+
+// Western digits to Bangla digits (for numbers and clock strings).
+export const bnDigits = (text) => String(text).replace(/\d/g, (d) => BN_DIGITS[d]);
+
+export function makeT(lang) {
+  const dict = STRINGS[lang] || STRINGS.en;
+  const digits = (value) => (lang === 'bn' && typeof value === 'number' ? bnDigits(value) : String(value));
+
+  return (key, vars = {}) =>
+    (dict[key] ?? STRINGS.en[key] ?? key).replace(/\{(\w+)\}/g, (_, name) => (vars[name] === undefined ? `{${name}}` : digits(vars[name])));
+}
+
+// Score (−10 to 15) to a rank from 1 (Ember) to 5 (Lighthouse).
+export function rankOf(score) {
+  if (score >= 15) return 5;
+  if (score >= 11) return 4;
+  if (score >= 7) return 3;
+  if (score >= 3) return 2;
+  return 1;
+}

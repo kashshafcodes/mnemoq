@@ -1,3 +1,4 @@
+import Jonaki from './Jonaki';
 import { subjectAccent } from '../subjects';
 
 // One tab per subject, plus "All". Each shows how many cards are due.
@@ -104,6 +105,7 @@ export function SessionSummary({ results, cards, moreDue, onAgain, onDone }) {
 
   return (
     <div className="session-summary">
+      <Jonaki mood={total && recalled === total ? 'wow' : recalled / Math.max(1, total) >= 0.6 ? 'happy' : 'idle'} size={84} className="session-jonaki" />
       <p className="eyebrow">SESSION COMPLETE</p>
       <p className="session-score" aria-label={`${recalled} of ${total} recalled`}>
         <strong>{recalled}</strong>/{total}

@@ -3749,3 +3749,95 @@ code {
     order: -1;
   }
 }
+
+/* ---- Landing: free check as the main action ---- */
+
+.lp-try {
+  margin-top: 26px;
+  scroll-margin: 24px;
+}
+
+.lp-try-title {
+  margin: 0;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.lp-try-pick {
+  margin: 4px 0 12px;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+
+.lp-try-exams {
+  display: grid;
+  gap: 10px;
+  max-width: 520px;
+}
+
+.lp-try-exam {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2px 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--accent-line);
+  border-radius: 14px;
+  background: linear-gradient(160deg, var(--accent-soft), var(--surface) 75%);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lp-try-exam:hover,
+.lp-try-exam:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 18%, transparent);
+  transform: translateY(-1px);
+}
+
+.lp-try-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.lp-try-meta {
+  grid-column: 1;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.lp-try-go {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: var(--accent-ink);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.lp-try-account {
+  margin-top: 12px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lp-try-account:hover {
+  text-decoration: underline;
+}
+
+.lp-ctas-center {
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-try-exam {
+    transition: none;
+  }
+}

@@ -3,22 +3,17 @@ import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { supabase } from './supabaseClient';
 import Landing from './components/Landing';
-import RichText from './components/RichText';
 import TryDiagnostic from './components/TryDiagnostic';
 import { clearGuestResult, pendingGuestResult } from './guestResult';
 import { trackEvent } from './googleAnalytics';
 
-import MnemoqLogo, { MnemoqMark } from './components/MnemoqLogo';
+import { MnemoqMark } from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
-import ReviewCard from './components/ReviewCard';
 import Dashboard from './components/Dashboard';
-import { AddIcon, DashboardIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, PracticeIcon, ProIcon, ReviewIcon, StatsIcon } from './components/NavIcons';
 import AdminStats from './components/AdminStats';
 import Practice from './components/Practice';
 import PageErrorBoundary from './components/PageErrorBoundary';
 import DiagnosticReport from './components/DiagnosticReport';
-import { PRO } from './proConfig';
-import { launchActive, priceOf, taka } from './pricing';
 import { checkAdmin, identify, trackPage } from './track';
 import DueBadge from './components/DueBadge';
 import MockCenter from './components/MockCenter';
@@ -33,13 +28,14 @@ import { analysisPayload, daysLeftFor, describeProgress, readinessFor } from './
 import Profile from './components/Profile';
 import { readProfile } from './profile';
 import Home from './components/Home';
+import LibraryPage, { COLLAPSED_COUNT } from './components/LibraryPage';
+import ReviewPage from './components/ReviewPage';
+import { MobileBar, Sidebar, TabBar, navItems } from './components/AppNav';
 import { pageHref, useRoute } from './useRoute';
-import { ReviewSubjectTabs, SessionStart, SessionSummary } from './components/SessionPanels';
 import { SESSION_SIZE, pickSessionCards, scheduleNext } from './quiz';
 import QuickAdd from './components/QuickAdd';
-import { NO_SUGGEST } from './noSuggest';
 import Pilot, { RecoveryPlan } from './components/Pilot';
-import { LanguageToggle, useI18n } from './i18n';
+import { useI18n } from './i18n';
 import { loadPilot, savePilot } from './pilot';
 import {
   SUBJECTS,
@@ -50,13 +46,12 @@ import {
   getSubjectNames,
   isReservedName,
   sameName,
-  subjectAccent,
 } from './subjects';
 // Loaded after every component's own styles so the new look has the final say.
 import './polish.css';
 
 const STORAGE_KEY = 'mnemoq-mistakes';
-const COLLAPSED_COUNT = 3;
+
 
 const emptyForm = {
   subject: DEFAULT_SUBJECT,
@@ -1224,26 +1219,7 @@ if (dataError) {
       })()
     : null;
 
-  // Navigation. The sidebar shows everything; the phone tab bar the five most used.
-  const pathLabel = pathInfo ? `${pathInfo.short} path` : 'nav.path';
-  const navItems = [
-    ['home', HomeIcon, 'nav.home'],
-    ['review', ReviewIcon, 'nav.review', dueMistakes.length],
-    ['add', AddIcon, 'nav.add'],
-    ['practice', PracticeIcon, 'nav.practice'],
-    ['path', PathIcon, pathLabel],
-    ['progress', DashboardIcon, 'nav.dashboard'],
-    ['library', LibraryIcon, 'nav.library'],
-    ...(isAdmin ? [['admin', StatsIcon, 'Stats']] : []),
-  ];
-  const tabItems = [
-    ['home', HomeIcon, 'Home'],
-    ['review', ReviewIcon, 'Review', dueMistakes.length],
-    ['add', AddIcon, 'Add'],
-    ['practice', PracticeIcon, 'Practice'],
-    ['path', PathIcon, pathInfo ? pathInfo.short : 'Path'],
-  ];
-  const isActive = (name) => page === name || (name === 'path' && page === 'mocks');
+  const nav = navItems({ t, dueCount: dueMistakes.length, pathInfo, isAdmin });
 
   function finishPilot(result, thenReview) {
     const next = { status: 'done', ...result, hidden: false };
@@ -1289,102 +1265,17 @@ if (dataError) {
   return (
     <div className="mq-app">
       <DueBadge count={dueMistakes.length} />
-      <aside className="mq-side" aria-label="Main menu">
-        <MnemoqLogo size={30} href={pageHref('home')} />
-
-        <nav className="mq-nav">
-          {navItems.map(([name, NavIcon, label, count]) => (
-            <a
-              key={name}
-              className={isActive(name) ? 'mq-nav-link active' : 'mq-nav-link'}
-              href={pageHref(name)}
-              aria-current={isActive(name) ? 'page' : undefined}
-            >
-              <NavIcon />
-              <span>{typeof label === 'string' && label.includes('.') ? t(label) : label}</span>
-              {count > 0 && <b className="mq-count">{count > 99 ? '99+' : count}</b>}
-            </a>
-          ))}
-        </nav>
-
-        <div className="mq-side-bottom">
-          {plan.pro ? (
-            <a className="mq-pro-card is-pro" href={pageHref('pro')}>
-              <ProIcon />
-              <span>
-                <b>Mnemoq Pro</b>
-                <small>{plan.daysLeft} {plan.daysLeft === 1 ? 'day' : 'days'} left</small>
-              </span>
-            </a>
-          ) : (
-            <a className={page === 'pro' ? 'mq-pro-card active' : 'mq-pro-card'} href={pageHref('pro')}>
-              <ProIcon />
-              <span>
-                <b>Go Pro</b>
-                <small>
-                  {launchActive() ? `${PRO.launch.name}: 50% off · from ${taka(priceOf(PRO.offers[0]).now)}` : `Full tests, AI coach · from ${taka(priceOf(PRO.offers[0]).now)}/mo`}
-                </small>
-              </span>
-            </a>
-          )}
-
-          <div className="mq-side-links">
-            <button type="button" onClick={() => setShowTutorial(true)}>
-              <HelpIcon /> {t('nav.how')}
-            </button>
-            <button type="button" onClick={() => setPilotOpen(true)}>
-              <ReviewIcon /> {t('nav.debrief')}
-            </button>
-          </div>
-
-          <a className={page === 'profile' ? 'mq-me active' : 'mq-me'} href={pageHref('profile')}>
-            <span className="mq-avatar" style={{ '--avatar': me.color.value }} aria-hidden="true">
-              {me.initial}
-            </span>
-            <span className="mq-me-text">
-              <b>{me.name || t('nav.profile')}</b>
-              <small>{t('nav.profile')} &amp; reminders</small>
-            </span>
-          </a>
-          <div className="mq-side-foot">
-            <LanguageToggle />
-            <button type="button" className="mq-logout" onClick={logOut}>
-              {t('nav.logout')}
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      <header className="mq-mobilebar">
-        <MnemoqLogo size={26} href={pageHref('home')} />
-        <div className="mq-mobilebar-right">
-          {!plan.pro && (
-            <a className="mq-pro-chip" href={pageHref('pro')}>
-              <ProIcon /> Pro
-            </a>
-          )}
-          <a className="mq-avatar" href={pageHref('profile')} style={{ '--avatar': me.color.value }} aria-label={t('nav.profile')}>
-            {me.initial}
-          </a>
-        </div>
-      </header>
-
-      <nav className="mq-tabbar" aria-label="Main menu">
-        {tabItems.map(([name, NavIcon, label, count]) => (
-          <a
-            key={name}
-            className={`${isActive(name) ? 'mq-tab active' : 'mq-tab'}${name === 'add' ? ' mq-tab-add' : ''}`}
-            href={pageHref(name)}
-            aria-current={isActive(name) ? 'page' : undefined}
-          >
-            <span className="mq-tab-icon">
-              <NavIcon />
-              {count > 0 && <b className="mq-count">{count > 99 ? '99+' : count}</b>}
-            </span>
-            <span>{label}</span>
-          </a>
-        ))}
-      </nav>
+      <Sidebar
+        page={page}
+        items={nav.side}
+        plan={plan}
+        me={me}
+        onTutorial={() => setShowTutorial(true)}
+        onDebrief={() => setPilotOpen(true)}
+        onLogout={logOut}
+      />
+      <MobileBar plan={plan} me={me} />
+      <TabBar page={page} items={nav.tabs} />
 
       <main className="mq-main">
         <PageErrorBoundary key={page} page={page}>
@@ -1443,281 +1334,33 @@ if (dataError) {
         )}
 
         {page === 'library' && (
-          <>
-        {showForm && editingId !== null && (
-          <section ref={formRef} className="mistake-form-card">
-            <h2>{editingId !== null ? 'Edit card' : 'Add a card'}</h2>
-            <p className="subtitle">
-              Only the question and correct answer are required.
-            </p>
-
-            <form onSubmit={handleSubmit}>
-              <label htmlFor="subject">
-                Subject <span className="optional">(pick one or type your own)</span>
-              </label>
-              <input
-                id="subject"
-                name="subject"
-                list="subject-suggestions"
-                value={form.subject}
-                onChange={handleChange}
-                maxLength={40}
-                autoComplete="off"
-                required
-              />
-              <datalist id="subject-suggestions">
-                {subjectNames.map((name) => (
-                  <option key={name} value={name} />
-                ))}
-              </datalist>
-
-              <label htmlFor="category">
-                Category <span className="optional">(pick one or type your own)</span>
-              </label>
-              <input
-                id="category"
-                name="category"
-                list="category-suggestions"
-                value={form.category}
-                onChange={handleChange}
-                maxLength={40}
-                autoComplete="off"
-                required
-              />
-              <datalist id="category-suggestions">
-                {categorySuggestions.map((name) => (
-                  <option key={name} value={name} />
-                ))}
-              </datalist>
-
-              <label htmlFor="question">Question or prompt</label>
-              <textarea
-                id="question"
-                name="question"
-                value={form.question}
-                onChange={handleChange}
-                placeholder="What do you want to remember?"
-                required
-                {...NO_SUGGEST}
-              />
-
-              <label htmlFor="correctAnswer">Correct answer</label>
-              <input
-                id="correctAnswer"
-                name="correctAnswer"
-                value={form.correctAnswer}
-                onChange={handleChange}
-                placeholder="What is the correct answer?"
-                required
-                {...NO_SUGGEST}
-              />
-
-              <label htmlFor="yourAnswer">
-                Your incorrect answer <span className="optional">(optional)</span>
-              </label>
-              <input
-                id="yourAnswer"
-                name="yourAnswer"
-                value={form.yourAnswer}
-                onChange={handleChange}
-                placeholder="If you got it wrong, what did you answer?"
-                {...NO_SUGGEST}
-              />
-
-              <label htmlFor="explanation">
-                Memory hook <span className="optional">(optional)</span>
-              </label>
-              <textarea
-                id="explanation"
-                name="explanation"
-                value={form.explanation}
-                onChange={handleChange}
-                placeholder="A mnemonic, picture, or short reason that helps it stick"
-                {...NO_SUGGEST}
-              />
-
-              {formError && (
-                <p className="qa-message qa-error" role="alert">
-                  {formError}
-                </p>
-              )}
-
-              <button type="submit">
-                {editingId !== null ? 'Save changes' : 'Save card'}
-              </button>
-            </form>
-          </section>
-        )}
-
-        
-
-
-
-        
-<section className="section-heading" id="mistakes">
-  <h2>Your library</h2>
-  <p className="subtitle">
-    Everything you're learning, in one place.
-  </p>
-</section>
-
-<div className="category-filters" aria-label="Filter cards by subject">
-  {subjectFilters.map((subject) => (
-    <button
-      key={subject}
-      type="button"
-      className={
-        subjectNow === subject
-          ? 'filter-button selected'
-          : 'filter-button'
-      }
-      style={
-        subject === 'All' ? undefined : { '--subject': subjectAccent(subject) }
-      }
-      aria-pressed={subjectNow === subject}
-      onClick={() => selectSubject(subject)}
-    >
-      {subject !== 'All' && (
-        <span className="subject-dot" aria-hidden="true" />
-      )}
-      {subject}
-    </button>
-  ))}
-</div>
-
-{categoryFilters.length > 0 && (
-  <div
-    className="category-filters sub-filters"
-    aria-label="Filter cards by category"
-  >
-    {categoryFilters.map((category) => (
-      <button
-        key={category}
-        type="button"
-        className={
-          categoryNow === category
-            ? 'filter-button selected'
-            : 'filter-button'
-        }
-        aria-pressed={categoryNow === category}
-        onClick={() => selectCategory(category)}
-      >
-        {category}
-      </button>
-    ))}
-  </div>
-)}
-
-
-        
-{filteredMistakes.length === 0 ? (
-  <section className="empty-state">
-    <div className="empty-icon">✳</div>
-    <h3>
-      {mistakes.length === 0
-        ? 'Your journey starts with one card.'
-        : 'No cards match this filter yet.'}
-    </h3>
-    <p>
-      {mistakes.length === 0
-        ? 'Add something you want to remember, or something you got wrong, to begin your library.'
-        : 'Choose another subject or category, or add a card here.'}
-    </p>
-    {mistakes.length === 0 && (
-      <button
-        type="button"
-        className="text-link"
-        onClick={() => setShowTutorial(true)}
-      >
-        New here? See how it works
-      </button>
-    )}
-  </section>
-) : (
-  <section className="mistake-list">
-    {visibleMistakes.map((mistake) => (
-      <article
-        className="mistake-card accented"
-        key={mistake.id}
-        style={{ '--subject': subjectAccent(mistake.subject) }}
-      >
-        <div className="mistake-card-top">
-          <span className="subject-tag">
-            <span className="subject-dot" aria-hidden="true" />
-            {mistake.subject}
-          </span>
-          <span className="category-tag">
-            {mistake.category}
-          </span>
-        </div>
-
-        <h3>
-          <RichText text={mistake.question} graphs={false} />
-        </h3>
-        {mistake.yourAnswer && (
-          <p>
-            <strong>Your answer:</strong> <RichText text={mistake.yourAnswer} graphs={false} />
-          </p>
-        )}
-        <p>
-          <strong>Correct answer:</strong>{' '}
-          <span className="correct-text">
-            <RichText text={mistake.correctAnswer} graphs={false} />
-          </span>
-        </p>
-        {mistake.explanation && (
-          <p className="explanation">
-            <strong>Memory hook:</strong> <RichText text={mistake.explanation} graphs={false} />
-          </p>
-        )}
-
-        <div className="mistake-actions">
-          
-<button
-  className="secondary-button"
-  onClick={() => {
-    setManualReviewId(mistake.id);
-    go('review');
-  }}
->
-  Review now
-</button>
-
-          <button
-            type="button"
-            onClick={() => handleEdit(mistake)}
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            className="delete-button"
-            onClick={() => handleDelete(mistake.id)}
-          >
-            Delete
-          </button>
-        </div>
-      </article>
-    ))}
-
-    {filteredMistakes.length > COLLAPSED_COUNT && (
-      <div className="see-all-row">
-        <button
-          type="button"
-          className="see-all-button"
-          aria-expanded={showAll}
-          onClick={() => setShowAll(!showAll)}
-        >
-          {showAll
-            ? 'Show fewer'
-            : `See all ${filteredMistakes.length} cards`}
-        </button>
-      </div>
-    )}
-  </section>
-)}
-
-          </>
+          <LibraryPage
+            showForm={showForm}
+            editingId={editingId}
+            formRef={formRef}
+            handleSubmit={handleSubmit}
+            form={form}
+            handleChange={handleChange}
+            subjectNames={subjectNames}
+            categorySuggestions={categorySuggestions}
+            formError={formError}
+            subjectFilters={subjectFilters}
+            subjectNow={subjectNow}
+            selectSubject={selectSubject}
+            categoryFilters={categoryFilters}
+            categoryNow={categoryNow}
+            selectCategory={selectCategory}
+            filteredMistakes={filteredMistakes}
+            mistakes={mistakes}
+            setShowTutorial={setShowTutorial}
+            visibleMistakes={visibleMistakes}
+            setManualReviewId={setManualReviewId}
+            go={go}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            showAll={showAll}
+            setShowAll={setShowAll}
+          />
         )}
 
         {page === 'path' && pathState.diagnostic && (
@@ -1795,107 +1438,25 @@ if (dataError) {
         )}
 
         {page === 'review' && (
-          <>
-<section className="review-section" id="review">
-  <div className="section-heading">
-    <div>
-      <p className="eyebrow">ACTIVE RECALL</p>
-      <h2>Review your cards</h2>
-      <p>Pick or type your answer first. Recalling it beats re-reading it.</p>
-    </div>
-  </div>
-
-  {pathInfo && !reviewMistake && !sessionFinished && (
-    <div className="review-path">
-      <span>
-        <b>{pathInfo.short} prep</b>
-        {pathInfo.daysLeft !== null && ` · ${pathInfo.daysLeft} ${pathInfo.daysLeft === 1 ? 'day' : 'days'} left`}
-        {pathInfo.readiness !== null && ` · ${pathInfo.word} ${pathInfo.readiness} of ${pathInfo.target}`}
-      </span>
-      {pathInfo.weakest &&
-        reviewTabs.some((tab) => sameName(tab.name, pathInfo.weakest.cardSubject)) &&
-        !sameName(activeReviewSubject, pathInfo.weakest.cardSubject) && (
-          <button type="button" className="text-link" onClick={() => reviewSubjectFromPath(pathInfo.weakest.cardSubject)}>
-            Focus on {pathInfo.weakest.name}, your weakest
-          </button>
-        )}
-      <a className="text-link" href={pageHref('path')}>
-        Open my path
-      </a>
-    </div>
-  )}
-
-  {!reviewMistake && !sessionFinished && (
-    <ReviewSubjectTabs
-      tabs={reviewTabs}
-      active={activeReviewSubject}
-      totalDue={dueMistakes.length}
-      onChange={chooseReviewSubject}
-    />
-  )}
-
-{reviewMistake ? (
-  <>
-    {sessionRunning && (
-      <div className="session-bar">
-        <span>
-          {activeReviewSubject ? `${activeReviewSubject} session` : 'Short session'}
-        </span>
-        <button type="button" className="text-link" onClick={endSession}>
-          End session
-        </button>
-      </div>
-    )}
-    <ReviewCard
-      key={`${reviewMistake.id}-${reviewMistake.reviewCount || 0}`}
-      card={reviewMistake}
-      cards={mistakes}
-      position={{
-        index: manualReviewId !== null ? 0 : reviewSession.results.length,
-        total: manualReviewId !== null ? 1 : reviewSession.ids.length,
-      }}
-      onRate={handleReviewRating}
-    />
-  </>
-) : sessionFinished ? (
-  <SessionSummary
-    results={reviewSession.results}
-    cards={mistakes}
-    moreDue={scopedDue.length}
-    onAgain={startSession}
-    onDone={() => setReviewSession(null)}
-  />
-) : scopedDue.length > 0 ? (
-  <SessionStart
-    dueCards={scopedDue}
-    subject={activeReviewSubject}
-    sessionSize={SESSION_SIZE}
-    onStart={startSession}
-  />
-) : (
-  <div className="review-empty-state">
-    <h3>
-      {activeReviewSubject
-        ? `${activeReviewSubject} is all caught up!`
-        : "You're all caught up!"}
-    </h3>
-    <p>
-      {activeReviewSubject
-        ? `No ${activeReviewSubject} cards are due right now.`
-        : 'No cards are due for review right now.'}
-    </p>
-    <p>
-      {activeReviewSubject
-        ? dueMistakes.length > 0
-          ? 'Pick another subject above to keep going.'
-          : "They'll return to your review queue when they're due."
-        : `You have ${mistakes.length} saved card${mistakes.length === 1 ? '' : 's'} in your library. They'll return to your review queue when they're due.`}
-    </p>
-  </div>
-)}
-</section>
-
-          </>
+          <ReviewPage
+            pathInfo={pathInfo}
+            reviewMistake={reviewMistake}
+            sessionFinished={sessionFinished}
+            reviewTabs={reviewTabs}
+            activeReviewSubject={activeReviewSubject}
+            reviewSubjectFromPath={reviewSubjectFromPath}
+            dueMistakes={dueMistakes}
+            chooseReviewSubject={chooseReviewSubject}
+            sessionRunning={sessionRunning}
+            endSession={endSession}
+            mistakes={mistakes}
+            manualReviewId={manualReviewId}
+            reviewSession={reviewSession}
+            handleReviewRating={handleReviewRating}
+            scopedDue={scopedDue}
+            startSession={startSession}
+            setReviewSession={setReviewSession}
+          />
         )}
 
         </PageErrorBoundary>

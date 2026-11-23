@@ -127,3 +127,13 @@ export function PracticeIcon() {
     </Icon>
   );
 }
+
+// The Daily puzzle: a small spark (the mascot is a firefly).
+export function DailyIcon() {
+  return (
+    <Icon>
+      <path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2" />
+      <circle cx="12" cy="12" r="2.6" />
+    </Icon>
+  );
+}
