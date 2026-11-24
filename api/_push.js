@@ -134,27 +134,29 @@ export function alertDue(settings, dueNow, lastReviewAt, now) {
   return true;
 }
 
-// The texts, in Jonaki's voice, rotated by day (api/_pushCopy.js).
-const dueLine = (due, now) => (due === 1 ? pushLine('due_one', { n: 1 }, now) : pushLine('due', { n: due }, now));
+// The texts, in Jonaki's voice, rotated by day (api/_pushCopy.js). `lang` is the
+// row's reminder_settings.lang; anything but 'bn' gets English.
+const dueLine = (due, now, lang) =>
+  due === 1 ? pushLine('due_one', { n: 1 }, now, lang) : pushLine('due', { n: due }, now, lang);
 
-export function alertMessage(due, now = new Date()) {
-  return { ...dueLine(due, now), url: '/#/review', tag: 'mnemoq-due' };
+export function alertMessage(due, now = new Date(), lang = 'en') {
+  return { ...dueLine(due, now, lang), url: '/#/review', tag: 'mnemoq-due' };
 }
 
-export function dailyMessage(due, now = new Date()) {
+export function dailyMessage(due, now = new Date(), lang = 'en') {
   if (due <= 0) return null;
 
-  const line = due >= ROUND_SIZE ? pushLine('many', { n: due, size: ROUND_SIZE }, now) : dueLine(due, now);
+  const line = due >= ROUND_SIZE ? pushLine('many', { n: due, size: ROUND_SIZE }, now, lang) : dueLine(due, now, lang);
 
   return { ...line, url: '/#/review', tag: 'mnemoq-daily' };
 }
 
-export function streakMessage(now = new Date()) {
-  return { ...pushLine('streak', {}, now), url: '/#/review', tag: 'mnemoq-streak' };
+export function streakMessage(now = new Date(), lang = 'en') {
+  return { ...pushLine('streak', {}, now, lang), url: '/#/review', tag: 'mnemoq-streak' };
 }
 
-export function testMessage(now = new Date()) {
-  return { ...pushLine('test', {}, now), url: '/#/review', tag: 'mnemoq-test' };
+export function testMessage(now = new Date(), lang = 'en') {
+  return { ...pushLine('test', {}, now, lang), url: '/#/review', tag: 'mnemoq-test' };
 }
 
 // ---- sending ---------------------------------------------------------------

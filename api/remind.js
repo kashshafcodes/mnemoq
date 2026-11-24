@@ -135,7 +135,7 @@ export async function runReminders({ env, now = new Date(), webpush, cfg }) {
     };
 
     if (dailyDue(person, now)) {
-      const message = dailyMessage(await countDue(), now);
+      const message = dailyMessage(await countDue(), now, person.lang);
 
       patch.last_sent_on = local.date; // counts as today's reminder even when nothing is due
 
@@ -149,7 +149,7 @@ export async function runReminders({ env, now = new Date(), webpush, cfg }) {
     const dates = reviewDates.get(person.user_id) || new Set();
 
     if (streakWindow(person, dates, now) && streakDue(person, dates, now, await countDue())) {
-      messages.push([streakMessage(now), 'streak']);
+      messages.push([streakMessage(now, person.lang), 'streak']);
       patch.last_streak_on = local.date;
       patch.last_alert_at = now.toISOString();
     }
@@ -161,7 +161,7 @@ export async function runReminders({ env, now = new Date(), webpush, cfg }) {
         const count = await countDue();
 
         if (alertDue(person, count, lastReview.get(person.user_id) || null, now)) {
-          messages.push([alertMessage(count, now), 'alerts']);
+          messages.push([alertMessage(count, now, person.lang), 'alerts']);
 
           const todays = person.alerts_on === local.date ? Number(person.alerts_today) || 0 : 0;
 

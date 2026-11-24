@@ -457,6 +457,11 @@ export function I18nProvider({ children }) {
     document.documentElement.lang = lang;
   }, [lang]);
 
+  // Reminders are sent in the app language: save it on open and on every switch.
+  useEffect(() => {
+    import('./reminders').then((m) => m.syncReminderLang(lang)).catch(() => {});
+  }, [lang]);
+
   const value = useMemo(() => {
     function setLang(next) {
       const chosen = next === 'bn' ? 'bn' : 'en';

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import handler, { runReminders } from '../api/remind.js';
 import { alertDue, dailyDue, dailyMessage, isPushEndpoint, streakDue, streakMessage, testMessage } from '../api/_push.js';
-import { PUSH_COPY, pushLine, variantIndex } from '../api/_pushCopy.js';
+import { PUSH_COPY, bnDigits, pushLine, variantIndex } from '../api/_pushCopy.js';
 
 const cfg = { url: 'https://db.example', key: 'service' };
 const env = { VAPID_PUBLIC_KEY: 'pub', VAPID_PRIVATE_KEY: 'priv', CRON_SECRET: 'x'.repeat(20) };
@@ -159,6 +159,60 @@ describe('reminder rules', () => {
 
         expect(fill(title).length).toBeLessThanOrEqual(40);
         expect(fill(body).length).toBeLessThanOrEqual(110);
+      }
+    }
+  });
+});
+
+describe('reminder language', () => {
+  const now = new Date('2026-11-15T12:05:00Z'); // 18:05 in Dhaka
+  const device = (id) => ({ user_id: id, endpoint: `https://fcm.googleapis.com/fcm/send/${id}` });
+  const banglaOnly = /^[^A-Za-z0-9]*$/; // no Latin letters or Western digits (Mnemoq aside)
+
+  it('sends a Bangla row its reminder in Bangla, with Bangla digits', async () => {
+    fakeDb({ people: [person('b', { lang: 'bn' })], devices: [device('b')], due: 4 });
+    const webpush = { setVapidDetails: vi.fn(), sendNotification: vi.fn(async () => ({})) };
+
+    await runReminders({ env, now, webpush, cfg });
+
+    const sent = JSON.parse(webpush.sendNotification.mock.calls[0][1]);
+
+    expect(sent).toMatchObject(pushLine('due', { n: 4 }, now, 'bn'));
+    expect(sent.title + sent.body).toMatch(banglaOnly);
+    expect(sent.title.length).toBeLessThanOrEqual(40);
+    expect(sent.body.length).toBeLessThanOrEqual(110);
+  });
+
+  it('falls back to English when lang is missing or unknown', async () => {
+    fakeDb({ people: [person('m'), person('u', { lang: 'fr' }), person('z', { lang: null })], devices: [device('m'), device('u'), device('z')] });
+    const webpush = { setVapidDetails: vi.fn(), sendNotification: vi.fn(async () => ({})) };
+
+    await runReminders({ env, now, webpush, cfg });
+
+    expect(webpush.sendNotification).toHaveBeenCalledTimes(3);
+    for (const call of webpush.sendNotification.mock.calls) {
+      expect(JSON.parse(call[1]).title).toBe(pushLine('due', { n: 4 }, now).title);
+    }
+    expect(pushLine('streak', {}, now, 'xx')).toEqual(pushLine('streak', {}, now, 'en'));
+  });
+
+  it('has Bangla for every key, same rotation, within the limits', () => {
+    expect(Object.keys(PUSH_COPY.bn).sort()).toEqual(Object.keys(PUSH_COPY.en).sort());
+    for (const type of Object.keys(PUSH_COPY.en)) expect(PUSH_COPY.bn[type].length).toBe(PUSH_COPY.en[type].length);
+
+    expect(bnDigits('99 / 10')).toBe('৯৯ / ১০');
+    expect(dailyMessage(25, now, 'bn').body).toContain('১০');
+    expect(dailyMessage(1, now, 'bn').title).toBe('১টি কার্ড ঝাপসা হয়ে আসছে');
+    expect(streakMessage(now, 'bn').title).toBe(pushLine('streak', {}, now, 'bn').title);
+    expect(testMessage(now, 'bn').title).toMatch(banglaOnly);
+
+    for (const list of Object.values(PUSH_COPY.bn)) {
+      for (const [title, body] of list) {
+        const fill = (t) => t.replaceAll('{n}', bnDigits(99)).replaceAll('{size}', bnDigits(10));
+
+        expect(fill(title).length).toBeLessThanOrEqual(40);
+        expect(fill(body).length).toBeLessThanOrEqual(110);
+        expect(fill(title + body).replace('Mnemoq', '')).toMatch(banglaOnly);
       }
     }
   });

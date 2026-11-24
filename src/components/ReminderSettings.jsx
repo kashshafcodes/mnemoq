@@ -12,6 +12,7 @@ import {
   unsubscribeThisDevice,
 } from '../reminders';
 import { trackEvent } from '../googleAnalytics';
+import { useI18n } from '../i18n';
 
 // The "Reminders" card on the profile page. One switch and one time; the smart
 // parts (alerts when cards pile up, the evening streak nudge, quiet hours at
@@ -33,6 +34,7 @@ export default function ReminderSettings({ userId }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState({ text: '', error: false });
   const saveTimer = useRef(null);
+  const { lang } = useI18n();
   const supported = pushSupported();
   const iosNeedsInstall = isIos() && !isInstalledApp();
 
@@ -72,7 +74,7 @@ export default function ReminderSettings({ userId }) {
       return;
     }
 
-    const saved = await saveReminderSettings(userId, { ...settings, enabled: true }, { justEnabled: true });
+    const saved = await saveReminderSettings(userId, { ...settings, enabled: true }, { justEnabled: true, lang });
 
     setBusy(false);
 
@@ -89,7 +91,7 @@ export default function ReminderSettings({ userId }) {
   async function turnOff() {
     setBusy(true);
     await unsubscribeThisDevice();
-    await saveReminderSettings(userId, { ...settings, enabled: false });
+    await saveReminderSettings(userId, { ...settings, enabled: false }, { lang });
     setBusy(false);
     say('Reminders are off.');
     await refresh();
@@ -102,7 +104,7 @@ export default function ReminderSettings({ userId }) {
     setSettings(next);
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      const saved = await saveReminderSettings(userId, next);
+      const saved = await saveReminderSettings(userId, next, { lang });
 
       say(saved.error || 'Saved.', Boolean(saved.error));
     }, 500);

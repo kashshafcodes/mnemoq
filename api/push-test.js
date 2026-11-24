@@ -36,8 +36,12 @@ export default async function handler(req, res, env = process.env, deps = {}) {
       return send(res, 400, { error: 'This device is not signed up for reminders yet.', code: 'nodevice' });
     }
 
+    // The test arrives in the language the person uses the app in.
+    const settings = await rest(admin, `reminder_settings?select=lang&user_id=eq.${user.id}`).catch(() => []);
+    const lang = settings?.[0]?.lang === 'bn' ? 'bn' : 'en';
+
     const webpush = deps.webpush || (await loadWebPush());
-    const { sent, dead } = await sendToDevices(webpush, env, devices, testMessage());
+    const { sent, dead } = await sendToDevices(webpush, env, devices, testMessage(new Date(), lang));
 
     for (const endpoint of dead) {
       await rest(admin, `push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`, { method: 'DELETE', prefer: 'return=minimal' }).catch(() => {});

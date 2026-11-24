@@ -84,10 +84,14 @@ export async function loadReminderState(userId) {
   };
 }
 
-export async function saveReminderSettings(userId, settings, { justEnabled = false } = {}) {
+// The app language for reminder texts: 'bn' or 'en' (api/_pushCopy.js).
+const reminderLang = (lang) => (lang === 'bn' ? 'bn' : 'en');
+
+export async function saveReminderSettings(userId, settings, { justEnabled = false, lang = 'en' } = {}) {
   const timezone = deviceTimeZone();
   const row = {
     user_id: userId,
+    lang: reminderLang(lang),
     enabled: settings.enabled,
     remind_time: settings.time,
     timezone,
@@ -107,6 +111,26 @@ export async function saveReminderSettings(userId, settings, { justEnabled = fal
   if (missingTable(error)) return { error: 'Reminders need a one-time server update (run supabase/reminders.sql).' };
 
   return { error: error ? error.message : '' };
+}
+
+// Keeps reminder_settings.lang in step with the app language, so reminders
+// arrive in the language the person uses. Called when the app opens and when
+// the language changes (src/i18n.jsx). Only touches an existing row whose
+// language differs (someone who never set up reminders has none), so it is a
+// no-op most of the time. Never throws.
+export async function syncReminderLang(lang) {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const userId = data?.session?.user?.id;
+
+    if (!userId) return;
+
+    const code = reminderLang(lang);
+
+    await supabase.from('reminder_settings').update({ lang: code }).eq('user_id', userId).neq('lang', code);
+  } catch {
+    // Reminders keep their last language; the next open tries again.
+  }
 }
 
 // Registers this device. Returns { error } with a message the person can read.
