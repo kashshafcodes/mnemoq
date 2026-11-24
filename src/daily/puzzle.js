@@ -4,29 +4,9 @@
 
 import { CATEGORIES, QUESTIONS } from './questions';
 
-// Puzzle #1 is 23 November 2026, Bangladesh time. A new one starts at midnight in Dhaka.
-const FIRST_DAY = '2026-11-23';
-const ZONE = 'Asia/Dhaka';
-const DAY_MS = 24 * 60 * 60 * 1000;
-export const ROUND_SIZE = 5;
+import { HISTORY_KEY, MAX_SCORE, ROUND_SIZE, dhakaDate, loadHistory, msUntilNext, puzzleNumber, streakOf } from './calendar';
 
-// "2026-11-23" for a moment, in Dhaka time.
-export function dhakaDate(now = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
-}
-
-export function puzzleNumber(now = new Date()) {
-  const days = Math.round((Date.parse(dhakaDate(now)) - Date.parse(FIRST_DAY)) / DAY_MS);
-
-  return Math.max(1, days + 1);
-}
-
-// Milliseconds until the next puzzle (midnight in Dhaka, UTC+6, no daylight saving).
-export function msUntilNext(now = new Date()) {
-  const next = Date.parse(`${dhakaDate(now)}T00:00:00+06:00`) + DAY_MS;
-
-  return Math.max(0, next - now.getTime());
-}
+export { MAX_SCORE, ROUND_SIZE, dhakaDate, loadHistory, msUntilNext, puzzleNumber, streakOf };
 
 // Small seeded random numbers, so everyone gets the same order on the same day.
 function seeded(seed) {
@@ -124,8 +104,6 @@ export const BETS = [
   { id: 'sure', stake: 3 },
 ];
 
-export const MAX_SCORE = ROUND_SIZE * 3;
-
 export function pointsFor(correct, betId) {
   const stake = BETS.find((b) => b.id === betId)?.stake ?? 1;
 
@@ -152,43 +130,17 @@ export function shareText({ number, marks, lang = 'en', url = 'https://mnemoq-tw
   return `${title}\n${grid}\n${url}`;
 }
 
-// ── This device's history ─────────────────────────────────────
-const KEY = 'mnemoq-daily';
-
-export function loadHistory() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
-
-    return saved && typeof saved === 'object' && saved.plays ? saved : { plays: {} };
-  } catch {
-    return { plays: {} };
-  }
-}
-
+// ── This device's history (loading it lives in calendar.js) ──
 export function saveRound(number, marks) {
   const history = loadHistory();
 
   history.plays[number] = { marks, score: scoreOf(marks), at: new Date().toISOString() };
 
   try {
-    localStorage.setItem(KEY, JSON.stringify(history));
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
   } catch {
     // Private mode: the round still shows, it just is not remembered.
   }
 
   return history;
-}
-
-// Days in a row ending today (or yesterday, if today is not played yet).
-export function streakOf(history, today) {
-  const played = (n) => Boolean(history.plays?.[n]);
-  let day = played(today) ? today : today - 1;
-  let streak = 0;
-
-  while (day >= 1 && played(day)) {
-    streak += 1;
-    day -= 1;
-  }
-
-  return streak;
 }

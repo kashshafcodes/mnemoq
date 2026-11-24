@@ -120,11 +120,19 @@ body.dly-body {
   gap: 8px;
 }
 
+.dly-top-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* At least 44 px: an easy target for a thumb. */
 .dly-icon-btn {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--glass-line);
   border-radius: 12px;
   background: var(--glass);

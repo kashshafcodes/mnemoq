@@ -7,6 +7,8 @@ import AiBadge from './AiBadge';
 import RichText, { inlinePreview } from './RichText';
 import CATALOG from '../../library/catalog.json';
 import DailyTile, { dailyStatus } from '../daily/DailyTile';
+import { playTimes } from '../daily/calendar';
+import PlayButton from '../loop/PlayButton';
 
 // The home page: one clear next step, a few numbers, and short links to the
 // rest. Everything else lives on its own page.
@@ -132,11 +134,16 @@ function ReminderNudge({ userId }) {
   );
 }
 
-export default function Home({ cards, reviews, dueCount, onReview, pathInfo = null, pathLoading = false, userId = null }) {
-  const data = useMemo(() => computeAnalytics(cards, reviews, new Date()), [cards, reviews]);
+export default function Home({ cards, reviews, dueCount, onReview, pathInfo = null, pathLoading = false, userId = null, play, onPlay }) {
+  // One streak: a day counts if you reviewed or finished the Daily.
+  const data = useMemo(() => computeAnalytics(cards, reviews, new Date(), { extraDays: playTimes() }), [cards, reviews]);
   const { stats } = data;
   const message = headline(stats);
-  const step = nextStep({ cards, dueCount, pathInfo, onReview, dailyPlayed: Boolean(dailyStatus().today) });
+  const dailyPlayed = Boolean(dailyStatus().today);
+  const step = nextStep({ cards, dueCount, pathInfo, onReview, dailyPlayed });
+  // The Play button covers due cards, the Daily and "done"; the focus card
+  // stays only for a first step it cannot take (a diagnostic, a first card).
+  const showFocus = step.tone === 'path' || step.tone === 'start';
 
   const subjects = useMemo(() => {
     const counts = new Map();
@@ -152,7 +159,11 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
   );
 
   return (
-    <div className="mq-home">
+    <div className="mq-home mq-home-has-play">
+      {/* On phones the floating copy (rendered by App, outside the page) takes over. */}
+      <PlayButton state={play} onPlay={onPlay} floating={false} className="mq-play-inline" />
+
+      {showFocus && (
       <section className={`mq-focus mq-focus-${step.tone}`}>
         <p className="mq-focus-kicker">{step.kicker}</p>
         <h2>{step.title}</h2>
@@ -174,6 +185,7 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
           )}
         </div>
       </section>
+      )}
 
       {cards.length > 0 && (
         <dl className="mq-stats">

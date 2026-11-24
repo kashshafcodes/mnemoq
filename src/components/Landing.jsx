@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import Auth from '../Auth';
 import { LanguageToggle, useI18n } from '../i18n';
 import { PRO } from '../proConfig';
@@ -6,6 +6,10 @@ import { launchActive, priceOf, taka } from '../pricing';
 import { track } from '../track';
 import { payText } from '../pro/payCopy';
 import MnemoqLogo from './MnemoqLogo';
+import { SAMPLE } from '../sample/strings';
+
+// The sample round loads only when someone taps it.
+const SampleRound = lazy(() => import('../sample/SampleRound'));
 
 // The page everyone who is not signed in sees: what Mnemoq is and who it is for.
 // The main action is a free diagnostic with no sign-up (TryDiagnostic.jsx);
@@ -165,6 +169,8 @@ export default function Landing() {
   const formRef = useRef(null);
   const from = PRO.offers[0];
   const best = PRO.offers.find((o) => o.best) || from;
+  const [sampleOpen, setSampleOpen] = useState(false);
+  const sample = SAMPLE[lang] || SAMPLE.en;
 
   useEffect(() => {
     track('landing_view', { page: 'landing' });
@@ -203,6 +209,27 @@ export default function Landing() {
             {c.title1} <span className="lp-hl">{c.title2}</span>
           </h1>
           <p className="lp-lead">{c.lead}</p>
+          <button
+            type="button"
+            className="lp-sample"
+            onClick={() => {
+              track('cta_click', { page: 'landing', where: 'hero_sample' });
+              setSampleOpen(true);
+            }}
+          >
+            <span className="lp-sample-lanterns" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className="lp-sample-text">
+              <b>{sample.open}</b>
+              <small>{sample.openSub}</small>
+            </span>
+            <span className="lp-try-go" aria-hidden="true">
+              →
+            </span>
+          </button>
           <div className="lp-try" id="try">
             <p className="lp-try-title">{c.tryTitle}</p>
             <p className="lp-try-pick">{c.tryPick}</p>
@@ -358,6 +385,22 @@ export default function Landing() {
         <p>{c.footer}</p>
         <p>© {new Date().getFullYear()} Mnemoq</p>
       </footer>
+
+      {sampleOpen && (
+        <Suspense fallback={null}>
+          <SampleRound
+            onClose={() => setSampleOpen(false)}
+            onSignup={() => {
+              setSampleOpen(false);
+              setTimeout(() => goSignup('sample_save'), 50);
+            }}
+            onLogin={() => {
+              setSampleOpen(false);
+              setTimeout(() => goSignup('sample_login'), 50);
+            }}
+          />
+        </Suspense>
+      )}
 
       <div className="lp-sticky">
         <button type="button" className="mq-btn mq-btn-primary mq-btn-block" onClick={() => goTry('sticky_try')}>

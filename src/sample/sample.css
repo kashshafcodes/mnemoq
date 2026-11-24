@@ -1,0 +1,75 @@
+/* The sample round sheet: the Daily's night look, laid over the landing page. */
+
+.smp {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: smp-in var(--dur-2) var(--ease-out);
+}
+
+.smp:focus {
+  outline: none;
+}
+
+.smp-count {
+  color: var(--text-2);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.smp-bubble {
+  max-width: 30ch;
+  margin: 8px auto;
+  padding: 10px 16px;
+  border: 1px solid var(--glass-line);
+  border-radius: 18px;
+  background: var(--glass-2);
+  font-weight: 600;
+  text-align: center;
+}
+
+.smp-hint {
+  margin: 0 0 6px;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.smp-quiet {
+  margin-top: 10px;
+  border: 0;
+  background: transparent;
+}
+
+.smp-done {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.smp-done h2 {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+}
+
+.smp-small {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+@keyframes smp-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smp {
+    animation: none;
+  }
+}

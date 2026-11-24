@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PATH_LIST, scaleOf } from '../paths';
 import AiBadge from './AiBadge';
+import { entryExam } from '../entryExam';
 
 const todayString = () => {
   const d = new Date();
@@ -13,7 +14,8 @@ const todayString = () => {
 //             only hold one path (supabase/stage4.sql has not been run)
 export default function PathSetup({ onSave, saving, error, exclude = [], onCancel = null, replaces = '' }) {
   const choices = PATH_LIST.filter((p) => !exclude.includes(p.id));
-  const [pathId, setPathId] = useState(choices[0]?.id || '');
+  // Pre-select the exam their entry link was about (/sat, ?exam=nsu ...), if any.
+  const [pathId, setPathId] = useState(() => (choices.find((p) => p.id === entryExam()) || choices[0])?.id || '');
   const [examDate, setExamDate] = useState('');
   const chosen = choices.find((p) => p.id === pathId);
   const [target, setTarget] = useState(chosen?.target ?? 75);

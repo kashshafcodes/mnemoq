@@ -4,6 +4,7 @@ import './App.css';
 import { supabase } from './supabaseClient';
 import Landing from './components/Landing';
 import { clearGuestResult, pendingGuestResult } from './guestResult';
+import { clearSampleMisses, pendingSampleCards, readSampleMisses } from './sample/store';
 import { trackEvent } from './googleAnalytics';
 
 import { MnemoqMark } from './components/MnemoqLogo';
@@ -25,7 +26,7 @@ import { MobileBar, Sidebar, TabBar, navItems } from './components/AppNav';
 import { pageHref, useRoute } from './useRoute';
 import { SESSION_SIZE, pickSessionCards, scheduleNext } from './quiz';
 import QuickAdd from './components/QuickAdd';
-import Pilot, { RecoveryPlan } from './components/Pilot';
+import { RecoveryPlan } from './components/RecoveryPlan';
 import { useI18n } from './i18n';
 import { loadPilot, savePilot } from './pilot';
 import {
@@ -41,6 +42,11 @@ import {
 // Loaded after every component's own styles so the new look has the final say.
 import './polish.css';
 import PageLoading from './components/PageLoading';
+import { computeStreaks } from './analytics';
+import { playTimes } from './daily/calendar';
+import { dailyStatus } from './daily/DailyTile';
+import { playState } from './loop/playState';
+import PlayButton from './loop/PlayButton';
 
 // Pages that are not the first screen load on demand (smaller first download).
 const TryDiagnostic = lazy(() => import('./components/TryDiagnostic'));
@@ -52,6 +58,9 @@ const MockCenter = lazy(() => import('./components/MockCenter'));
 const PathPage = lazy(() => import('./components/PathPage'));
 const ProPage = lazy(() => import('./components/Pro'));
 const Profile = lazy(() => import('./components/Profile'));
+const Daily = lazy(() => import('./daily/Daily.jsx'));
+const DoneToday = lazy(() => import('./loop/DoneToday'));
+const Pilot = lazy(() => import('./components/Pilot'));
 
 const STORAGE_KEY = 'mnemoq-mistakes';
 
@@ -123,7 +132,7 @@ const [authLoading, setAuthLoading] = useState(true);
     setPilot(saved);
 
     // People who arrive with a diagnostic result go straight to it instead.
-    if (!saved && (tryExam || pendingGuestResult(session.user))) {
+    if (!saved && (tryExam || pendingGuestResult(session.user) || pendingSampleCards(session.user).length > 0)) {
       const skipped = { status: 'skipped' };
 
       savePilot(userId, skipped);
@@ -237,6 +246,46 @@ const [authLoading, setAuthLoading] = useState(true);
       go('report');
     })();
   }, [session, dataLoading, pathState, tryExam, go]);
+
+  // Misses from the sample round played before signing up (src/sample/):
+  // they become this account's first review cards, once.
+  const importingSample = useRef(false);
+
+  useEffect(() => {
+    const user = session?.user;
+
+    if (!user || dataLoading || importingSample.current) return;
+
+    const local = readSampleMisses();
+    const cards = pendingSampleCards(user);
+
+    if (cards.length === 0) return;
+
+    importingSample.current = true;
+
+    // Already imported on another device (the sign-up copy was cleared there).
+    if (local && user.user_metadata?.sample_imported_at === local.at && !user.user_metadata?.sample_misses) {
+      clearSampleMisses();
+      return;
+    }
+
+    (async () => {
+      let added = 0;
+
+      for (const card of cards) {
+        // eslint-disable-next-line no-await-in-loop
+        const result = await addCard(card);
+
+        if (!result?.error) added += 1;
+      }
+
+      const at = local?.at || user.user_metadata?.sample_misses?.at || null;
+
+      clearSampleMisses();
+      await supabase.auth.updateUser({ data: { sample_misses: null, sample_imported_at: at } }).catch(() => {});
+      trackEvent('sample_cards_saved', { count: added });
+    })();
+  }, [session, dataLoading]);
 
   // Mnemoq Pro: the person's plan (supabase/stage5.sql).
   const [plan, setPlan] = useState(FREE_PLAN);
@@ -978,8 +1027,28 @@ function goToReview() {
   go('review');
 }
 
+// Saves cards (the Daily's misses) and starts a review of exactly those.
+async function saveAndReview(list) {
+  const ids = [];
 
+  for (const card of list) {
+    // eslint-disable-next-line no-await-in-loop
+    const result = await addCard(card);
 
+    if (result?.error) return { error: result.error, saved: ids.length };
+
+    ids.push(result.id);
+  }
+
+  if (ids.length > 0) {
+    setReviewSubject(null);
+    setManualReviewId(null);
+    setReviewSession({ ids, results: [] });
+    go('review');
+  }
+
+  return { saved: ids.length };
+}
 
 const reviewMistake =
   manualReviewId !== null
@@ -1251,6 +1320,7 @@ if (dataError) {
 
   if (pilotOpen) {
     return (
+      <Suspense fallback={<PageLoading />}>
       <Pilot
         cards={mistakes}
         addCard={addCard}
@@ -1262,6 +1332,37 @@ if (dataError) {
         }}
         onFinish={finishPilot}
       />
+      </Suspense>
+    );
+  }
+
+  // Today's loop: what the Play button would do, shared by Home, the end of
+  // a round, the Daily and "Done for today".
+  const dailyPlayed = Boolean(dailyStatus().today);
+  const play = playState({ dueCount: dueMistakes.length, dailyPlayed, size: SESSION_SIZE });
+
+  function playNow() {
+    if (play.action === 'review') goToReview();
+    else go(play.action === 'daily' ? 'daily' : 'done');
+  }
+
+  // The Daily inside the app: full screen, the night look, a back button, no reload.
+  if (page === 'daily') {
+    return (
+      <PageErrorBoundary page="daily">
+        <Suspense fallback={<PageLoading />}>
+          <Daily
+            inApp={{
+              onBack: () => go('home'),
+              streakNow: () => computeStreaks(reviewLog, new Date(), playTimes()).current,
+              dueCount: dueMistakes.length,
+              onReview: goToReview,
+              onDone: () => go('done'),
+              onSaveAndReview: saveAndReview,
+            }}
+          />
+        </Suspense>
+      </PageErrorBoundary>
     );
   }
 
@@ -1279,6 +1380,8 @@ if (dataError) {
       />
       <MobileBar plan={plan} me={me} />
       <TabBar page={page} items={nav.tabs} />
+
+      {page === 'home' && <PlayButton state={play} onPlay={playNow} />}
 
       <main className="mq-main">
         <PageErrorBoundary key={page} page={page}>
@@ -1313,9 +1416,13 @@ if (dataError) {
               pathInfo={pathInfo}
               pathLoading={pathState.status === 'loading'}
               userId={session.user.id}
+              play={play}
+              onPlay={playNow}
             />
           </>
         )}
+
+        {page === 'done' && <DoneToday cards={mistakes} play={play} onPlay={playNow} userId={session.user.id} />}
 
         {page === 'progress' && (
           <Dashboard
@@ -1460,6 +1567,8 @@ if (dataError) {
             scopedDue={scopedDue}
             startSession={startSession}
             setReviewSession={setReviewSession}
+            dailyPlayed={dailyPlayed}
+            go={go}
           />
         )}
 

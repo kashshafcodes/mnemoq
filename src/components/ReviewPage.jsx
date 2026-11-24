@@ -1,6 +1,6 @@
 import ReviewCard from './ReviewCard';
 import Jonaki from './Jonaki';
-import { dailyStatus } from '../daily/DailyTile';
+import { useLoopT } from '../loop/strings';
 import { ReviewSubjectTabs, SessionStart, SessionSummary } from './SessionPanels';
 import { SESSION_SIZE } from '../quiz';
 import { sameName } from '../subjects';
@@ -25,7 +25,11 @@ export default function ReviewPage({
   scopedDue,
   startSession,
   setReviewSession,
+  dailyPlayed = false,
+  go,
 }) {
+  const t = useLoopT();
+
   return (
     <>
       <section className="review-section" id="review">
@@ -87,27 +91,69 @@ export default function ReviewPage({
             results={reviewSession.results}
             cards={mistakes}
             moreDue={scopedDue.length}
+            dailyPlayed={dailyPlayed}
             onAgain={startSession}
-            onDone={() => setReviewSession(null)}
+            onStop={() => {
+              setReviewSession(null);
+              go('home');
+            }}
+            onDaily={() => {
+              setReviewSession(null);
+              go('daily');
+            }}
+            onDoneToday={() => {
+              setReviewSession(null);
+              go('done');
+            }}
           />
         ) : scopedDue.length > 0 ? (
           <SessionStart dueCards={scopedDue} subject={activeReviewSubject} sessionSize={SESSION_SIZE} onStart={startSession} />
         ) : (
           <div className="review-empty-state">
-            <Jonaki mood="sleep" size={84} />
-            <h3>{activeReviewSubject ? `${activeReviewSubject} is all caught up!` : "You're all caught up!"}</h3>
-            <p>{activeReviewSubject ? `No ${activeReviewSubject} cards are due right now.` : 'No cards are due for review right now.'}</p>
-            <p>
-              {activeReviewSubject
-                ? dueMistakes.length > 0
-                  ? 'Pick another subject above to keep going.'
-                  : "They'll return to your review queue when they're due."
-                : `You have ${mistakes.length} saved card${mistakes.length === 1 ? '' : 's'} in your library. They'll return to your review queue when they're due.`}
-            </p>
-            {!dailyStatus().today && (
-              <a className="mq-btn mq-btn-ghost" href="/daily">
-                Play today’s Daily puzzle while you wait
-              </a>
+            {mistakes.length === 0 ? (
+              <>
+                <Jonaki mood="idle" size={84} />
+                <h3>{t('empty.noCards.title')}</h3>
+                <p>{t('empty.noCards.body')}</p>
+                <div className="mq-empty-actions">
+                  {!dailyPlayed && (
+                    <a className="mq-btn mq-btn-primary" href={pageHref('daily')}>
+                      {t('empty.noCards.daily')}
+                    </a>
+                  )}
+                  <a className={`mq-btn ${dailyPlayed ? 'mq-btn-primary' : 'mq-btn-ghost'}`} href={pageHref('add')}>
+                    {t('empty.noCards.add')}
+                  </a>
+                </div>
+              </>
+            ) : (
+              <>
+                <Jonaki mood="sleep" size={84} />
+                <h3>{activeReviewSubject ? t('empty.nothingDue.subject', { subject: activeReviewSubject }) : t('empty.nothingDue.title')}</h3>
+                <p>
+                  {activeReviewSubject && dueMistakes.length > 0
+                    ? t('empty.nothingDue.otherSubject')
+                    : t('empty.nothingDue.body', { n: mistakes.length })}
+                </p>
+                <div className="mq-empty-actions">
+                  {activeReviewSubject && dueMistakes.length > 0 ? (
+                    <button type="button" className="mq-btn mq-btn-primary" onClick={() => chooseReviewSubject(null)}>
+                      {t('play.title')}
+                    </button>
+                  ) : !dailyPlayed ? (
+                    <a className="mq-btn mq-btn-primary" href={pageHref('daily')}>
+                      {t('empty.nothingDue.daily')}
+                    </a>
+                  ) : (
+                    <a className="mq-btn mq-btn-primary" href={pageHref('done')}>
+                      {t('session.next.done')}
+                    </a>
+                  )}
+                  <a className="mq-btn mq-btn-ghost" href={pageHref('practice')}>
+                    {t('empty.practice')}
+                  </a>
+                </div>
+              </>
             )}
           </div>
         )}

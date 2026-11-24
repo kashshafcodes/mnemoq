@@ -4,6 +4,7 @@ import { useI18n } from './i18n';
 import { trackEvent } from './googleAnalytics';
 import { trafficSource } from './track';
 import { guestMetadata } from './guestResult';
+import { sampleMetadata } from './sample/store';
 
 // The sign-up / log-in form. Shown inside the landing page (Landing.jsx).
 export default function Auth({ startWith = 'signup', compact = false, title = '', subtitle = '' }) {
@@ -27,7 +28,7 @@ export default function Auth({ startWith = 'signup', compact = false, title = ''
           email: email.trim(),
           password,
           // Which post or site brought them, so the Stats page can credit it.
-          options: { data: { source: src.source, campaign: src.campaign || null, ...guestMetadata() } },
+          options: { data: { source: src.source, campaign: src.campaign || null, ...guestMetadata(), ...sampleMetadata() } },
         });
 
         if (error) throw error;

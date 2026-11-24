@@ -4,7 +4,10 @@ import { supabase } from './supabaseClient';
 // Settings and devices live in Supabase (supabase/reminders.sql); the server sends
 // them on schedule (api/remind.js).
 
-export const DEFAULT_SETTINGS = { enabled: false, time: '18:00', streakNudge: true, dueAlerts: true, dueMin: 5, quietStart: '22:00', quietEnd: '07:00' };
+// Defaults for someone who has never saved reminders: 19:00 (students are most
+// active 18:00-23:00 Dhaka) and quiet from 23:30. Saved settings always win,
+// including old rows saved before quiet hours existed (they keep 22:00).
+export const DEFAULT_SETTINGS = { enabled: false, time: '19:00', streakNudge: true, dueAlerts: true, dueMin: 5, quietStart: '23:30', quietEnd: '07:00' };
 
 const PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
 

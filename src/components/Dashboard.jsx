@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { playTimes } from '../daily/calendar';
 import { computeAnalytics, formatDays, formatGap, headline } from '../analytics';
 import { subjectAccent } from '../subjects';
 
@@ -498,7 +499,7 @@ export function Badges({ badges }) {
 }
 
 export default function Dashboard({ cards, reviews, dueCount, showForm, onToggleAdd, onReview }) {
-  const data = useMemo(() => computeAnalytics(cards, reviews, new Date()), [cards, reviews]);
+  const data = useMemo(() => computeAnalytics(cards, reviews, new Date(), { extraDays: playTimes() }), [cards, reviews]);
   const { stats } = data;
   const message = headline(stats);
 

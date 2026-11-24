@@ -1,0 +1,177 @@
+/* Today's loop: the Play button and "Done for today". Colours and motion come
+   from the tokens in src/index.css. Only transform and opacity animate. */
+
+.mq-play {
+  margin: 4px 0 18px;
+}
+
+.mq-play-btn {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 72px;
+  padding: 14px 22px 14px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--accent) 38%, transparent);
+  transition: transform var(--dur-1) var(--ease-out);
+}
+
+/* The glow: a soft halo that breathes (opacity and scale only). */
+.mq-play-btn::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 55%, transparent), transparent);
+  opacity: 0.55;
+  animation: mq-play-pulse 2.4s var(--ease-in-out) infinite;
+}
+
+.mq-play-btn:hover {
+  background: var(--accent-hover);
+}
+
+.mq-play-btn:active {
+  transform: scale(0.97);
+}
+
+.mq-play-btn:focus-visible {
+  outline: 3px solid var(--accent-line);
+  outline-offset: 3px;
+}
+
+.mq-play-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--on-accent) 18%, transparent);
+}
+
+.mq-play-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mq-play-text b {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.mq-play-text small {
+  font-size: 14px;
+  opacity: 0.88;
+}
+
+/* Done: calm, no pulse. */
+.mq-play-done .mq-play-btn {
+  background: var(--surface-2);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.mq-play-done .mq-play-btn::before {
+  display: none;
+}
+
+.mq-play-done .mq-play-icon {
+  background: var(--highlight-soft);
+  color: var(--highlight-ink);
+}
+
+@keyframes mq-play-pulse {
+  50% {
+    opacity: 0.95;
+    transform: scale(1.04);
+  }
+}
+
+/* Phones: float above the tab bar, in reach of the thumb. The floating copy
+   lives outside the page (App.jsx), so page transitions never move it. */
+.mq-play-float {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .mq-play-inline {
+    display: none;
+  }
+
+  .mq-play-float {
+    display: block;
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    z-index: 29;
+    margin: 0;
+  }
+
+  .mq-home-has-play {
+    padding-bottom: 92px;
+  }
+}
+
+/* "Done for today" */
+.mq-done {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  max-width: 520px;
+  margin: 24px auto;
+  text-align: center;
+}
+
+.mq-done h1 {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 5vw, 32px);
+  line-height: 1.2;
+}
+
+.mq-done-tomorrow {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 16px;
+}
+
+.mq-done-actions {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.mq-done-link {
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mq-play-btn::before {
+    animation: none;
+  }
+}
+
+/* Empty states always lead somewhere (Review, Library). */
+.mq-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}

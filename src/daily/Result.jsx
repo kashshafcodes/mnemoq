@@ -3,7 +3,8 @@ import { supabase } from '../supabaseClient';
 import { track } from '../track';
 import Jonaki from '../components/Jonaki';
 import { CARD_HOME } from './questions';
-import { MAX_SCORE, msUntilNext, scoreOf, shareText, streakOf } from './puzzle';
+import { MAX_SCORE, msUntilNext, scoreOf, shareText } from './puzzle';
+import { loopT } from '../loop/strings';
 import { bnDigits, rankOf } from './strings';
 import { drawShareCard } from './shareImage';
 import { sfx } from './audio';
@@ -38,12 +39,11 @@ function clock(ms) {
   return `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`;
 }
 
-export default function Result({ number, marks, questions, history, t, lang, num, sparks }) {
+export default function Result({ number, marks, questions, history, t, lang, num, sparks, inApp = null, streak = 0 }) {
   const score = scoreOf(marks);
   const rank = rankOf(score);
   const plays = Object.values(history.plays);
   const best = plays.reduce((top, p) => Math.max(top, p.score), score);
-  const streak = streakOf(history, number);
   const sure = marks.filter((m) => m.bet === 'sure');
   const missed = marks.map((m, i) => ({ mark: m, question: questions[i] })).filter(({ mark }) => !mark.correct);
   const [shown, setShown] = useState(0); // lanterns revealed so far
@@ -223,7 +223,7 @@ export default function Result({ number, marks, questions, history, t, lang, num
         <p className="dly-next">{t('nextIn', { time: lang === 'bn' ? bnDigits(clock(left)) : clock(left) })}</p>
       </section>
 
-      <Misses missed={missed} t={t} lang={lang} />
+      {inApp ? <AppNext missed={missed} t={t} lang={lang} inApp={inApp} /> : <Misses missed={missed} t={t} lang={lang} />}
 
       {toast && (
         <p className="dly-toast" role="status">
@@ -234,11 +234,99 @@ export default function Result({ number, marks, questions, history, t, lang, num
   );
 }
 
+// A missed question as a review card (for the app's addCard, or a database row).
+function cardFrom({ mark, question }, lang) {
+  const side = question[lang] || question.en;
+  const home = CARD_HOME[question.category];
+
+  return {
+    subject: home.subject,
+    category: home.category,
+    question: side.q,
+    yourAnswer: side.options[mark.picked] || '',
+    correctAnswer: side.options[question.answer],
+    explanation: side.why,
+  };
+}
+
+const brightFirst = (missed) => [...missed].sort((a, b) => (b.mark.bet === 'sure') - (a.mark.bet === 'sure'));
+
+function MissList({ sorted, t, lang }) {
+  return (
+    <ul className="dly-missed">
+      {sorted.map(({ mark, question }) => {
+        const side = question[lang] || question.en;
+
+        return (
+          <li key={question.id} className={mark.bet === 'sure' ? 'bright' : ''}>
+            {mark.bet === 'sure' && <em>✦ {t('bright')}</em>}
+            <span>{side.q}</span>
+            <b>{side.options[question.answer]}</b>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// Inside the app (signed in): never a dead end. Misses -> save them and review
+// them now. No misses -> one round of due cards, or "Done for today".
+function AppNext({ missed, t, lang, inApp }) {
+  const lt = loopT(lang);
+  const [state, setState] = useState('idle');
+  const sorted = brightFirst(missed);
+  const due = inApp.dueCount || 0;
+
+  async function saveAndReview() {
+    setState('saving');
+    haptic.tap();
+
+    const result = await inApp.onSaveAndReview(sorted.map((item) => cardFrom(item, lang)));
+
+    if (result?.error) {
+      setState('failed');
+      return;
+    }
+
+    sfx.correct(2);
+    track('daily_cards_saved', { page: 'daily', count: result?.saved || 0, then: 'review' });
+  }
+
+  if (missed.length === 0) {
+    return (
+      <section className="dly-card dly-misses">
+        <p className="dly-perfect">✦ {t('perfect')}</p>
+        <p className="dly-note">{due > 0 ? lt('dailyEnd.dueToo', { n: due }) : lt('dailyEnd.perfect.next')}</p>
+        <button type="button" className="dly-play dly-block" onClick={due > 0 ? inApp.onReview : inApp.onDone}>
+          {due > 0 ? lt('play.title') : lt('session.next.done')}
+        </button>
+        <button type="button" className="dly-ghost dly-block" onClick={inApp.onBack}>
+          {t('openApp')}
+        </button>
+      </section>
+    );
+  }
+
+  return (
+    <section className="dly-card dly-misses">
+      <h2>{t('missedTitle')}</h2>
+      <MissList sorted={sorted} t={t} lang={lang} />
+      <button type="button" className="dly-play dly-block" disabled={state === 'saving'} onClick={saveAndReview}>
+        {state === 'saving' ? t('saving') : lt('dailyEnd.review.save', { n: missed.length })}
+      </button>
+      {state === 'failed' && <p className="dly-note bad">{t('saveFailed')}</p>}
+      <button type="button" className="dly-ghost dly-block" onClick={inApp.onDone}>
+        {lt('dailyEnd.later')}
+      </button>
+    </section>
+  );
+}
+
 // The questions you missed (bright mistakes first) and a way to keep them.
 function Misses({ missed, t, lang }) {
   const [session, setSession] = useState(undefined);
   const [state, setState] = useState('idle');
-  const sorted = [...missed].sort((a, b) => (b.mark.bet === 'sure') - (a.mark.bet === 'sure'));
+  const sorted = brightFirst(missed);
 
   useEffect(() => {
     supabase.auth
@@ -267,19 +355,18 @@ function Misses({ missed, t, lang }) {
     haptic.tap();
 
     const now = new Date().toISOString();
-    const rows = sorted.map(({ mark, question }) => {
-      const side = question[lang] || question.en;
-      const home = CARD_HOME[question.category];
+    const rows = sorted.map((item) => {
+      const card = cardFrom(item, lang);
 
       return {
         id: crypto.randomUUID(),
         user_id: userId,
-        subject: home.subject,
-        category: home.category,
-        question: side.q,
-        your_answer: side.options[mark.picked] || '',
-        correct_answer: side.options[question.answer],
-        explanation: side.why,
+        subject: card.subject,
+        category: card.category,
+        question: card.question,
+        your_answer: card.yourAnswer,
+        correct_answer: card.correctAnswer,
+        explanation: card.explanation,
         created_at: now,
         next_review_at: null,
         review_count: 0,
@@ -302,19 +389,7 @@ function Misses({ missed, t, lang }) {
   return (
     <section className="dly-card dly-misses">
       <h2>{t('missedTitle')}</h2>
-      <ul className="dly-missed">
-        {sorted.map(({ mark, question }) => {
-          const side = question[lang] || question.en;
-
-          return (
-            <li key={question.id} className={mark.bet === 'sure' ? 'bright' : ''}>
-              {mark.bet === 'sure' && <em>✦ {t('bright')}</em>}
-              <span>{side.q}</span>
-              <b>{side.options[question.answer]}</b>
-            </li>
-          );
-        })}
-      </ul>
+      <MissList sorted={sorted} t={t} lang={lang} />
 
       {session === undefined ? null : session ? (
         <>

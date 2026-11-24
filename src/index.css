@@ -54,6 +54,22 @@
   --shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 8px 24px rgba(28, 25, 23, 0.06);
   --shadow-lg: 0 2px 4px rgba(28, 25, 23, 0.04), 0 24px 60px rgba(28, 25, 23, 0.12);
 
+  /* The Daily's night, for small pieces of it outside the game (same in both themes). */
+  --night-deep: #1a1640;
+  --night-mid: #2a1f4d;
+  --night-text: #fff7e0;
+  --night-text-2: rgba(255, 247, 224, 0.72);
+  --lantern-gold: #ffd54a;
+  --lantern-flame: #ff8a1c;
+
+  /* Motion v1: three durations, one easing family. Animate only transform
+     and opacity. Reduced motion sets the durations to ~0 (see the end). */
+  --dur-1: 150ms; /* taps, small state changes */
+  --dur-2: 250ms; /* page slides, pops */
+  --dur-3: 400ms; /* larger entrances */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
   color-scheme: light;
   font-family: var(--font-body);
   font-synthesis: none;
@@ -172,5 +188,91 @@ body {
   .mq-page-loading .mq-mark {
     animation: none;
     opacity: 1;
+  }
+}
+
+/* ── Motion system v1 ──────────────────────────────────────────
+   Tokens are at the top (--dur-1/2/3, --ease-out, --ease-in-out). Only
+   transform and opacity move. Reduced motion turns it all off at the end. */
+
+/* Tap feedback: a small press on every button-like control. */
+.mq-btn,
+.primary-button,
+.ghost-button,
+.mq-tab,
+.mq-tile,
+.mcq-option,
+.lp-try-exam {
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: var(--dur-1);
+  transition-timing-function: var(--ease-out);
+}
+
+.mq-btn:active:not(:disabled),
+.primary-button:active:not(:disabled),
+.ghost-button:active:not(:disabled),
+.mq-tab:active,
+.mcq-option:active:not(:disabled),
+.lp-try-exam:active {
+  transform: scale(0.97);
+}
+
+.mq-tile:active {
+  transform: scale(0.99);
+}
+
+/* Pages slide in: each page remounts under its own key in App.jsx. */
+.mq-main > * {
+  animation: mq-page-in var(--dur-2) var(--ease-out) backwards;
+}
+
+@keyframes mq-page-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+
+/* A success pop on a correct recall, and on the round score. */
+.review-result.correct,
+.mq-pop {
+  animation: mq-pop var(--dur-3) var(--ease-out) both;
+}
+
+@keyframes mq-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 1ms;
+    --dur-2: 1ms;
+    --dur-3: 1ms;
+  }
+
+  .mq-main > *,
+  .review-result.correct,
+  .mq-pop {
+    animation: none;
+  }
+
+  .mq-btn:active:not(:disabled),
+  .primary-button:active:not(:disabled),
+  .ghost-button:active:not(:disabled),
+  .mq-tab:active,
+  .mcq-option:active:not(:disabled),
+  .lp-try-exam:active,
+  .mq-tile:active {
+    transform: none;
   }
 }

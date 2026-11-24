@@ -20,7 +20,8 @@ import { trackEvent } from '../googleAnalytics';
 const TIMES = [
   ['07:00', 'Morning, 7 am'],
   ['13:00', 'Afternoon, 1 pm'],
-  ['18:00', 'Evening, 6 pm'],
+  ['18:00', 'Early evening, 6 pm'],
+  ['19:00', 'Evening, 7 pm'],
   ['21:00', 'Night, 9 pm'],
 ];
 

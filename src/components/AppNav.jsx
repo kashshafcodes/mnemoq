@@ -8,8 +8,8 @@ import './AppNav.css';
 
 // The app's navigation: the desktop sidebar, the phone top bar and the phone
 // tab bar. Kept short on purpose. "Add" is a button, not a page in the list;
-// Progress opens from Home and Library; the Daily puzzle is its own full-screen
-// game at /daily.
+// Progress opens from Home and Library; the Daily puzzle opens full screen
+// inside the app at #/daily (guests play it at /daily).
 
 // Pages that live under another menu entry, so that entry stays highlighted.
 const PARENT = { mocks: 'path', progress: 'home', add: 'library', report: 'path' };
@@ -22,7 +22,7 @@ export function navItems({ t, dueCount, pathInfo, isAdmin }) {
     ['practice', PracticeIcon, t('nav.practice')],
     ['path', PathIcon, pathInfo ? `${pathInfo.short} path` : t('nav.path')],
     ['library', LibraryIcon, t('nav.library')],
-    ['daily', DailyIcon, t('nav.daily'), 0, '/daily'],
+    ['daily', DailyIcon, t('nav.daily')],
     ...(isAdmin ? [['admin', StatsIcon, 'Stats']] : []),
   ];
 
@@ -128,7 +128,7 @@ export function MobileBar({ plan, me }) {
     <header className="mq-mobilebar">
       <MnemoqLogo size={26} href={pageHref('home')} />
       <div className="mq-mobilebar-right">
-        <a className="mq-daily-chip" href="/daily" aria-label={t('nav.daily')}>
+        <a className="mq-daily-chip" href={pageHref('daily')} aria-label={t('nav.daily')}>
           <DailyIcon />
         </a>
         {!plan.pro && (

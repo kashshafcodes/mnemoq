@@ -8,9 +8,13 @@ import { startErrorReporting } from './errors/report'
 import InstallPrompt from './install/InstallPrompt'
 import OfflineBanner from './install/OfflineBanner'
 import PageLoading from './components/PageLoading'
+import { rememberEntryExam } from './entryExam'
+import { startGoogleAnalytics } from './googleAnalytics'
 
 startErrorReporting()
 startAppShell()
+rememberEntryExam()
+startGoogleAnalytics()
 
 // Stand-alone pages that work without signing in; everything else is the app.
 // They load on demand, so the app's first screen does not wait for them.

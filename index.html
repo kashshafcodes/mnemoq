@@ -28,12 +28,32 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Sora:wght@600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Google Analytics 4 (events are listed in ANALYTICS_EVENTS.md) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZC0907DDRK"></script>
-    <script src="/ga.js"></script>
+    <!-- Google Analytics 4 loads after the app is usable (src/googleAnalytics.js). -->
+
+    <!-- The splash: painted at once, replaced when the app mounts. -->
+    <style>
+      .mq-splash { min-height: 100vh; min-height: 100dvh; display: grid; place-content: center; justify-items: center; gap: 14px; background: #f7f5f0; color: #16171d; font: 600 18px/1.2 system-ui, sans-serif; }
+      .mq-splash svg { animation: mq-splash 1.4s ease-in-out infinite; }
+      .mq-splash span { letter-spacing: 0.01em; }
+      @keyframes mq-splash { 50% { opacity: 0.6; transform: scale(0.94); } }
+      @media (prefers-color-scheme: dark) { .mq-splash { background: #111114; color: #f3f2ee; } }
+      @media (prefers-reduced-motion: reduce) { .mq-splash svg { animation: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="mq-splash" aria-busy="true">
+        <svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true">
+          <defs><radialGradient id="mq-glow"><stop offset="0" stop-color="#ffd54a" /><stop offset="0.55" stop-color="#ffb321" stop-opacity="0.55" /><stop offset="1" stop-color="#ff8a1c" stop-opacity="0" /></radialGradient></defs>
+          <circle cx="36" cy="44" r="26" fill="url(#mq-glow)" />
+          <ellipse cx="36" cy="46" rx="10" ry="12" fill="#ffd54a" />
+          <circle cx="36" cy="26" r="11" fill="#2a1f4d" />
+          <circle cx="32" cy="25" r="2.2" fill="#fff7e0" /><circle cx="40" cy="25" r="2.2" fill="#fff7e0" />
+          <path d="M31 15 27 8M41 15 45 8" stroke="#2a1f4d" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <span>Mnemoq</span>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

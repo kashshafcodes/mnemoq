@@ -3757,6 +3757,60 @@ code {
   scroll-margin: 24px;
 }
 
+/* The 60-second sample round (src/sample/): a small piece of the night. */
+.lp-sample {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 22px;
+  padding: 14px 18px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--night-deep), var(--night-mid));
+  color: var(--night-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform var(--dur-1) var(--ease-out);
+}
+
+.lp-sample:active {
+  transform: scale(0.98);
+}
+
+.lp-sample-lanterns {
+  display: flex;
+  gap: 5px;
+}
+
+.lp-sample-lanterns i {
+  width: 12px;
+  height: 18px;
+  border-radius: 6px 6px 8px 8px;
+  background: radial-gradient(circle at 50% 60%, var(--lantern-gold), var(--lantern-flame) 70%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--lantern-gold) 70%, transparent);
+}
+
+.lp-sample-text {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+}
+
+.lp-sample-text b {
+  font-size: 17px;
+}
+
+.lp-sample-text small {
+  color: var(--night-text-2);
+}
+
+.lp-sample .lp-try-go {
+  color: var(--lantern-gold);
+}
+
 .lp-try-title {
   margin: 0;
   color: var(--ink);

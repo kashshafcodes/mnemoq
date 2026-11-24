@@ -22,7 +22,10 @@ import './daily.css';
 const LETTERS = ['A', 'B', 'C', 'D'];
 const CATEGORY_ICON = { bangladesh: '🪷', science: '🔬', words: '✒️', numbers: '➗', world: '🌏' };
 
-export default function Daily() {
+// `inApp` is set when a signed-in person opens #/daily inside the app: a back
+// button instead of a page reload, the shared streak, and "review your misses
+// now" at the end. Guests on /daily get the stand-alone page.
+export default function Daily({ inApp = null }) {
   const { lang } = useI18n();
   const t = useMemo(() => makeT(lang), [lang]);
   const num = useCallback((n) => (lang === 'bn' ? bnDigits(n) : String(n)), [lang]);
@@ -58,6 +61,12 @@ export default function Daily() {
   useEffect(() => {
     document.title = `${t('title')} #${num(number)}`;
   }, [t, num, number]);
+
+  // Every new question (and the result) starts at the top, so the question is
+  // never hidden above the fold on small phones.
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [step, phase]);
 
   useEffect(() => {
     setSoundOn(settings.sound);
@@ -169,7 +178,8 @@ export default function Daily() {
     return picked === null ? 'think' : 'idle';
   })();
   const glow = revealed ? (correct ? 0.6 + BETS.findIndex((b) => b.id === bet) * 0.2 : 0.15) : charge ? 0.4 + charge * 0.2 : undefined;
-  const streak = streakOf(history, number);
+  // One streak inside the app (reviews and Daily rounds); the Daily's own on /daily.
+  const streak = inApp?.streakNow ? inApp.streakNow() : streakOf(history, number);
   const dateLabel = new Date(`${dhakaDate()}T12:00:00`).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
@@ -178,7 +188,18 @@ export default function Daily() {
       <Sparks ref={sparks} />
 
       <header className="dly-top">
-        <MnemoqLogo size={26} tagline={false} href="/" />
+        {inApp ? (
+          <div className="dly-top-left">
+            <button type="button" className="dly-icon-btn dly-back" aria-label={t('back')} onClick={inApp.onBack}>
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <MnemoqLogo size={26} tagline={false} href="#/home" />
+          </div>
+        ) : (
+          <MnemoqLogo size={26} tagline={false} href="/" />
+        )}
         <div className="dly-top-right">
           {phase === 'play' && (
             <span className="dly-score-pill" aria-label={`${score} ${t('points')}`}>
@@ -333,7 +354,7 @@ export default function Daily() {
           </>
         )}
 
-        {phase === 'done' && <Result number={number} marks={marks} questions={questions} history={history} t={t} lang={lang} num={num} sparks={sparks} />}
+        {phase === 'done' && <Result number={number} marks={marks} questions={questions} history={history} t={t} lang={lang} num={num} sparks={sparks} inApp={inApp} streak={streak} />}
       </main>
     </div>
   );

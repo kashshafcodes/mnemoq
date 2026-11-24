@@ -2,6 +2,9 @@ import RichText from './RichText';
 import { NO_SUGGEST } from '../noSuggest';
 import { subjectAccent } from '../subjects';
 import { pageHref } from '../useRoute';
+import Jonaki from './Jonaki';
+import { dailyStatus } from '../daily/DailyTile';
+import { useLoopT } from '../loop/strings';
 
 // How many cards show before "See all".
 export const COLLAPSED_COUNT = 3;
@@ -184,20 +187,7 @@ export default function LibraryPage({
       )}
 
       {filteredMistakes.length === 0 ? (
-        <section className="empty-state">
-          <div className="empty-icon">✳</div>
-          <h3>{mistakes.length === 0 ? 'Your journey starts with one card.' : 'No cards match this filter yet.'}</h3>
-          <p>
-            {mistakes.length === 0
-              ? 'Add something you want to remember, or something you got wrong, to begin your library.'
-              : 'Choose another subject or category, or add a card here.'}
-          </p>
-          {mistakes.length === 0 && (
-            <button type="button" className="text-link" onClick={() => setShowTutorial(true)}>
-              New here? See how it works
-            </button>
-          )}
-        </section>
+        <LibraryEmpty noCards={mistakes.length === 0} onTutorial={() => setShowTutorial(true)} />
       ) : (
         <section className="mistake-list">
           {visibleMistakes.map((mistake) => (
@@ -261,5 +251,39 @@ export default function LibraryPage({
         </section>
       )}
     </>
+  );
+}
+
+// No cards yet, or none in this filter: always a way forward.
+function LibraryEmpty({ noCards, onTutorial }) {
+  const t = useLoopT();
+  const dailyPlayed = Boolean(dailyStatus().today);
+
+  return (
+    <section className="empty-state">
+      <Jonaki mood={noCards ? 'idle' : 'think'} size={72} />
+      <h3>{noCards ? t('empty.noCards.title') : 'No cards match this filter yet.'}</h3>
+      <p>{noCards ? t('empty.noCards.body') : 'Choose another subject or category, or add a card here.'}</p>
+      <div className="mq-empty-actions">
+        <a className="mq-btn mq-btn-primary" href={pageHref('add')}>
+          {t('empty.noCards.add')}
+        </a>
+        {noCards && !dailyPlayed && (
+          <a className="mq-btn mq-btn-ghost" href={pageHref('daily')}>
+            {t('empty.noCards.daily')}
+          </a>
+        )}
+        {noCards && dailyPlayed && (
+          <a className="mq-btn mq-btn-ghost" href={pageHref('practice')}>
+            {t('empty.practice')}
+          </a>
+        )}
+      </div>
+      {noCards && (
+        <button type="button" className="text-link" onClick={onTutorial}>
+          New here? See how it works
+        </button>
+      )}
+    </section>
   );
 }

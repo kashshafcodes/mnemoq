@@ -3,8 +3,9 @@
 // Run by a scheduler (see .github/workflows/reminders.yml) every 15 minutes.
 // It sends each person their daily "cards are ready" reminder at the time they
 // chose, in their own time zone, an optional evening nudge to keep a streak
-// alive, and "cards are due now" alerts during the day (never in their quiet
-// hours, at most 3 a day, at least 3 hours apart). Only the scheduler may call it: it must send
+// alive (only when cards are due), and "cards are due now" alerts during the
+// day (at most 3 a day, at least 3 hours apart). Nothing is ever sent in
+// their quiet hours. Only the scheduler may call it: it must send
 //   Authorization: Bearer <CRON_SECRET>
 //
 // Settings (Vercel > Environment Variables):
@@ -25,6 +26,7 @@ import {
   sendToDevices,
   streakDue,
   streakMessage,
+  streakWindow,
   validTimeZone,
   vapidReady,
 } from './_push.js';
@@ -133,7 +135,7 @@ export async function runReminders({ env, now = new Date(), webpush, cfg }) {
     };
 
     if (dailyDue(person, now)) {
-      const message = dailyMessage(await countDue());
+      const message = dailyMessage(await countDue(), now);
 
       patch.last_sent_on = local.date; // counts as today's reminder even when nothing is due
 
@@ -143,8 +145,11 @@ export async function runReminders({ env, now = new Date(), webpush, cfg }) {
       }
     }
 
-    if (streakDue(person, reviewDates.get(person.user_id) || new Set(), now)) {
-      messages.push([streakMessage(), 'streak']);
+    // The streak nudge only when cards are due (otherwise it is a dead end).
+    const dates = reviewDates.get(person.user_id) || new Set();
+
+    if (streakWindow(person, dates, now) && streakDue(person, dates, now, await countDue())) {
+      messages.push([streakMessage(now), 'streak']);
       patch.last_streak_on = local.date;
       patch.last_alert_at = now.toISOString();
     }
@@ -156,7 +161,7 @@ export async function runReminders({ env, now = new Date(), webpush, cfg }) {
         const count = await countDue();
 
         if (alertDue(person, count, lastReview.get(person.user_id) || null, now)) {
-          messages.push([alertMessage(count), 'alerts']);
+          messages.push([alertMessage(count, now), 'alerts']);
 
           const todays = person.alerts_on === local.date ? Number(person.alerts_today) || 0 : 0;
 

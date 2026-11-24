@@ -6,6 +6,8 @@
 //   - sending a Web Push and cleaning up dead devices
 //   - Supabase calls made with the service role key (server only)
 
+import { pushLine } from './_pushCopy.js';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // How long after a person's chosen time we still send that day's reminder. The
@@ -13,6 +15,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const SEND_WINDOW_MIN = 180;
 export const STREAK_HOUR = 20; // the "keep your streak" nudge, local time
 export const STREAK_WINDOW_MIN = 180;
+export const ROUND_SIZE = 10; // cards in one review round (src/quiz.js SESSION_SIZE)
+export const DEFAULT_QUIET = ['22:00', '07:00']; // for rows saved before quiet hours had a value
 
 export function validTimeZone(tz) {
   try {
@@ -54,7 +58,7 @@ export function dayBefore(date) {
   return new Date(d.getTime() - DAY_MS).toISOString().slice(0, 10);
 }
 
-// Is this person due their daily reminder now?
+// Is this person due their daily reminder now? Never inside their quiet hours.
 export function dailyDue(settings, now) {
   if (!settings?.enabled || !validTimeZone(settings.timezone)) return false;
 
@@ -65,21 +69,28 @@ export function dailyDue(settings, now) {
   const local = localParts(now, settings.timezone);
   const late = local.minutes - target;
 
-  return late >= 0 && late < SEND_WINDOW_MIN && settings.last_sent_on !== local.date;
+  return late >= 0 && late < SEND_WINDOW_MIN && settings.last_sent_on !== local.date && !quiet(settings, local.minutes);
 }
 
-// Is this person due the evening streak nudge now? `reviewDates` are the local
-// dates (YYYY-MM-DD) on which they reviewed something recently.
-export function streakDue(settings, reviewDates, now) {
+// Is it the evening window for the streak nudge, and is their streak alive
+// (reviewed yesterday, not yet today)? `reviewDates` are the local dates
+// (YYYY-MM-DD) on which they reviewed something recently. Not inside quiet hours.
+export function streakWindow(settings, reviewDates, now) {
   if (!settings?.enabled || !settings.streak_nudge || !validTimeZone(settings.timezone)) return false;
 
   const local = localParts(now, settings.timezone);
   const since = local.minutes - STREAK_HOUR * 60;
 
   if (since < 0 || since >= STREAK_WINDOW_MIN || settings.last_streak_on === local.date) return false;
+  if (quiet(settings, local.minutes)) return false;
 
-  // Their streak is alive (they reviewed yesterday) but they have not today.
   return reviewDates.has(dayBefore(local.date)) && !reviewDates.has(local.date);
+}
+
+// The streak nudge, only when there is something to review: with nothing due,
+// "one quick review" is impossible and the push would be a dead end.
+export function streakDue(settings, reviewDates, now, dueNow) {
+  return Number(dueNow) > 0 && streakWindow(settings, reviewDates, now);
 }
 
 // ---- "cards are due" alerts during the day --------------------------------
@@ -98,6 +109,11 @@ export function inQuietHours(minutes, start, end) {
   return a < b ? minutes >= a && minutes < b : minutes >= a || minutes < b;
 }
 
+// Every reminder type respects the person's quiet hours.
+export function quiet(settings, minutes) {
+  return inQuietHours(minutes, settings?.quiet_start || DEFAULT_QUIET[0], settings?.quiet_end || DEFAULT_QUIET[1]);
+}
+
 // Should we alert this person that cards are due, right now?
 // `dueNow` is how many cards are due; `lastReviewAt` the latest review time (Date or null).
 export function alertDue(settings, dueNow, lastReviewAt, now) {
@@ -105,7 +121,7 @@ export function alertDue(settings, dueNow, lastReviewAt, now) {
 
   const local = localParts(now, settings.timezone);
 
-  if (inQuietHours(local.minutes, settings.quiet_start || '22:00', settings.quiet_end || '07:00')) return false;
+  if (quiet(settings, local.minutes)) return false;
   if (dueNow < Math.max(1, Number(settings.due_min) || 5)) return false;
 
   const sentToday = settings.alerts_on === local.date ? Number(settings.alerts_today) || 0 : 0;
@@ -118,42 +134,27 @@ export function alertDue(settings, dueNow, lastReviewAt, now) {
   return true;
 }
 
-export function alertMessage(due) {
-  return {
-    title: due === 1 ? '1 card is due now' : `${due} cards are due now`,
-    body: 'Reviewing them now, while they are fading, makes them stick longer.',
-    url: '/#/review',
-    tag: 'mnemoq-due',
-  };
+// The texts, in Jonaki's voice, rotated by day (api/_pushCopy.js).
+const dueLine = (due, now) => (due === 1 ? pushLine('due_one', { n: 1 }, now) : pushLine('due', { n: due }, now));
+
+export function alertMessage(due, now = new Date()) {
+  return { ...dueLine(due, now), url: '/#/review', tag: 'mnemoq-due' };
 }
 
-export function dailyMessage(due) {
+export function dailyMessage(due, now = new Date()) {
   if (due <= 0) return null;
 
-  return {
-    title: due === 1 ? '1 card is ready to review' : `${due} cards are ready to review`,
-    body: due >= 10 ? 'A short session of 10 keeps them from piling up.' : 'It takes about two minutes. Keep your memory sharp.',
-    url: '/#/review',
-    tag: 'mnemoq-daily',
-  };
+  const line = due >= ROUND_SIZE ? pushLine('many', { n: due, size: ROUND_SIZE }, now) : dueLine(due, now);
+
+  return { ...line, url: '/#/review', tag: 'mnemoq-daily' };
 }
 
-export function streakMessage() {
-  return {
-    title: 'Keep your streak alive',
-    body: 'One quick review today and your streak continues.',
-    url: '/#/review',
-    tag: 'mnemoq-streak',
-  };
+export function streakMessage(now = new Date()) {
+  return { ...pushLine('streak', {}, now), url: '/#/review', tag: 'mnemoq-streak' };
 }
 
-export function testMessage() {
-  return {
-    title: 'Reminders are on',
-    body: 'This is how Mnemoq will remind you to review.',
-    url: '/#/review',
-    tag: 'mnemoq-test',
-  };
+export function testMessage(now = new Date()) {
+  return { ...pushLine('test', {}, now), url: '/#/review', tag: 'mnemoq-test' };
 }
 
 // ---- sending ---------------------------------------------------------------

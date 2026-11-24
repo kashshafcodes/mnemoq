@@ -1,5 +1,5 @@
 import Jonaki from '../components/Jonaki';
-import { MAX_SCORE, loadHistory, puzzleNumber, streakOf } from './puzzle';
+import { MAX_SCORE, loadHistory, puzzleNumber, streakOf } from './calendar';
 import './dailyTile.css';
 
 // The Daily's doorway inside the app (Home page tile): a small piece of the
@@ -16,7 +16,7 @@ export default function DailyTile() {
   const { number, today, streak } = dailyStatus();
 
   return (
-    <a className="mq-tile dly-tile" href="/daily">
+    <a className="mq-tile dly-tile" href="#/daily">
       <span className="dly-tile-sky" aria-hidden="true">
         {[12, 34, 58, 76, 88].map((left, i) => (
           <i key={left} style={{ left: `${left}%`, top: `${20 + ((i * 37) % 55)}%`, animationDelay: `${-i * 0.7}s` }} />

@@ -72,8 +72,11 @@ export function formatDays(days) {
 
 // Whole days with at least one review -> { current, best }.
 // The current streak stays alive until the end of the day after the last review.
-export function computeStreaks(reviews, now = new Date()) {
-  const days = new Set(reviews.map((entry) => dayKey(entry.at)));
+// `extraDays` are other moments that count as a day of study, such as finished
+// Daily rounds (dates or ISO times). They come from this device for now; days
+// saved to the account can be added to the same list later.
+export function computeStreaks(reviews, now = new Date(), extraDays = []) {
+  const days = new Set([...reviews.map((entry) => dayKey(entry.at)), ...extraDays.filter(Boolean).map((at) => dayKey(at))]);
 
   if (days.size === 0) return { current: 0, best: 0, reviewedToday: false };
 
@@ -318,7 +321,7 @@ export function computeBadges(stats) {
 }
 
 // All the numbers for the dashboard.
-export function computeAnalytics(cards, reviews, now = new Date()) {
+export function computeAnalytics(cards, reviews, now = new Date(), { extraDays = [] } = {}) {
   const sortedReviews = [...reviews].sort((a, b) => a.at - b.at);
   const stageCounts = { new: 0, learning: 0, strong: 0, mastered: 0 };
 
@@ -333,7 +336,7 @@ export function computeAnalytics(cards, reviews, now = new Date()) {
   const reviewsTotal = Math.max(reviewsFromCards, sortedReviews.length);
 
   const recalledCount = sortedReviews.filter((entry) => entry.recalled).length;
-  const streak = computeStreaks(sortedReviews, now);
+  const streak = computeStreaks(sortedReviews, now, extraDays);
   const journeys = cardJourneys(cards, sortedReviews);
   const intervals = reviewedCards.map((card) => card.reviewIntervalDays || 0).filter((n) => n > 0);
   const longestIntervalDays = intervals.length > 0 ? Math.max(...intervals) : 0;

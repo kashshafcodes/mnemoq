@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import Jonaki from './Jonaki';
 import { noteRoundDone } from '../install/runtime';
 import { subjectAccent } from '../subjects';
+import { afterRound } from '../loop/playState';
+import { useLoopT } from '../loop/strings';
 
 // One tab per subject, plus "All". Each shows how many cards are due.
 // Hidden when there is only one subject, since there is nothing to choose.
@@ -86,18 +88,20 @@ export function SessionStart({ dueCards, subject, sessionSize, onStart }) {
   );
 }
 
-function summaryLine(recalled, total) {
+function summaryKey(recalled, total) {
   const ratio = total === 0 ? 0 : recalled / total;
 
-  if (ratio === 1) return 'Perfect round. Nothing slipped.';
-  if (ratio >= 0.8) return 'Strong session. Most of it is sticking.';
-  if (ratio >= 0.5) return 'Solid. The ones you missed will come back soon.';
+  if (ratio === 1) return 'session.line.perfect';
+  if (ratio >= 0.8) return 'session.line.strong';
+  if (ratio >= 0.5) return 'session.line.solid';
 
-  return 'A tough set, and that is how it sticks. The misses will return soon.';
+  return 'session.line.tough';
 }
 
-// Shown when a session ends: "7/10 recalled", a dot per card, and the misses.
-export function SessionSummary({ results, cards, moreDue, onAgain, onDone }) {
+// Shown when a session ends: "7/10 recalled", a dot per card, the misses, and
+// always a next step: another round, tonight's Daily, or "Done for today".
+export function SessionSummary({ results, cards, moreDue, dailyPlayed, onAgain, onStop, onDaily, onDoneToday }) {
+  const t = useLoopT();
   const total = results.length;
 
   // A finished session is the moment the install card may appear.
@@ -110,14 +114,15 @@ export function SessionSummary({ results, cards, moreDue, onAgain, onDone }) {
     .filter((entry) => !entry.recalled)
     .map((entry) => cards.find((card) => card.id === entry.id))
     .filter(Boolean);
+  const next = afterRound({ moreDue, dailyPlayed });
 
   return (
     <div className="session-summary">
       <Jonaki mood={total && recalled === total ? 'wow' : recalled / Math.max(1, total) >= 0.6 ? 'happy' : 'idle'} size={84} className="session-jonaki" />
-      <p className="eyebrow">SESSION COMPLETE</p>
-      <p className="session-score" aria-label={`${recalled} of ${total} recalled`}>
+      <p className="eyebrow">{t('session.done.eyebrow')}</p>
+      <p className="session-score mq-pop" aria-label={`${recalled} / ${total} ${t('session.done.recalled')}`}>
         <strong>{recalled}</strong>/{total}
-        <span> recalled</span>
+        <span> {t('session.done.recalled')}</span>
       </p>
 
       <div className="session-dots" aria-hidden="true">
@@ -129,11 +134,11 @@ export function SessionSummary({ results, cards, moreDue, onAgain, onDone }) {
         ))}
       </div>
 
-      <p className="session-message">{summaryLine(recalled, total)}</p>
+      <p className="session-message">{t(summaryKey(recalled, total))}</p>
 
       {missed.length > 0 && (
         <div className="session-missed">
-          <p className="eyebrow">WORTH ANOTHER LOOK</p>
+          <p className="eyebrow">{t('session.missed.title')}</p>
           <ul>
             {missed.map((card) => (
               <li key={card.id} style={{ '--subject': subjectAccent(card.subject) }}>
@@ -146,18 +151,31 @@ export function SessionSummary({ results, cards, moreDue, onAgain, onDone }) {
       )}
 
       <div className="session-actions">
-        {moreDue > 0 && (
-          <button type="button" className="primary-button" onClick={onAgain}>
-            Another session ({moreDue} due)
+        {next === 'more' && (
+          <>
+            <button type="button" className="primary-button" onClick={onAgain}>
+              {t('session.next.more', { n: moreDue })}
+            </button>
+            <button type="button" className="ghost-button" onClick={onStop}>
+              {t('session.next.stop')}
+            </button>
+          </>
+        )}
+        {next === 'daily' && (
+          <>
+            <button type="button" className="primary-button" onClick={onDaily}>
+              {t('session.next.daily')}
+            </button>
+            <button type="button" className="ghost-button" onClick={onDoneToday}>
+              {t('session.next.done')}
+            </button>
+          </>
+        )}
+        {next === 'done' && (
+          <button type="button" className="primary-button" onClick={onDoneToday}>
+            {t('session.next.done')}
           </button>
         )}
-        <button
-          type="button"
-          className={moreDue > 0 ? 'ghost-button' : 'primary-button'}
-          onClick={onDone}
-        >
-          Done
-        </button>
       </div>
     </div>
   );

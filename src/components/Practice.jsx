@@ -198,7 +198,8 @@ function Summary({ collection, n, questions, picked, plan, onAddCards, onNext, o
       </div>
       {saved?.added > 0 && (
         <p className="pr-saved" role="status">
-          Saved {saved.added} cards. They are in your review queue now.
+          Saved {saved.added} cards. They are in your review queue now.{' '}
+          <a href="#/review">Review them now →</a>
         </p>
       )}
       {saved?.error && <p className="pro-message">{saved.error}</p>}
