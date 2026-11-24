@@ -24,7 +24,7 @@ describe('payment SMS', () => {
 
 describe('prices', () => {
   const launch = new Date('2026-11-20T00:00:00+06:00');
-  const after = new Date('2027-01-05T00:00:00+06:00');
+  const after = new Date('2027-02-15T00:00:00+06:00');
 
   it('crosses out the regular price only during the launch offer', () => {
     expect(priceOf(PRO.offers[0], launch)).toEqual({ now: 99, was: 199 });
@@ -37,7 +37,7 @@ describe('prices', () => {
     expect(offerForAmount(98, launch)).toBeNull();
     expect(offerForAmount(299, after).days).toBe(30);
     // A day of grace after the offer ends.
-    expect(offerForAmount(299, new Date('2026-12-16T12:00:00+06:00')).days).toBe(120);
+    expect(offerForAmount(299, new Date('2027-02-08T12:00:00+06:00')).days).toBe(120);
   });
 });
 

@@ -23,9 +23,11 @@ export const PRO = {
 
   // The launch offer. After `endsAt` every plan costs its `regular` price.
   // To run another offer later, set a new end date (and prices) here.
+  // Moved on 24 Nov 2026 (owner's decision): public launch 10 Jan 2027,
+  // launch prices until 7 Feb 2027.
   launch: {
     name: 'Launch offer',
-    endsAt: '2026-12-15T23:59:59+06:00',
+    endsAt: '2027-02-07T23:59:59+06:00',
   },
 
   // TODO(owner): put your real payment details here. Leave a value empty to hide it.
