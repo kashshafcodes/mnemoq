@@ -6,6 +6,7 @@ import { LanguageToggle } from '../i18n';
 import { Badges } from './Dashboard';
 import { NO_SUGGEST } from '../noSuggest';
 import ReminderSettings from './ReminderSettings';
+import VibrationSetting from './VibrationSetting';
 
 // The person's own page: who they are, how they're doing, and their settings.
 
@@ -163,6 +164,7 @@ export default function Profile({ user, cards, reviews, onSave, onLogout, onTuto
       </section>
 
       <ReminderSettings userId={user.id} />
+      <VibrationSetting />
 
       <section className="profile-card">
         <h3>Settings</h3>

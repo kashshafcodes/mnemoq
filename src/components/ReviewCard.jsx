@@ -4,6 +4,7 @@ import { buildChoices, checkTypedAnswer, normalizeText, scheduleNext } from '../
 import { formatDays } from '../analytics';
 import { subjectAccent } from '../subjects';
 import { RatingGuide } from './Tutorial';
+import { haptic } from '../haptics';
 import { NO_SUGGEST } from '../noSuggest';
 
 const MODE_KEY = 'mnemoq-review-mode';
@@ -108,8 +109,12 @@ export default function ReviewCard({ card, cards, position, onRate }) {
   function pickOption(index) {
     if (answered) return;
 
+    const right = choices.options[index].isCorrect;
+
     setPickedIndex(index);
-    setResult(choices.options[index].isCorrect ? 'correct' : 'wrong');
+    setResult(right ? 'correct' : 'wrong');
+    if (right) haptic.correct();
+    else haptic.wrong();
   }
 
   // Letter keys A-D pick an option, as long as nobody is typing in a box.
@@ -147,12 +152,15 @@ export default function ReviewCard({ card, cards, position, onRate }) {
 
     if (verdict === 'empty') {
       setHint('Type your answer first, or press "Show answer".');
+      haptic.error();
       inputRef.current?.focus();
       return;
     }
 
     setHint('');
     setResult(verdict);
+    if (verdict === 'wrong') haptic.wrong();
+    else haptic.correct();
   }
 
   function showAnswer() {
@@ -164,7 +172,17 @@ export default function ReviewCard({ card, cards, position, onRate }) {
 
     savingRef.current = true;
     setSaving(true);
-    await onRate(rating, result);
+
+    // The last rating of a session ends the round: celebrate. Otherwise a
+    // light tick for the choice. Both run inside the tap.
+    const lastOfRound = position && position.total > 1 && position.index + 1 >= position.total;
+
+    if (lastOfRound) haptic.celebrate();
+    else haptic.select();
+
+    const saved = await onRate(rating, result);
+
+    if (saved === false) haptic.error();
     savingRef.current = false;
     setSaving(false);
   }

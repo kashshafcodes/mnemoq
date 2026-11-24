@@ -228,6 +228,12 @@ const en = {
   'plan.hide': 'Hide',
   'plan.reviewDue': 'Review due cards',
   'plan.complete': 'All {n} locked in. Well done!',
+
+  // vibration (profile)
+  'vibration.title': 'Vibration',
+  'vibration.body': 'A small buzz when you answer, get it right or finish a round.',
+  'vibration.iphone': 'On iPhone it is a light tick, and only with iOS 18 or newer.',
+  'vibration.none': 'This device cannot vibrate, so the switch does nothing here. It is saved per device.',
 };
 
 const bn = {
@@ -435,6 +441,11 @@ const bn = {
   'plan.hide': 'লুকান',
   'plan.reviewDue': 'বাকি কার্ড রিভিউ করুন',
   'plan.complete': 'সবকটি ({n}টি) পাকাপোক্ত। চমৎকার!',
+
+  'vibration.title': 'ভাইব্রেশন',
+  'vibration.body': 'উত্তর দিলে, ঠিক হলে বা রাউন্ড শেষ করলে ছোট্ট একটা কম্পন।',
+  'vibration.iphone': 'আইফোনে এটি হালকা একটা টিক, আর শুধু iOS 18 বা তার পরের সংস্করণে।',
+  'vibration.none': 'এই ডিভাইসে কম্পন হয় না, তাই এখানে সুইচটির কোনো প্রভাব নেই। সেটিংটি প্রতিটি ডিভাইসে আলাদা।',
 };
 
 const DICTS = { en, bn };

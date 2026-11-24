@@ -6,7 +6,7 @@ import { CARD_HOME } from '../daily/questions';
 import { bnDigits, makeT } from '../daily/strings';
 import { NightSky, Sparks } from '../daily/Stage';
 import ChargeLantern from '../daily/ChargeLantern';
-import { haptic } from '../daily/haptics';
+import { haptic } from '../haptics';
 import { sfx } from '../daily/audio';
 import { SAMPLE, resultKeys, shareUrl } from './strings';
 import { SAMPLE_QUESTIONS } from './questions';
@@ -132,9 +132,8 @@ export default function SampleRound({ onClose, onSignup, onLogin, via = 'landing
 
   function next() {
     sfx.next();
-    haptic.tap();
-
     if (step + 1 < SIZE) {
+      haptic.tap();
       setStep(step + 1);
       setPicked(null);
       setBet(null);
@@ -158,6 +157,8 @@ export default function SampleRound({ onClose, onSignup, onLogin, via = 'landing
         };
       });
 
+    // Round done: celebrate inside this tap (iPhones only tick during a tap).
+    haptic.celebrate();
     saveSampleMisses(missed);
     track('sample_finish', {
       page: 'landing',

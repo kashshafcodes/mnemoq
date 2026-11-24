@@ -1,4 +1,5 @@
 import { SESSION_SIZE } from '../quiz';
+import { haptic } from '../haptics';
 import { useLoopT } from './strings';
 import './loop.css';
 
@@ -24,9 +25,14 @@ export default function PlayButton({ state, onPlay, floating = true, className =
   const vars = { n, size: SESSION_SIZE };
   const done = kind === 'done';
 
+  function play(event) {
+    haptic.tap();
+    onPlay?.(event);
+  }
+
   return (
     <div className={`mq-play mq-play-${kind}${floating ? ' mq-play-float' : ''} ${className}`.trim()}>
-      <button type="button" className="mq-play-btn" onClick={onPlay} aria-label={t(`play.aria.${kind}`, vars)}>
+      <button type="button" className="mq-play-btn" onClick={play} aria-label={t(`play.aria.${kind}`, vars)}>
         <span className="mq-play-icon">
           <PlayIcon done={done} />
         </span>

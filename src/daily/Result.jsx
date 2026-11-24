@@ -8,7 +8,7 @@ import { loopT } from '../loop/strings';
 import { bnDigits, rankOf } from './strings';
 import { drawShareCard } from './shareImage';
 import { sfx } from './audio';
-import { haptic } from './haptics';
+import { haptic } from '../haptics';
 
 // The end of the night: the lanterns light up one by one (each plays a note,
 // so every round has its own little tune), then the score, rank, sharing and
@@ -78,8 +78,8 @@ export default function Result({ number, marks, questions, history, t, lang, num
 
     if (counted === score) {
       sfx.fanfare(Math.max(0, score) / MAX_SCORE);
+      // The celebration buzz already played on the tap that ended the round.
       if (rank >= 4) {
-        haptic.celebrate();
         sparks.current?.burst(innerWidth / 2, innerHeight * 0.3, { count: 60, spread: 1.4 });
       }
       return undefined;
@@ -285,6 +285,7 @@ function AppNext({ missed, t, lang, inApp }) {
 
     if (result?.error) {
       setState('failed');
+      haptic.error();
       return;
     }
 
@@ -292,12 +293,22 @@ function AppNext({ missed, t, lang, inApp }) {
     track('daily_cards_saved', { page: 'daily', count: result?.saved || 0, then: 'review' });
   }
 
+  function reviewNow() {
+    haptic.tap();
+    inApp.onReview();
+  }
+
+  function doneForToday() {
+    haptic.celebrate();
+    inApp.onDone();
+  }
+
   if (missed.length === 0) {
     return (
       <section className="dly-card dly-misses">
         <p className="dly-perfect">✦ {t('perfect')}</p>
         <p className="dly-note">{due > 0 ? lt('dailyEnd.dueToo', { n: due }) : lt('dailyEnd.perfect.next')}</p>
-        <button type="button" className="dly-play dly-block" onClick={due > 0 ? inApp.onReview : inApp.onDone}>
+        <button type="button" className="dly-play dly-block" onClick={due > 0 ? reviewNow : doneForToday}>
           {due > 0 ? lt('play.title') : lt('session.next.done')}
         </button>
         <button type="button" className="dly-ghost dly-block" onClick={inApp.onBack}>
@@ -378,6 +389,7 @@ function Misses({ missed, t, lang }) {
     const { error } = await supabase.from('mistakes').insert(rows);
 
     setState(error ? 'failed' : 'saved');
+    if (error) haptic.error();
 
     if (!error) {
       sfx.correct(2);

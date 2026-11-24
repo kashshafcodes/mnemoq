@@ -8,7 +8,7 @@ import { CATEGORY_LABEL } from './questions';
 import { BETS, ROUND_SIZE, dhakaDate, loadHistory, pointsFor, puzzleNumber, questionsFor, saveRound, scoreOf, streakOf } from './puzzle';
 import { bnDigits, makeT } from './strings';
 import { loadSettings, saveSettings, setMusicOn, setSoundOn, sfx } from './audio';
-import { haptic, setHapticsOn } from './haptics';
+import { haptic, useHapticsSetting } from '../haptics';
 import { NightSky, Sparks } from './Stage';
 import ChargeLantern from './ChargeLantern';
 import Result from './Result';
@@ -40,6 +40,8 @@ export default function Daily({ inApp = null }) {
   const [charge, setCharge] = useState(0);
   const [marks, setMarks] = useState(playedToday?.marks || []);
   const [settings, setSettings] = useState(loadSettings);
+  // Vibration is one setting for the whole app (also on the Profile page).
+  const [vibration, setVibration] = useHapticsSetting();
   const [showSettings, setShowSettings] = useState(false);
   const [floater, setFloater] = useState(null);
   const sparks = useRef(null);
@@ -70,17 +72,22 @@ export default function Daily({ inApp = null }) {
 
   useEffect(() => {
     setSoundOn(settings.sound);
-    setHapticsOn(settings.haptics);
     saveSettings(settings);
   }, [settings]);
 
   function toggle(key) {
+    if (key === 'haptics') {
+      setVibration(!vibration);
+      // Runs inside the tap, so iPhones tick too. Silent when turning off.
+      haptic.select();
+      return;
+    }
+
     setSettings((s) => {
       const next = { ...s, [key]: !s[key] };
 
       if (key === 'music') setMusicOn(next.music);
       if (key === 'sound' && next.sound) setTimeout(() => sfx.select(2), 0);
-      if (key === 'haptics' && next.haptics) setTimeout(() => haptic.select(), 0);
 
       return next;
     });
@@ -135,16 +142,18 @@ export default function Daily({ inApp = null }) {
 
   function next() {
     sfx.next();
-    haptic.tap();
     setFloater(null);
 
     if (step + 1 < ROUND_SIZE) {
+      haptic.tap();
       setStep(step + 1);
       setPicked(null);
       setBet(null);
       return;
     }
 
+    // Round done: celebrate inside this tap (iPhones only tick during a tap).
+    haptic.celebrate();
     const saved = saveRound(number, marks);
 
     setHistory(saved);
@@ -226,7 +235,7 @@ export default function Daily({ inApp = null }) {
             {['sound', 'music', 'haptics'].map((key) => (
               <label key={key} className="dly-switch">
                 <span>{t(key)}</span>
-                <input type="checkbox" checked={settings[key]} onChange={() => toggle(key)} />
+                <input type="checkbox" checked={key === 'haptics' ? vibration : settings[key]} onChange={() => toggle(key)} />
                 <i aria-hidden="true" />
               </label>
             ))}

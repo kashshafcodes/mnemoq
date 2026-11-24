@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BETS } from './puzzle';
 import { sfx } from './audio';
-import { haptic } from './haptics';
+import { haptic } from '../haptics';
 import { bnDigits } from './strings';
 
 // Say how sure you are by holding the lantern: it charges through Guessing,
@@ -130,7 +130,7 @@ export default function ChargeLantern({ disabled, t, lang, onCharge, onLock }) {
             disabled={disabled}
             onClick={() => {
               sfx.charge(i + 1);
-              haptic.charge(i + 1);
+              // No buzz here: locking in plays correct/wrong straight away.
               onLock(b.id);
             }}
           >

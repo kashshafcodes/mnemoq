@@ -1,9 +1,16 @@
 import { useEffect } from 'react';
+import { haptic } from '../haptics';
 import Jonaki from './Jonaki';
 import { noteRoundDone } from '../install/runtime';
 import { subjectAccent } from '../subjects';
 import { afterRound } from '../loop/playState';
 import { useLoopT } from '../loop/strings';
+
+// Primary buttons buzz once (inside the tap, so iPhones tick too).
+const withHaptic = (fn, buzz = haptic.tap) => (event) => {
+  buzz();
+  fn?.(event);
+};
 
 // One tab per subject, plus "All". Each shows how many cards are due.
 // Hidden when there is only one subject, since there is nothing to choose.
@@ -75,7 +82,7 @@ export function SessionStart({ dueCards, subject, sessionSize, onStart }) {
         </p>
       )}
 
-      <button type="button" className="primary-button" onClick={onStart}>
+      <button type="button" className="primary-button" onClick={withHaptic(onStart)}>
         Start session
       </button>
 
@@ -153,7 +160,7 @@ export function SessionSummary({ results, cards, moreDue, dailyPlayed, onAgain, 
       <div className="session-actions">
         {next === 'more' && (
           <>
-            <button type="button" className="primary-button" onClick={onAgain}>
+            <button type="button" className="primary-button" onClick={withHaptic(onAgain)}>
               {t('session.next.more', { n: moreDue })}
             </button>
             <button type="button" className="ghost-button" onClick={onStop}>
@@ -163,16 +170,16 @@ export function SessionSummary({ results, cards, moreDue, dailyPlayed, onAgain, 
         )}
         {next === 'daily' && (
           <>
-            <button type="button" className="primary-button" onClick={onDaily}>
+            <button type="button" className="primary-button" onClick={withHaptic(onDaily)}>
               {t('session.next.daily')}
             </button>
-            <button type="button" className="ghost-button" onClick={onDoneToday}>
+            <button type="button" className="ghost-button" onClick={withHaptic(onDoneToday, haptic.celebrate)}>
               {t('session.next.done')}
             </button>
           </>
         )}
         {next === 'done' && (
-          <button type="button" className="primary-button" onClick={onDoneToday}>
+          <button type="button" className="primary-button" onClick={withHaptic(onDoneToday, haptic.celebrate)}>
             {t('session.next.done')}
           </button>
         )}

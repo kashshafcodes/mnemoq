@@ -573,7 +573,7 @@ async function handleReviewRating(rating, result) {
 
   if (!userId) {
     setDataError('Please log in before reviewing a mistake.');
-    return;
+    return false;
   }
 
   const now = new Date();
@@ -657,9 +657,11 @@ async function handleReviewRating(rating, result) {
           : current
       );
     }
+    return true;
   } catch (error) {
     console.error('Could not save review rating:', error.message);
     setDataError(error.message);
+    return false;
   }
 }
 
