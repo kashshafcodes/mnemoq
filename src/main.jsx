@@ -22,7 +22,10 @@ const PAGES = {
   '/engineering-diagnostic': lazy(() => import('./EngineeringDiagnostic.jsx')),
   '/daily': lazy(() => import('./daily/Daily.jsx')),
 }
-const Page = PAGES[window.location.pathname.replace(/\/+$/, '')] || App
+// /sample is the app itself: signed out, the landing page opens the sample
+// round on screen 1 (Landing.jsx); signed in, it is just the app.
+const ROUTES = { ...PAGES, '/sample': App }
+const Page = ROUTES[window.location.pathname.replace(/\/+$/, '')] || App
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

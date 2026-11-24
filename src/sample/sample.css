@@ -61,6 +61,25 @@
   font-size: 13px;
 }
 
+/* Third in rank, below Save and Later: a quiet text link. */
+.smp-share {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.smp-share-note {
+  max-width: 34ch;
+  overflow-wrap: anywhere;
+}
+
 @keyframes smp-in {
   from {
     opacity: 0;

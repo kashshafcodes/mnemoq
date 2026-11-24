@@ -88,7 +88,7 @@ export function questionsFor(number) {
 
 // The pool lists the right answer first; show the options in a fixed shuffled
 // order instead (the same for every player and in both languages).
-function withShuffledOptions(item) {
+export function withShuffledOptions(item) {
   const order = shuffled([0, 1, 2, 3], seeded(hash(item.id)));
   const pick = (side) => ({ ...side, options: order.map((i) => side.options[i]) });
 

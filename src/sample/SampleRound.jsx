@@ -3,27 +3,28 @@ import { useI18n } from '../i18n';
 import { track } from '../track';
 import Jonaki from '../components/Jonaki';
 import { CARD_HOME } from '../daily/questions';
-import { questionsFor } from '../daily/puzzle';
 import { bnDigits, makeT } from '../daily/strings';
 import { NightSky, Sparks } from '../daily/Stage';
 import ChargeLantern from '../daily/ChargeLantern';
 import { haptic } from '../daily/haptics';
 import { sfx } from '../daily/audio';
-import { SAMPLE } from './strings';
+import { SAMPLE, resultKeys, shareUrl } from './strings';
+import { SAMPLE_QUESTIONS } from './questions';
 import { saveSampleMisses } from './store';
 import '../daily/daily.css';
 import './sample.css';
 
-// The 60-second sample round, before sign-up: three questions from Daily
-// puzzle #1 (already played by everyone, so nothing upcoming is spoiled), the
-// same lantern bet, then "save your progress". Misses wait in this browser
-// (store.js) and become the new account's first cards.
-// Loaded only when someone taps "Try a sample round" on the landing page.
+// The sample round, before sign-up: three sample-only questions (questions.js,
+// not in the Daily pool), the same lantern bet, then "save your progress" and
+// "send this round to a friend". Misses wait in this browser (store.js) and
+// become the new account's first cards.
+// Loaded only when someone taps "Try a sample round" on the landing page or
+// opens the /sample link (via = 'landing' or 'link').
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 const SIZE = 3;
 
-export default function SampleRound({ onClose, onSignup, onLogin }) {
+export default function SampleRound({ onClose, onSignup, onLogin, via = 'landing' }) {
   const { lang } = useI18n();
   const dt = useMemo(() => makeT(lang), [lang]);
   const s = (key, vars = {}) => {
@@ -32,12 +33,14 @@ export default function SampleRound({ onClose, onSignup, onLogin }) {
 
     return lang === 'bn' ? bnDigits(filled) : filled;
   };
-  const questions = useMemo(() => questionsFor(1).slice(0, SIZE), []);
+  const questions = SAMPLE_QUESTIONS;
   const [phase, setPhase] = useState('hello');
   const [step, setStep] = useState(0);
   const [picked, setPicked] = useState(null);
   const [bet, setBet] = useState(null);
   const [marks, setMarks] = useState([]);
+  const [shareNote, setShareNote] = useState('');
+  const openedAt = useRef(0);
   const sparks = useRef(null);
   const optionRefs = useRef([]);
   const dialogRef = useRef(null);
@@ -47,6 +50,27 @@ export default function SampleRound({ onClose, onSignup, onLogin }) {
   const revealed = bet !== null;
   const correct = revealed && picked === question.answer;
   const right = marks.filter((m) => m.correct).length;
+  const keys = resultKeys(right, SIZE);
+
+  function skip(how) {
+    track('sample_skip', { page: 'landing', how, right, phase, lang });
+    onClose();
+  }
+
+  // Close (X or Escape) always goes through skip(), so it is counted once.
+  const skipRef = useRef(skip);
+
+  useEffect(() => {
+    skipRef.current = skip;
+  });
+
+  // Once per sheet (the guard also covers StrictMode's double run in dev).
+  useEffect(() => {
+    if (openedAt.current) return;
+
+    openedAt.current = Date.now();
+    track('sample_open', { page: 'landing', via, lang });
+  }, [via, lang]);
 
   // A full-screen sheet: lock the page behind it, close on Escape.
   useEffect(() => {
@@ -56,7 +80,7 @@ export default function SampleRound({ onClose, onSignup, onLogin }) {
     dialogRef.current?.focus();
 
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') skipRef.current('close');
     };
 
     window.addEventListener('keydown', onKey);
@@ -65,7 +89,7 @@ export default function SampleRound({ onClose, onSignup, onLogin }) {
       document.body.style.overflow = previous;
       window.removeEventListener('keydown', onKey);
     };
-  }, [onClose]);
+  }, []);
 
   useEffect(() => {
     dialogRef.current?.scrollTo?.({ top: 0 });
@@ -93,6 +117,7 @@ export default function SampleRound({ onClose, onSignup, onLogin }) {
 
     setBet(betId);
     setMarks((list) => [...list, { picked, correct: isRight, bet: betId }]);
+    track('sample_answer', { page: 'landing', step: step + 1, qid: question.id, correct: isRight, bet: betId, lang });
 
     if (isRight) {
       sfx.correct(2);
@@ -134,8 +159,36 @@ export default function SampleRound({ onClose, onSignup, onLogin }) {
       });
 
     saveSampleMisses(missed);
-    track('sample_finish', { page: 'landing', right: marks.filter((m) => m.correct).length, lang });
+    track('sample_finish', {
+      page: 'landing',
+      right,
+      bright_misses: marks.filter((m) => !m.correct && m.bet === 'sure').length,
+      ms: Date.now() - openedAt.current,
+      lang,
+    });
     setPhase('done');
+  }
+
+  // Native share sheet where there is one, else copy the text and link.
+  async function share() {
+    const text = s('shareText', { n: right });
+    const url = shareUrl(window.location.origin);
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ text, url });
+        track('sample_share', { page: 'landing', right, how: 'sheet', lang });
+        return;
+      }
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setShareNote(s('shareCopied'));
+      track('sample_share', { page: 'landing', right, how: 'copy', lang });
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
+      // No share sheet and no clipboard: show the link so it can be copied by hand.
+      setShareNote(`${text} ${url}`);
+      track('sample_share', { page: 'landing', right, how: 'shown', lang });
+    }
   }
 
   const mood = phase === 'hello' ? 'happy' : phase === 'done' ? (right === SIZE ? 'wow' : 'idle') : revealed ? (correct ? 'happy' : 'oops') : picked === null ? 'think' : 'idle';
@@ -147,7 +200,7 @@ export default function SampleRound({ onClose, onSignup, onLogin }) {
 
       <header className="dly-top">
         <span className="smp-count">{phase === 'play' ? s('lantern', { n: step + 1, total: SIZE }) : ''}</span>
-        <button type="button" className="dly-icon-btn" aria-label={s('close')} onClick={onClose}>
+        <button type="button" className="dly-icon-btn" aria-label={s('close')} onClick={() => skip('close')}>
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
             <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
@@ -219,7 +272,7 @@ export default function SampleRound({ onClose, onSignup, onLogin }) {
 
               {revealed && (
                 <div className={`dly-reveal ${correct ? 'ok' : 'miss'}`} aria-live="polite">
-                  <p className="dly-verdict">{correct ? s('s2Right') : bet === 'sure' ? s('s2Bright') : s('s2Wrong')}</p>
+                  <p className="dly-verdict">{correct ? (bet === 'guess' ? s('s2Guess') : s('s2Right')) : bet === 'sure' ? s('s2Bright') : s('s2Wrong')}</p>
                   {!correct && <p className="dly-answer">{dt('answerWas', { answer: side.options[question.answer] })}</p>}
                   <p className="dly-why">{side.why}</p>
                   <button type="button" className="dly-play dly-next-btn" onClick={next} autoFocus>
@@ -239,24 +292,34 @@ export default function SampleRound({ onClose, onSignup, onLogin }) {
                 <span key={i} className={`dly-lantern big ${m.correct ? 'lit' : 'out'}`} />
               ))}
             </div>
-            <p className="smp-bubble">{right === SIZE ? s('s3Perfect') : s('s3Miss')}</p>
+            <p className="smp-bubble">{s(keys.line)}</p>
             <p className="dly-lead">{s('s3What')}</p>
-            <h2>{right === 0 ? s('saveTitleNone') : s('saveTitle')}</h2>
-            <p className="dly-note">{s('saveBody')}</p>
+            <h2>{s(keys.title)}</h2>
+            <p className="dly-note">{s(keys.body)}</p>
             <button
               type="button"
               className="dly-play dly-block"
               onClick={() => {
-                track('cta_click', { page: 'landing', where: 'sample_save' });
+                track('cta_click', { page: 'landing', where: 'sample_save', right });
                 onSignup();
               }}
             >
               {s('saveButton')}
             </button>
-            <button type="button" className="dly-ghost dly-block" onClick={onClose}>
+            <button type="button" className="dly-ghost dly-block" onClick={() => skip('later')}>
               {s('later')}
             </button>
-            <p className="smp-small">{s('laterNote')}</p>
+            <p className="smp-small">{s(keys.note)}</p>
+            {right > 0 && (
+              <button type="button" className="smp-share" onClick={share}>
+                {s('share')}
+              </button>
+            )}
+            {shareNote && (
+              <p className="smp-small smp-share-note" role="status">
+                {shareNote}
+              </p>
+            )}
           </section>
         )}
       </main>

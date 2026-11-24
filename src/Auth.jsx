@@ -4,7 +4,7 @@ import { useI18n } from './i18n';
 import { trackEvent } from './googleAnalytics';
 import { trafficSource } from './track';
 import { guestMetadata } from './guestResult';
-import { sampleMetadata } from './sample/store';
+import { playedSample, sampleMetadata } from './sample/store';
 
 // The sign-up / log-in form. Shown inside the landing page (Landing.jsx).
 export default function Auth({ startWith = 'signup', compact = false, title = '', subtitle = '' }) {
@@ -36,7 +36,7 @@ export default function Auth({ startWith = 'signup', compact = false, title = ''
         // Supabase may return session=null when email confirmation is required.
         // An empty identities array can mean an existing account (anti-enumeration).
         if (data.user && (!Array.isArray(data.user.identities) || data.user.identities.length > 0)) {
-          trackEvent('sign_up', { method: 'email' });
+          trackEvent('sign_up', { method: 'email', from: playedSample() ? 'sample' : undefined });
         }
 
         setMessage(

@@ -53,3 +53,9 @@ export function clearSampleMisses() {
     // ignore
   }
 }
+
+// Did this browser finish the sample round in the last 14 days (with or
+// without misses)? Marks the sign-up event with from: 'sample'.
+export function playedSample() {
+  return readSampleMisses() !== null;
+}

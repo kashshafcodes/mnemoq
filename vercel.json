@@ -69,7 +69,7 @@
   ],
   "rewrites": [
     {
-      "source": "/(sat|nsu|brac|engineering-diagnostic|daily)",
+      "source": "/(sat|nsu|brac|engineering-diagnostic|daily|sample)",
       "destination": "/index.html"
     }
   ]

@@ -6,7 +6,7 @@ import { launchActive, priceOf, taka } from '../pricing';
 import { track } from '../track';
 import { payText } from '../pro/payCopy';
 import MnemoqLogo from './MnemoqLogo';
-import { SAMPLE } from '../sample/strings';
+import { SAMPLE, isSampleLink } from '../sample/strings';
 
 // The sample round loads only when someone taps it.
 const SampleRound = lazy(() => import('../sample/SampleRound'));
@@ -169,7 +169,9 @@ export default function Landing() {
   const formRef = useRef(null);
   const from = PRO.offers[0];
   const best = PRO.offers.find((o) => o.best) || from;
-  const [sampleOpen, setSampleOpen] = useState(false);
+  // The /sample link (main.jsx) opens the round straight away, on screen 1.
+  const [sampleVia, setSampleVia] = useState(() => (isSampleLink() ? 'link' : null));
+  const sampleOpen = sampleVia !== null;
   const sample = SAMPLE[lang] || SAMPLE.en;
 
   useEffect(() => {
@@ -181,8 +183,16 @@ export default function Landing() {
     document.getElementById('try')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  // Back on the landing page; a /sample address becomes / so a reload does
+  // not reopen the round.
+  function closeSample() {
+    setSampleVia(null);
+    if (isSampleLink()) window.history.replaceState(null, '', '/');
+  }
+
+  // where = null: already counted by the caller (the sample's save button).
   function goSignup(where) {
-    track('cta_click', { page: 'landing', where });
+    if (where) track('cta_click', { page: 'landing', where });
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => document.getElementById('auth-email')?.focus({ preventScroll: true }), 450);
   }
@@ -214,7 +224,7 @@ export default function Landing() {
             className="lp-sample"
             onClick={() => {
               track('cta_click', { page: 'landing', where: 'hero_sample' });
-              setSampleOpen(true);
+              setSampleVia('landing');
             }}
           >
             <span className="lp-sample-lanterns" aria-hidden="true">
@@ -389,13 +399,14 @@ export default function Landing() {
       {sampleOpen && (
         <Suspense fallback={null}>
           <SampleRound
-            onClose={() => setSampleOpen(false)}
+            via={sampleVia}
+            onClose={closeSample}
             onSignup={() => {
-              setSampleOpen(false);
-              setTimeout(() => goSignup('sample_save'), 50);
+              closeSample();
+              setTimeout(() => goSignup(null), 50);
             }}
             onLogin={() => {
-              setSampleOpen(false);
+              closeSample();
               setTimeout(() => goSignup('sample_login'), 50);
             }}
           />

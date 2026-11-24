@@ -107,6 +107,7 @@ function sourceFromUrl() {
     source: source.toLowerCase(),
     medium: utm('medium') || (referrer ? 'referral' : null),
     campaign: utm('campaign'),
+    content: utm('content'),
     referrer: clip(referrer, 80),
     landed_at: new Date().toISOString(),
   };
@@ -125,7 +126,7 @@ export function trafficSource() {
   if (saved) return saved;
 
   const found = typeof window !== 'undefined' ? sourceFromUrl() : null;
-  const value = found || { source: 'direct', medium: null, campaign: null, referrer: null, landed_at: new Date().toISOString() };
+  const value = found || { source: 'direct', medium: null, campaign: null, content: null, referrer: null, landed_at: new Date().toISOString() };
 
   write('local', SOURCE_KEY, JSON.stringify(value));
 
@@ -157,6 +158,10 @@ export function track(event, props = {}) {
     if (key === 'page' || value === undefined || value === null) continue;
     cleanProps[clip(key, 30)] = typeof value === 'number' || typeof value === 'boolean' ? value : clip(value, 60);
   }
+
+  // The clip or creator in the first-touch link (utm_content). site_events has
+  // no column for it, so it rides in props.
+  if (src.content && !cleanProps.utm_content) cleanProps.utm_content = src.content;
 
   const row = {
     visitor_id: visitorId(),
