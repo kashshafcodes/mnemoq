@@ -224,6 +224,11 @@ export default function AdminStats() {
             <Kpi label="Active users" value={n(k.active_users)} hint={`${n(k.total_users)} accounts in total`} />
             <Kpi label="Reviews done" value={n(k.reviews)} hint={`${n(k.cards_added)} cards added`} />
             <Kpi label="Pro now" value={n(k.pro_now)} />
+            <Kpi
+              label={`Errors (${days === 1 ? 'today' : `${days} days`})`}
+              value={n((data.events || []).find((e) => e.event === 'client_error')?.n || 0)}
+              hint="client_error events, max 5 per page load"
+            />
           </div>
 
           <section className="st-card">
@@ -419,7 +424,7 @@ export default function AdminStats() {
                 Not set up yet. Run <code>supabase/payments.sql</code> and follow docs/payments.md.
               </p>
             ) : payments.length === 0 ? (
-              <p className="st-muted">No bKash or Nagad payments received yet.</p>
+              <p className="st-muted">No payments received yet.</p>
             ) : (
               <div className="st-scroll">
                 <table className="st-table">

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { track } from '../track';
+import { noteRoundDone } from '../install/runtime';
 import { LanguageToggle, useI18n } from '../i18n';
 import MnemoqLogo from '../components/MnemoqLogo';
 import Jonaki from '../components/Jonaki';
@@ -140,6 +141,7 @@ export default function Daily() {
     setHistory(saved);
     setPhase('done');
     track('daily_finish', { page: 'daily', number, score: scoreOf(marks), lang });
+    noteRoundDone('daily');
   }
 
   // Keyboard: 1-4 or A-D pick, Enter goes on (Space holds the lantern).

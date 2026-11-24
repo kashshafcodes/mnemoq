@@ -5,6 +5,9 @@ import { launchActive, launchDaysLeft, percentOff, priceOf, taka } from '../pric
 import { NO_SUGGEST } from '../noSuggest';
 import { pageHref } from '../useRoute';
 import { trackEvent } from '../googleAnalytics';
+import { track } from '../track';
+import { useI18n } from '../i18n';
+import { clearPending, loadPending, parentShareText, payText, savePending, whatsappShareUrl } from '../pro/payCopy';
 import '../sat/sat.css';
 
 // Mnemoq Pro on screen: the small lock and badge, the upgrade prompt shown
@@ -98,46 +101,116 @@ const COMPARE = [
 
 const cell = (value) => (value === true ? <span className="pro-yes">Included</span> : value === false ? <span className="pro-no">Not included</span> : value);
 
-// Pay by bKash / Nagad "Send Money", then type the TrxID: Pro starts as soon as
-// the payment SMS reaches the server (api/pay.js, api/sms-hook.js).
-function PayBox({ offer, email, onPlan }) {
+// Pay by bKash (or Nagad, once a number is set) "Send Money", then type the
+// TrxID: Pro starts as soon as the payment SMS reaches the server (api/pay.js,
+// api/sms-hook.js). Wording lives in src/pro/payCopy.js, in English and Bangla.
+const POLL_TRIES = 24;
+
+// "Open bKash and choose <b>Send Money</b>." with the bold part kept.
+function withBold(text) {
+  const parts = text.split(/<b>(.*?)<\/b>/);
+
+  return parts.map((part, i) => (i % 2 ? <b key={i}>{part}</b> : part));
+}
+
+function ParentShare({ offer, lang, number }) {
+  const pay = PRO.payment;
+  const price = priceOf(offer);
+  const [note, setNote] = useState('');
+  const text = parentShareText(pay, lang, {
+    plan: offer.label,
+    price: taka(price.now),
+    was: price.was ? taka(price.was) : null,
+    endDate: price.was ? longDate(PRO.launch.endsAt) : '',
+    number,
+  });
+
+  async function other() {
+    track('parent_share', { via: navigator.share ? 'share' : 'copy', offer: offer.id });
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setNote(payText(pay, lang, 'parentCopied'));
+    } catch {
+      setNote('');
+    }
+  }
+
+  return (
+    <div className="pay-parent">
+      <a
+        className="mq-btn mq-btn-ghost"
+        href={whatsappShareUrl(text)}
+        target="_blank"
+        rel="noreferrer"
+        onClick={() => track('parent_share', { via: 'whatsapp', offer: offer.id })}
+      >
+        {payText(pay, lang, 'parentButton')} · WhatsApp
+      </a>
+      <button type="button" className="mq-btn mq-btn-ghost" onClick={other}>
+        {payText(pay, lang, 'parentOther')}
+      </button>
+      {note && (
+        <span className="pay-parent-note" role="status">
+          {note}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function PayBox({ offer, email, onPlan, lang }) {
   const pay = PRO.payment;
   const price = priceOf(offer);
   const [trx, setTrx] = useState('');
   const [last4, setLast4] = useState('');
-  const [state, setState] = useState({ phase: 'idle' }); // idle | checking | waiting | done | error
+  const [state, setState] = useState({ phase: 'idle' }); // idle | checking | waiting | saved | done | error
   const [copied, setCopied] = useState(false);
   const timer = useRef(null);
   const tries = useRef(0);
+  const trxInput = useRef(null);
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const number = pay.bkash || pay.nagad;
+  const t = (key, vars) => payText(pay, lang, key, vars);
 
   async function check() {
     const result = await claimPayment(trx, last4);
 
     if (result.status === 'granted') {
+      clearPending();
       trackEvent('pro_redeemed', { days: result.days, method: 'sms' });
       setState({ phase: 'done', days: result.days, until: result.plan.proUntil });
-      onPlan(result.plan);
+      if (result.plan.pro) onPlan(result.plan);
       return;
     }
 
-    if (result.status === 'waiting' && tries.current < 24) {
-      tries.current += 1;
-      setState({ phase: 'waiting' });
-      timer.current = setTimeout(check, 10000);
+    if (result.status === 'waiting') {
+      savePending(email, trx, last4);
+
+      if (tries.current < POLL_TRIES) {
+        tries.current += 1;
+        setState({ phase: 'waiting' });
+        timer.current = setTimeout(check, 10000);
+        return;
+      }
+
+      // Honest timeout: the claim is saved and completes by itself.
+      setState({ phase: 'saved' });
       return;
     }
 
-    setState({
-      phase: 'error',
-      text:
-        result.status === 'waiting'
-          ? 'We have not received this payment yet. If you sent it, message us with the transaction ID and we will switch Pro on by hand.'
-          : result.error,
-    });
+    setState({ phase: 'error', text: result.status === 'mismatch' ? t('mismatch') : result.error });
   }
 
   function submit(event) {
@@ -146,6 +219,12 @@ function PayBox({ offer, email, onPlan }) {
     tries.current = 0;
     setState({ phase: 'checking' });
     check();
+  }
+
+  function edit() {
+    clearTimeout(timer.current);
+    setState({ phase: 'idle' });
+    setTimeout(() => trxInput.current?.focus(), 0);
   }
 
   async function copy() {
@@ -165,7 +244,13 @@ function PayBox({ offer, email, onPlan }) {
       <section className="path-card pay-box pay-done" role="status">
         <h3>You are on Pro 🎉</h3>
         <p>
-          Payment received. {state.days} days of Pro added, until <b>{longDate(state.until)}</b>. Everything is unlocked now.
+          Payment received. {state.days} days of Pro added
+          {state.until ? (
+            <>
+              , until <b>{longDate(state.until)}</b>
+            </>
+          ) : null}
+          . Everything is unlocked now.
         </p>
       </section>
     );
@@ -180,12 +265,10 @@ function PayBox({ offer, email, onPlan }) {
           Get {offer.label} of Pro for {taka(price.now)}
           {price.was && <s>{taka(price.was)}</s>}
         </h3>
-        <p>Pay with {pay.bkash && pay.nagad ? 'bKash or Nagad' : pay.bkash ? 'bKash' : 'Nagad'}. Pro starts automatically, usually within a minute.</p>
+        <p>{t('payWith')}</p>
       </header>
       <ol className="pay-steps">
-        <li>
-          Open {pay.bkash && pay.nagad ? 'bKash or Nagad' : pay.bkash ? 'bKash' : 'Nagad'} and choose <b>Send Money</b>.
-        </li>
+        <li>{withBold(t('stepOpen'))}</li>
         <li>
           Send <b>{taka(price.now)}</b> to{' '}
           <span className="pay-number">
@@ -195,38 +278,61 @@ function PayBox({ offer, email, onPlan }) {
             </button>
           </span>
         </li>
-        <li>Type the transaction ID (TrxID) from the confirmation SMS and the last 4 digits of the number you paid from.</li>
+        <li>{t('stepType')}</li>
       </ol>
-      <form className="pay-form" onSubmit={submit}>
-        <label>
-          Transaction ID
-          <input
-            value={trx}
-            onChange={(e) => setTrx(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-            placeholder="e.g. BKA1B2C3D4"
-            maxLength={20}
-            required
-            {...NO_SUGGEST}
-          />
-        </label>
-        <label>
-          Your number, last 4 digits
-          <input
-            value={last4}
-            onChange={(e) => setLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
-            inputMode="numeric"
-            placeholder="5678"
-            maxLength={4}
-            required
-          />
-        </label>
-        <button type="submit" className="mq-btn mq-btn-primary" disabled={busy || trx.length < 6 || last4.length !== 4}>
-          {busy ? 'Checking…' : 'Activate Pro'}
-        </button>
-      </form>
+      <ParentShare offer={offer} lang={lang} number={number} />
+      {busy || state.phase === 'saved' ? (
+        <div className="pay-echo">
+          <span className="pay-echo-label">{t('checkingTrx')}</span>
+          <code className="pay-echo-trx">{trx}</code>
+          <button type="button" className="mq-btn mq-btn-ghost" onClick={edit}>
+            {t('edit')}
+          </button>
+        </div>
+      ) : (
+        <form className="pay-form" onSubmit={submit}>
+          <label>
+            Transaction ID (TrxID)
+            <input
+              ref={trxInput}
+              value={trx}
+              onChange={(e) => setTrx(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+              placeholder="e.g. BKA1B2C3D4"
+              maxLength={20}
+              required
+              {...NO_SUGGEST}
+            />
+          </label>
+          <label>
+            {t('last4Label')}
+            <input
+              value={last4}
+              onChange={(e) => setLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              inputMode="numeric"
+              placeholder="5678"
+              maxLength={4}
+              required
+            />
+          </label>
+          <button type="submit" className="mq-btn mq-btn-primary" disabled={trx.length < 6 || last4.length !== 4}>
+            Activate Pro
+          </button>
+        </form>
+      )}
+      {(state.phase === 'idle' || state.phase === 'error') && <p className="sat-fineprint pay-hint">{t('parentHint')}</p>}
+      {state.phase === 'checking' && (
+        <p className="pay-wait" role="status">
+          <span className="pay-spinner" aria-hidden="true" /> {t('checking')}
+        </p>
+      )}
       {state.phase === 'waiting' && (
         <p className="pay-wait" role="status">
-          <span className="pay-spinner" aria-hidden="true" /> Waiting for your payment to arrive. Keep this page open; it usually takes under a minute.
+          <span className="pay-spinner" aria-hidden="true" /> {t('waiting')}
+        </p>
+      )}
+      {state.phase === 'saved' && (
+        <p className="pro-message ok" role="status">
+          {t('timeout', { trx })}
         </p>
       )}
       {state.phase === 'error' && (
@@ -250,7 +356,78 @@ function PayBox({ offer, email, onPlan }) {
   );
 }
 
+// A claim from an earlier visit that was still waiting: "Payment pending: TrxID".
+// Checks once on open (the same TrxID adds no new rows), and on request.
+function PendingPayment({ email, onPlan, lang }) {
+  const pay = PRO.payment;
+  const [pending, setPending] = useState(() => loadPending(email));
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState(null);
+  const checkedOnce = useRef(false);
+
+  async function recheck() {
+    if (!pending) return;
+
+    setBusy(true);
+    const result = await claimPayment(pending.trx, pending.last4);
+    setBusy(false);
+
+    if (result.status === 'granted') {
+      clearPending();
+      setPending(null);
+      if (result.plan.pro) onPlan(result.plan);
+      setMessage({ ok: true, text: payText(pay, lang, 'pendingDone', { days: result.days }) });
+      return;
+    }
+
+    // Still waiting, or the server could not be reached: keep remembering it.
+    if (result.status === 'waiting' || result.status === 'failed' || result.status === 'auth') return;
+
+    // Mismatch, used, wrong amount...: say why and stop remembering it.
+    clearPending();
+    setPending(null);
+    setMessage({ ok: false, text: result.status === 'mismatch' ? payText(pay, lang, 'mismatch') : result.error });
+  }
+
+  useEffect(() => {
+    if (pending && !checkedOnce.current) {
+      checkedOnce.current = true;
+      recheck();
+    }
+    // Runs once on open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (message) {
+    return (
+      <p className={message.ok ? 'pro-message ok' : 'pro-message'} role={message.ok ? 'status' : 'alert'}>
+        {message.text}
+      </p>
+    );
+  }
+
+  if (!pending) return null;
+
+  return (
+    <section className="path-card pay-pending" role="status">
+      <h3>{payText(pay, lang, 'pendingTitle', { trx: pending.trx })}</h3>
+      <p>{payText(pay, lang, 'pendingBody')}</p>
+      <div className="pay-pending-actions">
+        <button type="button" className="mq-btn mq-btn-primary" onClick={recheck} disabled={busy}>
+          {busy ? payText(pay, lang, 'checking') : payText(pay, lang, 'pendingCheck')}
+        </button>
+        {pay.contactUrl && (
+          <a className="mq-btn mq-btn-ghost" href={pay.contactUrl} target="_blank" rel="noreferrer">
+            {pay.contactLabel || 'Contact us'}
+          </a>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function ProPage({ plan, onPlan, email }) {
+  const { lang } = useI18n();
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(null); // { ok, text }
@@ -322,7 +499,7 @@ export default function ProPage({ plan, onPlan, email }) {
                 aria-pressed={chosen === offer.id}
                 onClick={() => setChosen(offer.id)}
               >
-                {offer.best && <span className="pro-offer-tag">Most popular</span>}
+                {offer.best && <span className="pro-offer-tag">{payText(PRO.payment, lang, 'planTag')}</span>}
                 <strong>{offer.label}</strong>
                 <span className="pro-price">
                   <b>{taka(price.now)}</b>
@@ -336,7 +513,9 @@ export default function ProPage({ plan, onPlan, email }) {
         </div>
       </section>
 
-      <PayBox offer={PRO.offers.find((o) => o.id === chosen) || PRO.offers[0]} email={email} onPlan={onPlan} />
+      <PendingPayment email={email} onPlan={onPlan} lang={lang} />
+
+      <PayBox offer={PRO.offers.find((o) => o.id === chosen) || PRO.offers[0]} email={email} onPlan={onPlan} lang={lang} />
 
       <section className="pro-benefits">
         {PRO.benefits.map((b) => (

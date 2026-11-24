@@ -25,3 +25,6 @@ dist-ssr
 
 .vercel
 .env*
+
+# Company hub: strategy and sector work stay local (repo may be public)
+company/

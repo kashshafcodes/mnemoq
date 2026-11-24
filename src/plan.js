@@ -101,7 +101,13 @@ export async function claimPayment(trxId, last4) {
     const body = await response.json().catch(() => null);
 
     if (!body) return { status: 'failed', error: 'Payments are not available yet. Try again in a minute.' };
-    if (body.status === 'granted') return { status: 'granted', days: body.days, plan: { ...describePlan(body.proUntil), setup: false } };
+    if (body.status === 'granted') {
+      // A claim settled earlier by the SMS hook comes back without pro_until:
+      // read the plan row instead of showing a free plan.
+      const plan = body.proUntil ? { ...describePlan(body.proUntil), setup: false } : await loadPlan(data.session.user.id);
+
+      return { status: 'granted', days: body.days, plan };
+    }
 
     return { status: body.status || 'failed', error: body.error || 'Could not check the payment.' };
   } catch {

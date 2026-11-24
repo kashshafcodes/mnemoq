@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import Jonaki from './Jonaki';
+import { noteRoundDone } from '../install/runtime';
 import { subjectAccent } from '../subjects';
 
 // One tab per subject, plus "All". Each shows how many cards are due.
@@ -97,6 +99,12 @@ function summaryLine(recalled, total) {
 // Shown when a session ends: "7/10 recalled", a dot per card, and the misses.
 export function SessionSummary({ results, cards, moreDue, onAgain, onDone }) {
   const total = results.length;
+
+  // A finished session is the moment the install card may appear.
+  useEffect(() => {
+    if (total > 0) noteRoundDone('review');
+  }, [total]);
+
   const recalled = results.filter((entry) => entry.recalled).length;
   const missed = results
     .filter((entry) => !entry.recalled)

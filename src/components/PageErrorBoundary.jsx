@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import { track } from '../track';
+import { reportError } from '../errors/report';
 
 // If one page crashes, show a short message on that page instead of a blank
 // screen. The menu keeps working, and the error is logged (Stats > Live
@@ -15,10 +15,9 @@ export default class PageErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    track('client_error', {
+    reportError(error, 'boundary', {
       page: this.props.page,
-      message: String(error?.message || error).slice(0, 60),
-      where: String(info?.componentStack || '').trim().split('\n')[0]?.trim().slice(0, 60),
+      where: String(info?.componentStack || '').trim().split('\n')[0]?.trim(),
     });
   }
 

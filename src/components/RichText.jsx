@@ -1,6 +1,4 @@
-import katex from 'katex';
-import 'katex/dist/katex.min.css';
-import { Fragment, useMemo } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import Graph from './Graph';
 
 // Card text with maths and graphs:
@@ -14,7 +12,30 @@ const PATTERN = /\[graph:\s*((?:[^[\]]|\[[^[\]]*\]){1,300})\]|\$\$([^$]{1,600}?)
 
 export const hasRich = (text) => /\$|\\\(|\\\[|\[graph:/.test(String(text || ''));
 
+// KaTeX (about a quarter of the old bundle, plus its fonts) loads only when a
+// card on screen actually has maths. Until then the formula shows as text.
+let katex = null;
+let katexLoading = null;
+
+export function loadKatex() {
+  if (!katexLoading) {
+    katexLoading = Promise.all([import('katex'), import('katex/dist/katex.min.css')])
+      .then(([mod]) => {
+        katex = mod.default || mod;
+        return katex;
+      })
+      .catch(() => {
+        katexLoading = null; // offline: try again on the next card
+        return null;
+      });
+  }
+
+  return katexLoading;
+}
+
 function tex(source, display) {
+  if (!katex) return null;
+
   try {
     return katex.renderToString(source, {
       displayMode: display,
@@ -65,6 +86,20 @@ export function inlinePreview(text) {
 
 export default function RichText({ text, graphs = true }) {
   const parts = useMemo(() => (hasRich(text) ? splitRich(text) : null), [text]);
+  const needsMath = Boolean(parts?.some((p) => p.type === 'math'));
+  const [, setReady] = useState(Boolean(katex));
+
+  useEffect(() => {
+    if (!needsMath || katex) return undefined;
+
+    let alive = true;
+
+    loadKatex().then((mod) => alive && mod && setReady(true));
+
+    return () => {
+      alive = false;
+    };
+  }, [needsMath]);
 
   if (!parts) return text ?? null;
 

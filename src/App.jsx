@@ -1,31 +1,22 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import './App.css';
 import { supabase } from './supabaseClient';
 import Landing from './components/Landing';
-import TryDiagnostic from './components/TryDiagnostic';
 import { clearGuestResult, pendingGuestResult } from './guestResult';
 import { trackEvent } from './googleAnalytics';
 
 import { MnemoqMark } from './components/MnemoqLogo';
 import Tutorial from './components/Tutorial';
-import Dashboard from './components/Dashboard';
-import AdminStats from './components/AdminStats';
-import Practice from './components/Practice';
 import PageErrorBoundary from './components/PageErrorBoundary';
-import DiagnosticReport from './components/DiagnosticReport';
 import { checkAdmin, identify, trackPage } from './track';
 import DueBadge from './components/DueBadge';
-import MockCenter from './components/MockCenter';
-import PathPage from './components/PathPage';
 import { SUBJECT_CATALOG, getPath, scaleOf } from './paths';
-import ProPage from './components/Pro';
 import { FREE_PLAN, loadPlan } from './plan';
 import { deleteQuestion, saveMock, saveQuestions } from './mockStore';
 import { loadPathState, saveAnalysis, saveDiagnostic, savePath } from './pathStore';
 import { requestAnalysis } from './coachApi';
 import { analysisPayload, daysLeftFor, describeProgress, readinessFor } from './readiness';
-import Profile from './components/Profile';
 import { readProfile } from './profile';
 import Home from './components/Home';
 import LibraryPage, { COLLAPSED_COUNT } from './components/LibraryPage';
@@ -49,6 +40,18 @@ import {
 } from './subjects';
 // Loaded after every component's own styles so the new look has the final say.
 import './polish.css';
+import PageLoading from './components/PageLoading';
+
+// Pages that are not the first screen load on demand (smaller first download).
+const TryDiagnostic = lazy(() => import('./components/TryDiagnostic'));
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const AdminStats = lazy(() => import('./components/AdminStats'));
+const Practice = lazy(() => import('./components/Practice'));
+const DiagnosticReport = lazy(() => import('./components/DiagnosticReport'));
+const MockCenter = lazy(() => import('./components/MockCenter'));
+const PathPage = lazy(() => import('./components/PathPage'));
+const ProPage = lazy(() => import('./components/Pro'));
+const Profile = lazy(() => import('./components/Profile'));
 
 const STORAGE_KEY = 'mnemoq-mistakes';
 
@@ -1279,6 +1282,7 @@ if (dataError) {
 
       <main className="mq-main">
         <PageErrorBoundary key={page} page={page}>
+        <Suspense fallback={<PageLoading />}>
         {page === 'home' && (
           <>
         <header className="mq-greeting">
@@ -1459,6 +1463,7 @@ if (dataError) {
           />
         )}
 
+        </Suspense>
         </PageErrorBoundary>
       </main>
 

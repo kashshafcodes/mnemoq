@@ -3841,3 +3841,69 @@ code {
     transition: none;
   }
 }
+
+/* ---- Pro: TrxID echo, parent share, pending claim (src/pro/payCopy.js) ---- */
+
+.pay-parent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.pay-parent .mq-btn {
+  min-height: 38px;
+  font-size: 14px;
+}
+
+.pay-parent-note {
+  color: var(--success-ink);
+  font-size: 13px;
+}
+
+.pay-hint {
+  margin-top: 8px;
+}
+
+.pay-echo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.pay-echo-label {
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pay-echo-trx {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  word-break: break-all;
+}
+
+.pay-pending {
+  border: 2px solid var(--highlight);
+  background: var(--highlight-soft);
+}
+
+.pay-pending h3 {
+  margin: 0 0 6px;
+  word-break: break-all;
+}
+
+.pay-pending-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}

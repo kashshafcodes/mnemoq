@@ -2,9 +2,11 @@
 // how to pay, and who to contact. Change the values here; no other file
 // needs to change.
 //
-// Payment is by access code for now (see supabase/stage5.sql): the student
-// pays by one of the methods below, sends proof, and receives a code to
-// redeem on the Pro page.
+// Payment: the student sends money by bKash (Nagad once its number is set
+// below), types the TrxID on the Pro page, and Pro starts automatically when
+// the payment SMS matches (api/pay.js). Access codes remain for partners and
+// gifts (supabase/stage5.sql). Payment copy reads these numbers, so a method
+// with an empty number is never mentioned (src/pro/payCopy.js).
 
 export const PRO = {
   name: 'Mnemoq Pro',
@@ -15,7 +17,7 @@ export const PRO = {
   // lasts. The payment checker (api/_payments.js) uses these same numbers.
   offers: [
     { id: 'month', label: '1 month', price: 99, regular: 199, days: 30, note: 'Try everything' },
-    { id: 'season', label: '4 months', price: 299, regular: 599, days: 120, note: 'Covers one full SAT preparation', best: true },
+    { id: 'season', label: '4 months', price: 299, regular: 599, days: 120, note: 'Four months of everything', best: true },
     { id: 'year', label: '12 months', price: 599, regular: 1199, days: 365, note: 'Covers every retake' },
   ],
 
@@ -30,7 +32,7 @@ export const PRO = {
   payment: {
     bkash: '01891966267',
     nagad: '',
-    // Where a student sends proof of payment and receives the code.
+    // Where a student asks for help with a payment.
     contactLabel: 'WhatsApp',
     contactUrl: 'https://wa.me/8801891966267',
     email: '',

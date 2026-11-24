@@ -1,0 +1,179 @@
+/* Install card, iPhone guide and offline banner (src/install/). */
+
+.inst-card {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  transform: translateX(-50%);
+  width: min(440px, calc(100vw - 32px));
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  animation: inst-rise 220ms ease-out;
+}
+
+.inst-card h3 {
+  margin: 0 0 2px;
+  font-size: 16px;
+}
+
+.inst-card p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.inst-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.inst-actions .mq-btn {
+  min-height: 40px;
+}
+
+.inst-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: color-mix(in srgb, var(--ink) 35%, transparent);
+}
+
+.inst-sheet {
+  width: min(480px, 100vw);
+  padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  animation: inst-rise 220ms ease-out;
+}
+
+.inst-sheet h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.inst-intro {
+  margin: 4px 0 12px;
+  color: var(--ink-2);
+}
+
+.inst-steps {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.inst-steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: 15px;
+}
+
+.inst-share-icon {
+  flex: none;
+  color: var(--info);
+}
+
+.inst-plus {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border: 1.6px solid var(--ink-2);
+  border-radius: 5px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.inst-app-icon {
+  flex: none;
+  border-radius: 5px;
+}
+
+.inst-why {
+  margin: 0 0 14px;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.inst-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 32px);
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 14px;
+  box-shadow: var(--shadow);
+}
+
+.offline-banner {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  padding: 8px 16px;
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+  border-bottom: 1px solid var(--warn-line);
+  font-size: 13.5px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.offline-banner.is-back {
+  background: var(--success-soft);
+  color: var(--success-ink);
+  border-bottom-color: var(--success-line);
+}
+
+@keyframes inst-rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+}
+
+.inst-sheet {
+  animation-name: inst-sheet-rise;
+}
+
+@keyframes inst-sheet-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inst-card,
+  .inst-sheet {
+    animation: none;
+  }
+}

@@ -4,6 +4,7 @@ import { LanguageToggle, useI18n } from '../i18n';
 import { PRO } from '../proConfig';
 import { launchActive, priceOf, taka } from '../pricing';
 import { track } from '../track';
+import { payText } from '../pro/payCopy';
 import MnemoqLogo from './MnemoqLogo';
 
 // The page everyone who is not signed in sees: what Mnemoq is and who it is for.
@@ -51,13 +52,13 @@ const COPY = {
     freeList: ['Unlimited review cards', 'SAT, NSU and BRAC diagnostics, with your first AI coach analysis free', 'Skill map and score log', '3 drills a day, a timed module a week', 'Smart reminders'],
     proList: ['AI coach after every test, 50 AI uses a day', 'The whole practice library (11,000+ questions)', 'Full adaptive SAT practice tests', 'Unlimited drills and a plan to test day'],
     perMonth: '/ month',
-    pay: 'Pay with bKash or Nagad',
+    pay: payText(PRO.payment, 'en', 'landingPay'),
     faqKicker: 'Questions',
     faq: [
       ['Is it really free?', 'Yes. Saving and reviewing cards, the SAT diagnostic and reminders are free with no time limit. Pro adds full practice tests, the whole question bank and the AI coach.'],
       ['Are these official SAT questions?', 'No. They are original questions written to match the Digital SAT. Use College Board’s Bluebook for official practice tests; use Mnemoq to fix what those tests show you got wrong.'],
       ['Does it work on my phone?', 'Yes. Open it in your browser and add it to your home screen. Reminders work on Android, and on iPhone once added to the home screen.'],
-      ['How do I pay for Pro?', 'Send the amount by bKash or Nagad and you get an access code to type on the Pro page. No card needed.'],
+      [payText(PRO.payment, 'en', 'landingFaqQ'), payText(PRO.payment, 'en', 'landingFaqA')],
     ],
     finalTitle: 'Your next mistake is your next point.',
     finalLead: 'Create a free account and save your first card in under a minute.',
@@ -103,13 +104,13 @@ const COPY = {
     freeList: ['আনলিমিটেড রিভিউ কার্ড', 'SAT, NSU ও BRAC ডায়াগনস্টিক, প্রথম এআই কোচ বিশ্লেষণ ফ্রি', 'দক্ষতার মানচিত্র ও স্কোর লগ', 'দিনে ৩টি ড্রিল, সপ্তাহে একটি টাইমড মডিউল', 'স্মার্ট রিমাইন্ডার'],
     proList: ['পূর্ণ অ্যাডাপটিভ SAT প্র্যাকটিস টেস্ট', 'পুরো প্র্যাকটিস লাইব্রেরি (১১,০০০+ প্রশ্ন)', 'আনলিমিটেড ড্রিল ও মডিউল', 'পরীক্ষার দিন পর্যন্ত পরিকল্পনা'],
     perMonth: '/ মাস',
-    pay: 'বিকাশ বা নগদে পেমেন্ট',
+    pay: payText(PRO.payment, 'bn', 'landingPay'),
     faqKicker: 'প্রশ্ন',
     faq: [
       ['সত্যিই কি ফ্রি?', 'হ্যাঁ। কার্ড সেভ ও রিভিউ, SAT ডায়াগনস্টিক এবং রিমাইন্ডার সময়সীমা ছাড়াই ফ্রি। Pro-তে আছে পূর্ণ প্র্যাকটিস টেস্ট, পুরো প্রশ্নব্যাংক ও এআই কোচ।'],
       ['এগুলো কি অফিসিয়াল SAT প্রশ্ন?', 'না। ডিজিটাল SAT-এর ধরনে লেখা মৌলিক প্রশ্ন। অফিসিয়াল টেস্টের জন্য College Board-এর Bluebook ব্যবহার করুন; সেখানে যা ভুল হয়, তা ঠিক করতে Mnemoq।'],
       ['ফোনে চলবে?', 'হ্যাঁ। ব্রাউজারে খুলে হোম স্ক্রিনে যোগ করুন। অ্যান্ড্রয়েডে রিমাইন্ডার চলে; আইফোনে হোম স্ক্রিনে যোগ করার পর।'],
-      ['Pro-র জন্য কীভাবে পেমেন্ট করব?', 'বিকাশ বা নগদে টাকা পাঠালে একটি অ্যাক্সেস কোড পাবেন, সেটি Pro পেজে লিখুন। কার্ড লাগবে না।'],
+      [payText(PRO.payment, 'bn', 'landingFaqQ'), payText(PRO.payment, 'bn', 'landingFaqA')],
     ],
     finalTitle: 'আপনার পরের ভুলই আপনার পরের নম্বর।',
     finalLead: 'ফ্রি অ্যাকাউন্ট খুলে এক মিনিটের মধ্যে প্রথম কার্ড সেভ করুন।',

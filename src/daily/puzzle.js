@@ -64,22 +64,46 @@ function shuffled(list, rand) {
 // One question per level (easiest first), five different categories, and every
 // question used exactly once per cycle (5 days × questions per slot). The
 // cycle's category order is reshuffled so the pattern does not repeat.
+//
+// Two rotations:
+//  - Puzzles #1–#15 are FROZEN as they were with the first 75 questions
+//    (3 per slot, 15-day cycle). They were live or announced before the pool
+//    grew, so they must never change (tests/daily.test.js pins them).
+//  - From #16 the full pool rotates: 6 per slot, a 30-day cycle. The first
+//    15 days of each cycle start three questions further on, so #16–#30 show
+//    the newest questions and the first 75 come back no sooner than #31.
+const FROZEN_DAYS = 15;
+const FROZEN_PER_SLOT = 3;
 const PER_SLOT = QUESTIONS.length / (CATEGORIES.length * 5);
 export const CYCLE_DAYS = 5 * PER_SLOT;
+export const ROTATION_START = FROZEN_DAYS + 1;
 
-export function questionsFor(number) {
-  const index = number - 1;
-  const cycle = Math.floor(index / CYCLE_DAYS);
-  const day = index % CYCLE_DAYS;
-  const cats = shuffled(CATEGORIES, seeded(hash(`cycle-${cycle}`)));
-  const variant = (Math.floor(day / 5) + cycle) % PER_SLOT;
-
+function pick(cats, day, variant) {
   return [1, 2, 3, 4, 5].map((level) => {
     const category = cats[(level + day) % CATEGORIES.length];
     const slot = QUESTIONS.filter((item) => item.level === level && item.category === category);
 
     return withShuffledOptions(slot[variant]);
   });
+}
+
+export function questionsFor(number) {
+  const index = Math.max(1, number) - 1;
+
+  if (index < FROZEN_DAYS) {
+    // The original rotation, cycle 0 (variant 0–2 by block of five days).
+    const cats = shuffled(CATEGORIES, seeded(hash('cycle-0')));
+
+    return pick(cats, index, Math.floor(index / 5) % FROZEN_PER_SLOT);
+  }
+
+  const rel = index - FROZEN_DAYS;
+  const cycle = Math.floor(rel / CYCLE_DAYS);
+  const day = rel % CYCLE_DAYS;
+  const cats = shuffled(CATEGORIES, seeded(hash(`r2-cycle-${cycle}`)));
+  const variant = (Math.floor(day / 5) + FROZEN_PER_SLOT + cycle) % PER_SLOT;
+
+  return pick(cats, day, variant);
 }
 
 // The pool lists the right answer first; show the options in a fixed shuffled
