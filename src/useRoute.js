@@ -1,31 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
+import { PAGES, applyRedirect, hrefFor, resolveRoute } from './nav/routes';
+import { track } from './track';
 
 // Tiny page router built on the address bar's #hash, so every section has its
-// own address (https://.../#/review) and the browser Back button works, with
+// own address (https://.../#/today) and the browser Back button works, with
 // no extra library and no server setup (a refresh on any page just works).
+// The rules (tabs, views, old-name aliases) are in src/nav/routes.js.
 
-export const PAGES = ['home', 'progress', 'add', 'library', 'review', 'profile', 'path', 'mocks', 'pro', 'admin', 'practice', 'report', 'daily', 'done'];
+export { PAGES };
 
-// Links and bookmarks from before the pages existed still land somewhere sensible.
-const OLD_ANCHORS = { dashboard: 'progress', mistakes: 'library', review: 'review' };
+const reportRedirect = (info) => track('route_redirect', info);
 
-function readPage() {
-  const name = String(window.location.hash || '')
-    .replace(/^#\/?/, '')
-    .split(/[/?]/)[0]
-    .toLowerCase();
-
-  if (PAGES.includes(name)) return name;
-
-  return OLD_ANCHORS[name] || 'home';
+function current() {
+  return applyRedirect(window.location, window.history, reportRedirect);
 }
 
 export function useRoute() {
-  const [page, setPage] = useState(readPage);
+  const [route, setRoute] = useState(current);
 
   useEffect(() => {
     const onChange = () => {
-      setPage(readPage());
+      setRoute(current());
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     };
 
@@ -34,18 +29,19 @@ export function useRoute() {
     return () => window.removeEventListener('hashchange', onChange);
   }, []);
 
+  // go('exam/mocks'), go('today'), or an old name (go('path')): unknown -> today.
   const go = useCallback((next) => {
-    const target = PAGES.includes(next) ? next : 'home';
+    const target = resolveRoute(`#/${next}`).hash;
 
-    if (readPage() === target && window.location.hash === `#/${target}`) {
+    if (window.location.hash === target) {
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       return;
     }
 
-    window.location.hash = `/${target}`;
+    window.location.hash = target.slice(1);
   }, []);
 
-  return { page, go };
+  return { page: route.page, sub: route.sub, go };
 }
 
-export const pageHref = (name) => `#/${name}`;
+export const pageHref = hrefFor;

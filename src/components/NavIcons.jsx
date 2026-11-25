@@ -137,3 +137,24 @@ export function DailyIcon() {
     </Icon>
   );
 }
+
+// Snap a mistake: a small camera.
+export function SnapIcon() {
+  return (
+    <Icon>
+      <path d="M4.5 8.2A1.7 1.7 0 0 1 6.2 6.5h1.9l1.4-2h5l1.4 2h1.9a1.7 1.7 0 0 1 1.7 1.7v9.1a1.7 1.7 0 0 1-1.7 1.7H6.2a1.7 1.7 0 0 1-1.7-1.7Z" />
+      <circle cx="12" cy="12.6" r="3.4" />
+    </Icon>
+  );
+}
+
+// Progress: a line that climbs.
+export function ProgressIcon() {
+  return (
+    <Icon>
+      <path d="M4 19.5h16" />
+      <path d="m5 15.5 4.2-4.3 3.3 3 6.5-7" />
+      <path d="M15.2 7.2H19v3.8" />
+    </Icon>
+  );
+}

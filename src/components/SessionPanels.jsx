@@ -107,7 +107,9 @@ function summaryKey(recalled, total) {
 
 // Shown when a session ends: "7/10 recalled", a dot per card, the misses, and
 // always a next step: another round, tonight's Daily, or "Done for today".
-export function SessionSummary({ results, cards, moreDue, dailyPlayed, onAgain, onStop, onDaily, onDoneToday }) {
+// With Today's round (`roundNext`), the next step is the round's: "Next: the
+// Daily", or "Done for today" once every step is finished.
+export function SessionSummary({ results, cards, moreDue, dailyPlayed, onAgain, onStop, onDaily, onDoneToday, roundNext = null }) {
   const t = useLoopT();
   const total = results.length;
 
@@ -157,6 +159,18 @@ export function SessionSummary({ results, cards, moreDue, dailyPlayed, onAgain, 
         </div>
       )}
 
+      {roundNext ? (
+        <div className="session-actions">
+          <button type="button" className="primary-button" onClick={withHaptic(roundNext.onContinue)}>
+            {roundNext.label}
+          </button>
+          {!roundNext.allDone && (
+            <button type="button" className="ghost-button" onClick={onStop}>
+              {t('session.next.stop')}
+            </button>
+          )}
+        </div>
+      ) : (
       <div className="session-actions">
         {next === 'more' && (
           <>
@@ -184,6 +198,7 @@ export function SessionSummary({ results, cards, moreDue, dailyPlayed, onAgain, 
           </button>
         )}
       </div>
+      )}
     </div>
   );
 }

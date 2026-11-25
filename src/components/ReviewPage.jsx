@@ -27,6 +27,7 @@ export default function ReviewPage({
   setReviewSession,
   dailyPlayed = false,
   go,
+  roundNext = null,
 }) {
   const t = useLoopT();
 
@@ -55,7 +56,7 @@ export default function ReviewPage({
                   Focus on {pathInfo.weakest.name}, your weakest
                 </button>
               )}
-            <a className="text-link" href={pageHref('path')}>
+            <a className="text-link" href={pageHref('exam')}>
               Open my path
             </a>
           </div>
@@ -92,10 +93,19 @@ export default function ReviewPage({
             cards={mistakes}
             moreDue={scopedDue.length}
             dailyPlayed={dailyPlayed}
+            roundNext={
+              roundNext && {
+                ...roundNext,
+                onContinue: () => {
+                  setReviewSession(null);
+                  roundNext.onContinue();
+                },
+              }
+            }
             onAgain={startSession}
             onStop={() => {
               setReviewSession(null);
-              go('home');
+              go('today');
             }}
             onDaily={() => {
               setReviewSession(null);
@@ -121,7 +131,7 @@ export default function ReviewPage({
                       {t('empty.noCards.daily')}
                     </a>
                   )}
-                  <a className={`mq-btn ${dailyPlayed ? 'mq-btn-primary' : 'mq-btn-ghost'}`} href={pageHref('add')}>
+                  <a className={`mq-btn ${dailyPlayed ? 'mq-btn-primary' : 'mq-btn-ghost'}`} href={pageHref('snap')}>
                     {t('empty.noCards.add')}
                   </a>
                 </div>

@@ -1,64 +1,57 @@
 import MnemoqLogo from './MnemoqLogo';
-import { AddIcon, DailyIcon, HelpIcon, HomeIcon, LibraryIcon, PathIcon, PracticeIcon, ProIcon, ReviewIcon, StatsIcon } from './NavIcons';
+import { HomeIcon, LibraryIcon, PathIcon, ProIcon, ProgressIcon, SnapIcon } from './NavIcons';
 import { PRO } from '../proConfig';
 import { launchActive, priceOf, taka } from '../pricing';
 import { LanguageToggle, useI18n } from '../i18n';
 import { pageHref } from '../useRoute';
+import { tabIsActive } from '../nav/routes';
+import { useNavT } from '../nav/strings';
+import { track } from '../track';
+import '../nav/nav.css';
 import './AppNav.css';
 
-// The app's navigation: the desktop sidebar, the phone top bar and the phone
-// tab bar. Kept short on purpose. "Add" is a button, not a page in the list;
-// Progress opens from Home and Library; the Daily puzzle opens full screen
-// inside the app at #/daily (guests play it at /daily).
-
-// Pages that live under another menu entry, so that entry stays highlighted.
-const PARENT = { mocks: 'path', progress: 'home', add: 'library', report: 'path' };
+// The app's navigation (spec company/product/phase2-tabs.md): five tabs,
+// Today · Exam · (Snap) · Progress · Library, the same on the phone tab bar
+// and the desktop sidebar. Me opens from the avatar. Review, the Daily and
+// "Done for today" are full-screen flows opened by Play, not tabs.
 
 // A plain function (not a hook): App calls it after its early returns.
-export function navItems({ t, dueCount, pathInfo, isAdmin }) {
-  const side = [
-    ['home', HomeIcon, t('nav.home')],
-    ['review', ReviewIcon, t('nav.review'), dueCount],
-    ['practice', PracticeIcon, t('nav.practice')],
-    ['path', PathIcon, pathInfo ? `${pathInfo.short} path` : t('nav.path')],
-    ['library', LibraryIcon, t('nav.library')],
-    ['daily', DailyIcon, t('nav.daily')],
-    ...(isAdmin ? [['admin', StatsIcon, 'Stats']] : []),
-  ];
+export function navItems({ t, dueCount }) {
+  const today = ['today', HomeIcon, t('nav.today'), dueCount];
+  const exam = ['exam', PathIcon, t('nav.exam')];
+  const progress = ['progress', ProgressIcon, t('nav.progress')];
+  const library = ['library', LibraryIcon, t('nav.library')];
 
-  const tabs = [
-    ['home', HomeIcon, t('nav.home')],
-    ['review', ReviewIcon, t('nav.review'), dueCount],
-    ['add', AddIcon, t('nav.addShort')],
-    ['practice', PracticeIcon, t('nav.practice')],
-    ['path', PathIcon, pathInfo ? pathInfo.short : t('nav.pathShort')],
-  ];
-
-  return { side, tabs };
+  return {
+    side: [today, exam, progress, library],
+    tabs: [today, exam, ['snap', SnapIcon, t('nav.snap')], progress, library],
+  };
 }
 
-const isActive = (page, name) => page === name || PARENT[page] === name;
-const hrefOf = (name, href) => href || pageHref(name);
 const badge = (count) => count > 0 && <b className="mq-count">{count > 99 ? '99+' : count}</b>;
 
-export function Sidebar({ page, items, plan, me, onTutorial, onDebrief, onLogout }) {
+const tapped = (tab, from, surface) => () => track('nav_tab', { tab, from, surface });
+
+export function Sidebar({ page, items, plan, me, onLogout }) {
   const { t } = useI18n();
+  const nt = useNavT();
 
   return (
-    <aside className="mq-side" aria-label="Main menu">
-      <MnemoqLogo size={30} href={pageHref('home')} />
+    <aside className="mq-side" aria-label={nt('nav.main')}>
+      <MnemoqLogo size={30} href={pageHref('today')} />
 
-      <a className={`mq-side-add${page === 'add' ? ' active' : ''}`} href={pageHref('add')}>
-        <AddIcon /> {t('nav.add')}
+      <a className={`mq-side-add${page === 'snap' ? ' active' : ''}`} href={pageHref('snap')} onClick={tapped('snap', page, 'desktop')}>
+        <SnapIcon /> {nt('nav.snapLong')}
       </a>
 
       <nav className="mq-nav">
-        {items.map(([name, NavIcon, label, count, href]) => (
+        {items.map(([name, NavIcon, label, count]) => (
           <a
             key={name}
-            className={isActive(page, name) ? 'mq-nav-link active' : 'mq-nav-link'}
-            href={hrefOf(name, href)}
-            aria-current={isActive(page, name) ? 'page' : undefined}
+            className={tabIsActive(page, name) ? 'mq-nav-link active' : 'mq-nav-link'}
+            href={pageHref(name)}
+            aria-current={tabIsActive(page, name) ? 'page' : undefined}
+            onClick={tapped(name, page, 'desktop')}
           >
             <NavIcon />
             <span>{label}</span>
@@ -69,7 +62,7 @@ export function Sidebar({ page, items, plan, me, onTutorial, onDebrief, onLogout
 
       <div className="mq-side-bottom">
         {plan.pro ? (
-          <a className="mq-pro-card is-pro" href={pageHref('pro')}>
+          <a className="mq-pro-card is-pro" href={pageHref('me/pro')}>
             <ProIcon />
             <span>
               <b>Mnemoq Pro</b>
@@ -79,7 +72,7 @@ export function Sidebar({ page, items, plan, me, onTutorial, onDebrief, onLogout
             </span>
           </a>
         ) : (
-          <a className={page === 'pro' ? 'mq-pro-card active' : 'mq-pro-card'} href={pageHref('pro')}>
+          <a className="mq-pro-card" href={pageHref('me/pro')}>
             <ProIcon />
             <span>
               <b>Go Pro</b>
@@ -92,22 +85,13 @@ export function Sidebar({ page, items, plan, me, onTutorial, onDebrief, onLogout
           </a>
         )}
 
-        <div className="mq-side-links">
-          <button type="button" onClick={onTutorial}>
-            <HelpIcon /> {t('nav.how')}
-          </button>
-          <button type="button" onClick={onDebrief}>
-            <ReviewIcon /> {t('nav.debrief')}
-          </button>
-        </div>
-
-        <a className={page === 'profile' ? 'mq-me active' : 'mq-me'} href={pageHref('profile')}>
+        <a className={tabIsActive(page, 'me') ? 'mq-me active' : 'mq-me'} href={pageHref('me')} onClick={tapped('me', page, 'desktop')}>
           <span className="mq-avatar" style={{ '--avatar': me.color.value }} aria-hidden="true">
             {me.initial}
           </span>
           <span className="mq-me-text">
-            <b>{me.name || t('nav.profile')}</b>
-            <small>{t('nav.profile')} &amp; reminders</small>
+            <b>{me.name || nt('nav.me')}</b>
+            {me.name && <small>{nt('nav.me')}</small>}
           </span>
         </a>
         <div className="mq-side-foot">
@@ -121,22 +105,21 @@ export function Sidebar({ page, items, plan, me, onTutorial, onDebrief, onLogout
   );
 }
 
-export function MobileBar({ plan, me }) {
-  const { t } = useI18n();
+// Phone top bar: the logo and the avatar (Me). Nothing else.
+export function MobileBar({ page, me }) {
+  const nt = useNavT();
 
   return (
     <header className="mq-mobilebar">
-      <MnemoqLogo size={26} href={pageHref('home')} />
+      <MnemoqLogo size={26} href={pageHref('today')} />
       <div className="mq-mobilebar-right">
-        <a className="mq-daily-chip" href={pageHref('daily')} aria-label={t('nav.daily')}>
-          <DailyIcon />
-        </a>
-        {!plan.pro && (
-          <a className="mq-pro-chip" href={pageHref('pro')}>
-            <ProIcon /> Pro
-          </a>
-        )}
-        <a className="mq-avatar" href={pageHref('profile')} style={{ '--avatar': me.color.value }} aria-label={t('nav.profile')}>
+        <a
+          className={`mq-avatar${tabIsActive(page, 'me') ? ' active' : ''}`}
+          href={pageHref('me')}
+          style={{ '--avatar': me.color.value }}
+          aria-label={nt('nav.me')}
+          onClick={tapped('me', page, 'phone')}
+        >
           {me.initial}
         </a>
       </div>
@@ -145,20 +128,50 @@ export function MobileBar({ plan, me }) {
 }
 
 export function TabBar({ page, items }) {
+  const nt = useNavT();
+
   return (
-    <nav className="mq-tabbar" aria-label="Main menu">
+    <nav className="mq-tabbar" aria-label={nt('nav.main')}>
       {items.map(([name, NavIcon, label, count]) => (
         <a
           key={name}
-          className={`${isActive(page, name) ? 'mq-tab active' : 'mq-tab'}${name === 'add' ? ' mq-tab-add' : ''}`}
+          className={`${tabIsActive(page, name) ? 'mq-tab active' : 'mq-tab'}${name === 'snap' ? ' mq-tab-snap' : ''}`}
           href={pageHref(name)}
-          aria-current={isActive(page, name) ? 'page' : undefined}
+          aria-current={tabIsActive(page, name) ? 'page' : undefined}
+          onClick={tapped(name, page, 'phone')}
         >
           <span className="mq-tab-icon">
             <NavIcon />
             {badge(count)}
           </span>
-          <span>{label}</span>
+          <span className="mq-tab-label">{label}</span>
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+// Path · Mock tests · Practice at the top of the Exam tab: views of one
+// destination, not menu items.
+export function ExamSegments({ view }) {
+  const nt = useNavT();
+  const views = [
+    ['path', 'exam'],
+    ['mocks', 'exam/mocks'],
+    ['practice', 'exam/practice'],
+  ];
+
+  return (
+    <nav className="mq-seg mq-exam-seg" aria-label={nt('nav.examViews')}>
+      {views.map(([id, href]) => (
+        <a
+          key={id}
+          href={pageHref(href)}
+          className={view === id ? 'active' : ''}
+          aria-current={view === id ? 'page' : undefined}
+          onClick={() => track('exam_segment', { segment: id })}
+        >
+          {nt(`exam.seg.${id}`)}
         </a>
       ))}
     </nav>

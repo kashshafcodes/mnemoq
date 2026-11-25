@@ -141,9 +141,9 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
   const message = headline(stats);
   const dailyPlayed = Boolean(dailyStatus().today);
   const step = nextStep({ cards, dueCount, pathInfo, onReview, dailyPlayed });
-  // The Play button covers due cards, the Daily and "done"; the focus card
-  // stays only for a first step it cannot take (a diagnostic, a first card).
-  const showFocus = step.tone === 'path' || step.tone === 'start';
+  // Today's round and its Play button cover due cards, the Daily, the drill
+  // and a first card; the focus card stays only for a first diagnostic.
+  const showFocus = step.tone === 'path';
 
   const subjects = useMemo(() => {
     const counts = new Map();

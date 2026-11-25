@@ -1,0 +1,204 @@
+/* The five tabs (phase2-tabs.md): the raised Snap button, the Exam segment
+   control, Me extras and the full-screen flow shell. Colours come from the
+   tokens in src/index.css; only transform and opacity animate. */
+
+.mq-exam-seg {
+  margin: 0 0 16px;
+}
+
+.mq-exam-seg a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  text-decoration: none;
+}
+
+.mq-exam-seg a.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.mq-mobilebar .mq-avatar {
+  width: 44px;
+  height: 44px;
+  text-decoration: none;
+}
+
+.mq-mobilebar .mq-avatar.active {
+  box-shadow: 0 0 0 3px var(--accent-line);
+}
+
+@media (max-width: 860px) {
+  .mq-tab {
+    min-height: 48px;
+    align-content: center;
+  }
+
+  .mq-tab-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  /* Snap: the raised centre button with a gentle glow. */
+  .mq-tab-snap .mq-tab-icon {
+    width: 56px;
+    height: 56px;
+    margin-top: -24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 0 0 4px var(--surface), 0 8px 20px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+
+  .mq-tab-snap .mq-tab-icon .nav-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .mq-tab-snap .mq-tab-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+    animation: mq-snap-pulse 2.6s var(--ease-out) 3;
+    pointer-events: none;
+  }
+
+  .mq-tab-snap.active .mq-tab-icon {
+    background: var(--accent-hover);
+  }
+
+  .mq-tab-snap.active {
+    color: var(--accent-ink);
+  }
+}
+
+@keyframes mq-snap-pulse {
+  0% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  70% { opacity: 0; transform: scale(1.35); box-shadow: 0 0 0 8px transparent; }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+/* Me: Pro, Help and (admins) Stats rows under the profile. */
+.mq-me-extras {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.mq-me-pro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+
+.mq-me-pro span {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+}
+
+.mq-me-pro small {
+  color: var(--ink-2);
+}
+
+.mq-me-help ol {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: help;
+}
+
+.mq-me-help li {
+  counter-increment: help;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: start;
+  gap: 10px;
+  color: var(--ink-2);
+}
+
+.mq-me-help li::before {
+  content: counter(help);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--highlight-soft);
+  color: var(--highlight-ink);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* Full-screen flows opened by Play (review, drill): no tab bar, one way out. */
+.mq-flow {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.mq-flow-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.mq-flow-close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  font: inherit;
+}
+
+.mq-flow-close:hover {
+  background: var(--surface-2);
+}
+
+.mq-flow-title {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.mq-flow-body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px 16px calc(40px + env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mq-tab-snap .mq-tab-icon::after {
+    animation: none;
+  }
+}

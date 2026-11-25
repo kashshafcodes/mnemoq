@@ -3,8 +3,9 @@ import { haptic } from '../haptics';
 import { useLoopT } from './strings';
 import './loop.css';
 
-// The one big button on Today (Home). Its state comes from playState():
-// review the cards that are fading, else tonight's Daily, else "Done".
+// The one big button on Today. Its state comes from Today's round
+// (playFromRound): the current step (cards, the Daily, the drill, or a first
+// snap), else "Done".
 // On phones it floats just above the tab bar, where the thumb rests.
 
 function PlayIcon({ done }) {
@@ -22,11 +23,12 @@ function PlayIcon({ done }) {
 export default function PlayButton({ state, onPlay, floating = true, className = '' }) {
   const t = useLoopT();
   const { kind, n } = state;
-  const vars = { n, size: SESSION_SIZE };
+  const vars = { n, size: SESSION_SIZE, skill: state.skill || '' };
   const done = kind === 'done';
 
   function play(event) {
-    haptic.tap();
+    if (kind === 'offline') haptic.error();
+    else haptic.tap();
     onPlay?.(event);
   }
 

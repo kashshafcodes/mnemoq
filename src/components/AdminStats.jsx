@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { mergePages, pageNameNow } from '../nav/routes';
 
 // The owner's Stats page (#/admin): who is landing on the site, where they came
 // from, what they do, and whether reminders are running. Data comes from
@@ -155,7 +156,8 @@ export default function AdminStats() {
     }
 
     setError('');
-    setData(overview.data);
+    // Page names changed with the five tabs (home -> today, path -> exam, ...).
+    setData(overview.data ? { ...overview.data, pages: mergePages(overview.data.pages) } : overview.data);
     setRecent(feed.data || []);
     setUsers(people.data || []);
     setHealth(reminders.data || null);
@@ -333,7 +335,7 @@ export default function AdminStats() {
                     <time>{ago(e.at)}</time>
                     <span>
                       <b>{e.email || `Visitor ${e.visitor}`}</b> {(EVENT_LABELS[e.event] || e.event).toLowerCase()}
-                      {e.event === 'page_view' && e.page ? `: ${e.page}` : ''}
+                      {e.event === 'page_view' && e.page ? `: ${pageNameNow(e.page)}` : ''}
                     </span>
                     <small>
                       {e.source || 'direct'} · {e.device || '?'}

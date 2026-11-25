@@ -22,7 +22,7 @@ import { readProfile } from './profile';
 import Home from './components/Home';
 import LibraryPage, { COLLAPSED_COUNT } from './components/LibraryPage';
 import ReviewPage from './components/ReviewPage';
-import { MobileBar, Sidebar, TabBar, navItems } from './components/AppNav';
+import { ExamSegments, MobileBar, Sidebar, TabBar, navItems } from './components/AppNav';
 import { pageHref, useRoute } from './useRoute';
 import { SESSION_SIZE, pickSessionCards, scheduleNext } from './quiz';
 import QuickAdd from './components/QuickAdd';
@@ -45,8 +45,13 @@ import PageLoading from './components/PageLoading';
 import { computeStreaks } from './analytics';
 import { playTimes } from './daily/calendar';
 import { dailyStatus } from './daily/DailyTile';
-import { playState } from './loop/playState';
 import PlayButton from './loop/PlayButton';
+import TodayRound from './loop/TodayRound';
+import { stepLabelKey, useRound } from './loop/useRound';
+import { loopT } from './loop/strings';
+import MeExtras from './nav/MeExtras';
+import { navT } from './nav/strings';
+import { track } from './track';
 
 // Pages that are not the first screen load on demand (smaller first download).
 const TryDiagnostic = lazy(() => import('./components/TryDiagnostic'));
@@ -61,6 +66,7 @@ const Profile = lazy(() => import('./components/Profile'));
 const Daily = lazy(() => import('./daily/Daily.jsx'));
 const DoneToday = lazy(() => import('./loop/DoneToday'));
 const Pilot = lazy(() => import('./components/Pilot'));
+const Drill = lazy(() => import('./loop/Drill'));
 
 const STORAGE_KEY = 'mnemoq-mistakes';
 
@@ -78,7 +84,7 @@ function App() {
   const [dataLoading, setDataLoading] = useState(true);
   const [dataError, setDataError] = useState('');
   const formRef = useRef(null);
-  const { page, go } = useRoute();
+  const { page, sub, go } = useRoute();
   // mnemoq.../sat or .../nsu: the diagnostic anyone can take before signing up.
   const [tryExam] = useState(() => {
     const match = /^\/(sat|nsu|brac)\/?$/i.exec(window.location.pathname);
@@ -112,7 +118,7 @@ const [authLoading, setAuthLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [showAll, setShowAll] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   // First-run "Exam Debrief" pilot. `pilot` is the saved result (or null).
   const [pilot, setPilot] = useState(null);
   const [pilotOpen, setPilotOpen] = useState(false);
@@ -170,8 +176,8 @@ const [authLoading, setAuthLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (session?.user?.id) trackPage(page);
-  }, [page, session?.user?.id]);
+    if (session?.user?.id) trackPage(sub ? `${page}/${sub}` : page);
+  }, [page, sub, session?.user?.id]);
 
   useEffect(() => {
     const userId = session?.user?.id;
@@ -208,7 +214,7 @@ const [authLoading, setAuthLoading] = useState(true);
     if (!pending) {
       if (tryExam) {
         window.history.replaceState(null, '', '/');
-        go('path');
+        go('exam');
       }
       return;
     }
@@ -243,7 +249,7 @@ const [authLoading, setAuthLoading] = useState(true);
       setPathState({ path: null, diagnostic: null, ...(await loadPathState(user.id)) });
       window.history.replaceState(null, '', '/');
       setFreshReport(true);
-      go('report');
+      go('exam/report');
     })();
   }, [session, dataLoading, pathState, tryExam, go]);
 
@@ -1059,6 +1065,44 @@ const reviewMistake =
       ? mistakes.find((mistake) => mistake.id === nextSessionId) || null
       : null;
 
+  // A short summary of the path for the home page and the review page.
+  const pathCfg = pathState.status === 'ready' ? pathState.path : null;
+  const pathInfo = pathCfg
+    ? (() => {
+        const config = getPath(pathCfg.pathId);
+        const readiness = readinessFor(pathCfg.pathId, pathState.diagnostic, reviewLog, new Date(), pathState.mocks || []);
+        const daysLeft = daysLeftFor(pathCfg.examDate);
+        const scale = scaleOf(config);
+
+        return {
+          name: config.name,
+          short: config.short,
+          daysLeft,
+          engine: config.engine || 'classic',
+          word: scale.word,
+          readiness: readiness.overall,
+          target: pathCfg.target,
+          progress: describeProgress(readiness.overall, pathCfg.target, daysLeft, scale),
+          weakest: readiness.weakest,
+          // A logged score is as good a starting point as a diagnostic.
+          hasDiagnostic: Boolean(pathState.diagnostic) || readiness.overall !== null,
+        };
+      })()
+    : null;
+
+  // Today's round (src/loop/): due cards, then the Daily, then the weakest-skill
+  // drill. Hooks run before the early returns below.
+  const round = useRound({
+    userId: session?.user?.id || null,
+    cards: mistakes,
+    dueCards: dueMistakes,
+    reviews: reviewLog,
+    weakest: pathInfo?.weakest || null,
+    ready: Boolean(session?.user?.id) && !dataLoading && pathState.status !== 'loading',
+    pro: Boolean(plan.pro),
+    size: SESSION_SIZE,
+  });
+
 if (authLoading) {
   return (
     <main className="mq-loading" aria-busy="true">
@@ -1268,32 +1312,7 @@ if (dataError) {
     go('review');
   }
 
-  // A short summary of the path for the home page and the review page.
-  const pathCfg = pathState.status === 'ready' ? pathState.path : null;
-  const pathInfo = pathCfg
-    ? (() => {
-        const config = getPath(pathCfg.pathId);
-        const readiness = readinessFor(pathCfg.pathId, pathState.diagnostic, reviewLog, new Date(), pathState.mocks || []);
-        const daysLeft = daysLeftFor(pathCfg.examDate);
-        const scale = scaleOf(config);
-
-        return {
-          name: config.name,
-          short: config.short,
-          daysLeft,
-          engine: config.engine || 'classic',
-          word: scale.word,
-          readiness: readiness.overall,
-          target: pathCfg.target,
-          progress: describeProgress(readiness.overall, pathCfg.target, daysLeft, scale),
-          weakest: readiness.weakest,
-          // A logged score is as good a starting point as a diagnostic.
-          hasDiagnostic: Boolean(pathState.diagnostic) || readiness.overall !== null,
-        };
-      })()
-    : null;
-
-  const nav = navItems({ t, dueCount: dueMistakes.length, pathInfo, isAdmin });
+  const nav = navItems({ t: navT(lang), dueCount: dueMistakes.length });
 
   function finishPilot(result, thenReview) {
     const next = { status: 'done', ...result, hidden: false };
@@ -1317,7 +1336,7 @@ if (dataError) {
     }
 
     setPilotOpen(false);
-    if (openAdd) go('add');
+    if (openAdd) go('snap');
   }
 
   if (pilotOpen) {
@@ -1330,7 +1349,7 @@ if (dataError) {
         onChooseOther={() => leavePilot('skipped', true)}
         onChoosePath={() => {
           leavePilot('skipped', false);
-          go('path');
+          go('exam');
         }}
         onFinish={finishPilot}
       />
@@ -1338,14 +1357,52 @@ if (dataError) {
     );
   }
 
-  // Today's loop: what the Play button would do, shared by Home, the end of
-  // a round, the Daily and "Done for today".
+  // Today's loop: the round's Play button, shared by Today, the end of a
+  // round, the Daily and "Done for today".
+  const lt = loopT(lang);
+  const { plan: roundNow, play } = round;
   const dailyPlayed = Boolean(dailyStatus().today);
-  const play = playState({ dueCount: dueMistakes.length, dailyPlayed, size: SESSION_SIZE });
 
   function playNow() {
+    if (play.action === 'none') return;
+    if (play.action !== 'done') track('round_step_start', { step: roundNow.current, n: play.n, from: 'play' });
+
     if (play.action === 'review') goToReview();
-    else go(play.action === 'daily' ? 'daily' : 'done');
+    else go(play.action);
+  }
+
+  // After a step: back to Today (the ring shows the step lit and Play names
+  // the next one), or "Done for today" once every step is finished.
+  function backToRound() {
+    go(round.planNow().allDone ? 'done' : 'today');
+  }
+
+  // "Next: {step}" at the end of a step opens that step straight away.
+  function continueRound() {
+    const next = round.planNow();
+
+    if (next.allDone || !next.current || next.current === 'cards') {
+      backToRound();
+      return;
+    }
+
+    track('round_step_start', { step: next.current, from: 'link' });
+    go(next.current);
+  }
+
+  const roundNext = {
+    allDone: roundNow.allDone,
+    label: roundNow.allDone
+      ? lt('session.next.done')
+      : roundNow.current && roundNow.current !== 'cards'
+        ? lt('round.next', { step: lt(stepLabelKey(roundNow.current)) })
+        : lt('round.continue'),
+    onContinue: continueRound,
+  };
+
+  function anotherRound() {
+    round.noteExtra();
+    goToReview();
   }
 
   // The Daily inside the app: full screen, the night look, a back button, no reload.
@@ -1355,11 +1412,11 @@ if (dataError) {
         <Suspense fallback={<PageLoading />}>
           <Daily
             inApp={{
-              onBack: () => go('home'),
+              onBack: () => go('today'),
               streakNow: () => computeStreaks(reviewLog, new Date(), playTimes()).current,
               dueCount: dueMistakes.length,
               onReview: goToReview,
-              onDone: () => go('done'),
+              onDone: backToRound,
               onSaveAndReview: saveAndReview,
             }}
           />
@@ -1367,6 +1424,59 @@ if (dataError) {
       </PageErrorBoundary>
     );
   }
+
+  // Review and the drill: full-screen flows opened by Play, one way out.
+  if (page === 'review' || page === 'drill') {
+    return (
+      <div className="mq-flow">
+        <header className="mq-flow-bar">
+          <a className="mq-flow-close" href={pageHref('today')} aria-label={lt('done.home')}>
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </a>
+          <span className="mq-flow-title">{lt('round.title')}</span>
+        </header>
+        <main className="mq-flow-body">
+          <PageErrorBoundary key={page} page={page}>
+            <Suspense fallback={<PageLoading />}>
+              {page === 'review' ? (
+                <ReviewPage
+                  pathInfo={pathInfo}
+                  reviewMistake={reviewMistake}
+                  sessionFinished={sessionFinished}
+                  reviewTabs={reviewTabs}
+                  activeReviewSubject={activeReviewSubject}
+                  reviewSubjectFromPath={reviewSubjectFromPath}
+                  dueMistakes={dueMistakes}
+                  chooseReviewSubject={chooseReviewSubject}
+                  sessionRunning={sessionRunning}
+                  endSession={endSession}
+                  mistakes={mistakes}
+                  manualReviewId={manualReviewId}
+                  reviewSession={reviewSession}
+                  handleReviewRating={handleReviewRating}
+                  scopedDue={scopedDue}
+                  startSession={startSession}
+                  setReviewSession={setReviewSession}
+                  dailyPlayed={dailyPlayed}
+                  go={go}
+                  roundNext={roundNext}
+                />
+              ) : round.drill ? (
+                <Drill source={round.drill} onFinish={round.markDrillDone} onDone={continueRound} onLeave={() => go('today')} onAddCards={addPracticeCards} />
+              ) : (
+                <DoneToday cards={mistakes} play={play} onPlay={playNow} userId={session.user.id} plan={roundNow} dueCount={dueMistakes.length} onExtra={anotherRound} />
+              )}
+            </Suspense>
+          </PageErrorBoundary>
+        </main>
+      </div>
+    );
+  }
+
+  // Exam: Path (default) · Mock tests · Practice, plus the full report page.
+  const examView = page === 'exam' ? sub || 'path' : null;
 
   return (
     <div className="mq-app">
@@ -1376,19 +1486,17 @@ if (dataError) {
         items={nav.side}
         plan={plan}
         me={me}
-        onTutorial={() => setShowTutorial(true)}
-        onDebrief={() => setPilotOpen(true)}
         onLogout={logOut}
       />
-      <MobileBar plan={plan} me={me} />
+      <MobileBar page={page} me={me} />
       <TabBar page={page} items={nav.tabs} />
 
-      {page === 'home' && <PlayButton state={play} onPlay={playNow} />}
+      {page === 'today' && <PlayButton state={play} onPlay={playNow} />}
 
       <main className="mq-main">
         <PageErrorBoundary key={page} page={page}>
         <Suspense fallback={<PageLoading />}>
-        {page === 'home' && (
+        {page === 'today' && (
           <>
         <header className="mq-greeting">
           <p className="mq-date">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
@@ -1410,6 +1518,8 @@ if (dataError) {
           />
         )}
 
+            <TodayRound round={round} dueCount={dueMistakes.length} />
+
             <Home
               cards={mistakes}
               reviews={reviewLog}
@@ -1424,7 +1534,9 @@ if (dataError) {
           </>
         )}
 
-        {page === 'done' && <DoneToday cards={mistakes} play={play} onPlay={playNow} userId={session.user.id} />}
+        {page === 'done' && (
+          <DoneToday cards={mistakes} play={play} onPlay={playNow} userId={session.user.id} plan={roundNow} dueCount={dueMistakes.length} onExtra={anotherRound} />
+        )}
 
         {page === 'progress' && (
           <Dashboard
@@ -1432,16 +1544,16 @@ if (dataError) {
             reviews={reviewLog}
             dueCount={dueMistakes.length}
             showForm={false}
-            onToggleAdd={() => go('add')}
+            onToggleAdd={() => go('snap')}
             onReview={goToReview}
           />
         )}
 
-        {page === 'add' && (
+        {page === 'snap' && (
           <QuickAdd
             cards={mistakes}
             onSave={addCard}
-            onClose={() => go('home')}
+            onClose={() => go('today')}
             onReviewNow={goToReview}
           />
         )}
@@ -1476,8 +1588,10 @@ if (dataError) {
           />
         )}
 
-        {page === 'path' && pathState.diagnostic && (
-          <a className="mq-report-link" href={pageHref('report')}>
+        {examView && examView !== 'report' && <ExamSegments view={examView} />}
+
+        {examView === 'path' && pathState.diagnostic && (
+          <a className="mq-report-link" href={pageHref('exam/report')}>
             <span>
               <b>Your diagnostic report</b>
               {pathState.diagnostic.analysis ? 'AI coach analysis, every mistake, and cards to fix them' : 'Get the AI coach analysis and fix every mistake'}
@@ -1486,7 +1600,7 @@ if (dataError) {
           </a>
         )}
 
-        {(page === 'path' || (page === 'mocks' && pathInfo?.engine === 'sat')) && (
+        {(examView === 'path' || (examView === 'mocks' && pathInfo?.engine === 'sat')) && (
           <PathPage
             plan={plan}
             onSwitchPath={switchPath}
@@ -1506,9 +1620,9 @@ if (dataError) {
 
         {page === 'admin' && isAdmin && <AdminStats />}
 
-        {page === 'practice' && <Practice plan={plan} onAddCards={addPracticeCards} />}
+        {examView === 'practice' && <Practice plan={plan} onAddCards={addPracticeCards} />}
 
-        {page === 'report' &&
+        {examView === 'report' &&
           (pathState.status === 'loading' ? (
             <p className="path-loading">Loading your report…</p>
           ) : (
@@ -1524,9 +1638,9 @@ if (dataError) {
             />
           ))}
 
-        {page === 'pro' && <ProPage plan={plan} onPlan={setPlan} email={session.user.email} />}
+        {page === 'me' && sub === 'pro' && <ProPage plan={plan} onPlan={setPlan} email={session.user.email} />}
 
-        {page === 'mocks' && pathInfo?.engine !== 'sat' && (
+        {examView === 'mocks' && pathInfo?.engine !== 'sat' && (
           <MockCenter
             state={pathState}
             cards={mistakes}
@@ -1539,40 +1653,20 @@ if (dataError) {
           />
         )}
 
-        {page === 'profile' && (
-          <Profile
-            user={session.user}
-            cards={mistakes}
-            reviews={reviewLog}
-            onSave={saveProfile}
-            onLogout={logOut}
-            onTutorial={() => setShowTutorial(true)}
-          />
+        {page === 'me' && !sub && (
+          <>
+            <Profile
+              user={session.user}
+              cards={mistakes}
+              reviews={reviewLog}
+              onSave={saveProfile}
+              onLogout={logOut}
+              onTutorial={() => setShowTutorial(true)}
+            />
+            <MeExtras plan={plan} isAdmin={isAdmin} />
+          </>
         )}
 
-        {page === 'review' && (
-          <ReviewPage
-            pathInfo={pathInfo}
-            reviewMistake={reviewMistake}
-            sessionFinished={sessionFinished}
-            reviewTabs={reviewTabs}
-            activeReviewSubject={activeReviewSubject}
-            reviewSubjectFromPath={reviewSubjectFromPath}
-            dueMistakes={dueMistakes}
-            chooseReviewSubject={chooseReviewSubject}
-            sessionRunning={sessionRunning}
-            endSession={endSession}
-            mistakes={mistakes}
-            manualReviewId={manualReviewId}
-            reviewSession={reviewSession}
-            handleReviewRating={handleReviewRating}
-            scopedDue={scopedDue}
-            startSession={startSession}
-            setReviewSession={setReviewSession}
-            dailyPlayed={dailyPlayed}
-            go={go}
-          />
-        )}
 
         </Suspense>
         </PageErrorBoundary>
