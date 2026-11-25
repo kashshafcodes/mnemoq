@@ -1,4 +1,4 @@
--- Mnemoq referrals, part 2 (Phase 2 wave 3d-2). NOT APPLIED: Ops reviews and
+-- Mnemoq referrals, part 2 (Phase 2 wave 3d-2). Applied 26 Nov 2026 (owner yes). Ops reviewed and
 -- runs it once in the Supabase SQL editor, AFTER supabase/referrals.sql.
 --
 -- 1. referral_settle (replaced, same signature): when the referrer is over a

@@ -1,6 +1,6 @@
 -- Snap attempt counter: one row per call to /api/snap, card or not.
 --
--- NOT APPLIED YET: waiting for the owner's yes (proposed in Phase 2 wave 2b).
+-- Applied 26 Nov 2026 (owner's yes).
 -- Safe to run again. Until it runs, api/_aiLimit.js skips the attempt cap.
 --
 -- Why: an unreadable, failed or busy read costs the student no snap, so one
