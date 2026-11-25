@@ -43,8 +43,8 @@ describe('sanitizeSnap', () => {
   });
 
   it('rejects an over-long question instead of cutting it', () => {
-    expect(sanitizeSnap({ ...good, question: 'x'.repeat(221) }, {})).toBeNull();
-    expect(sanitizeSnap({ ...good, question: 'x'.repeat(220) }, {})).not.toBeNull();
+    expect(sanitizeSnap({ ...good, question: 'x'.repeat(601) }, {})).toBeNull();
+    expect(sanitizeSnap({ ...good, question: 'x'.repeat(600) }, {})).not.toBeNull();
   });
 
   it('marks unsure cards so the sheet does not auto-save them', () => {
@@ -242,11 +242,37 @@ describe('/api/snap quota paths', () => {
   });
 
   it('a reply that cannot be used is "failed" and costs nothing', async () => {
-    const calls = fakeWorld({ gemini: { ...good, question: 'x'.repeat(300) } });
+    const calls = fakeWorld({ gemini: { ...good, question: 'x'.repeat(700) } });
     const res = await handler(post({ mode: 'text', text: 'q?' }), fakeRes(), env);
 
     expect(res.statusCode).toBe(502);
     expect(calls.recorded).toBe(0);
+  });
+
+  it('turns thinking off and leaves room for the card', async () => {
+    const calls = fakeWorld();
+    await handler(post({ mode: 'photo', image: JPEG }), fakeRes(), env);
+
+    const config = calls.gemini[0].body.generationConfig;
+    expect(config.thinkingConfig).toEqual({ thinkingBudget: 0 });
+    expect(config.maxOutputTokens).toBeGreaterThanOrEqual(2048);
+  });
+
+  it('a photo that fails on the vision model gets a second try on the lite model', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const calls = fakeWorld({ geminiStatus: 400 });
+    const res = await handler(post({ mode: 'photo', image: JPEG }), fakeRes(), env);
+
+    expect(res.statusCode).toBe(502);
+    expect(calls.gemini.map((c) => c.url.match(/models\/([^:]+)/)[1])).toEqual(['gemini-flash-latest', 'gemini-flash-lite-latest']);
+    expect(calls.gemini[1].body.contents[0].parts[0].inlineData).toBeTruthy();
+    // Each failure is logged with its reason and never with the image or text.
+    expect(warn).toHaveBeenCalledTimes(2);
+    for (const [, line] of warn.mock.calls) {
+      expect(line).toContain('"stage":"http"');
+      expect(line).not.toContain(JPEG);
+    }
+    warn.mockRestore();
   });
 
   it('makeSnap says not configured without keys', async () => {

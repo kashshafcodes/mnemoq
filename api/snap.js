@@ -20,7 +20,7 @@ import { ProviderError, askGroq, clean, getUser, hasUnlimitedAi, norm, recordUse
 export const config = { maxDuration: 30 };
 
 export const SNAP_LIMITS = { text: 600, image: 2 * 1024 * 1024, subjects: 12, subject: 40 };
-export const SNAP_OUT = { question: 220, answer: 120, yourAnswer: 120, distractor: 120, hook: 200, concept: 60, subject: 40 };
+export const SNAP_OUT = { question: 600, answer: 200, yourAnswer: 120, distractor: 120, hook: 200, concept: 60, subject: 40 };
 export const REASONS = ['blurry', 'no_text', 'not_study', 'no_answer', 'unsafe'];
 
 export const SNAP_PROMPT = `You turn one mistake a student made into one flashcard.
@@ -32,7 +32,7 @@ Reply with JSON only, matching the schema.
   If you cannot read the question, say so. Never invent a card from an unclear image.
 - Faces, receipts, private messages, adult or violent content: readable false, reason "not_study" or "unsafe", and do not repeat any text from it.
 - If several questions are visible, pick the one the student marked wrong (circled, crossed, a red tick or cross, "wrong"); otherwise the first fully readable one. Set multi true.
-- question: one question that makes sense on its own, at most 200 characters, in the SAME language as the source. Never translate it.
+- question: one question that makes sense on its own, at most 500 characters (if the source is longer, keep only what is needed to answer it: the setup, the numbers and the ask; drop long passages and answer choices), in the SAME language as the source. Never translate it.
 - answer: the correct answer, short. If only the question is given, supply the answer yourself and set sure false unless you are certain.
 - yourAnswer: what the student wrote or chose, only if visible (a crossed-out or marked answer). Otherwise "".
 - distractors: 3 plausible wrong options, the same kind and length as the answer, never equal to it. Or [] if that makes no sense.
@@ -207,8 +207,21 @@ export function buildSnapPrompt(input) {
 
 const TIMEOUT_MS = 20000;
 
-export async function askGeminiSnap(env, input) {
-  const model = input.mode === 'photo' ? env.GEMINI_VISION_MODEL || 'gemini-flash-latest' : env.GEMINI_MODEL || 'gemini-flash-lite-latest';
+const liteModel = (env) => env.GEMINI_MODEL || 'gemini-flash-lite-latest';
+const visionModel = (env) => env.GEMINI_VISION_MODEL || 'gemini-flash-latest';
+
+// Why a provider call produced no card. Logged without any of the student's
+// text or image, so the logs say what broke and nothing else.
+export class SnapFailure extends Error {
+  constructor(stage, detail = {}) {
+    super(`snap ${stage}`);
+    this.stage = stage;
+    this.detail = detail;
+  }
+}
+
+export async function askGeminiSnap(env, input, modelOverride) {
+  const model = modelOverride || (input.mode === 'photo' ? visionModel(env) : liteModel(env));
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const parts = [{ text: buildSnapPrompt(input) }];
 
@@ -221,16 +234,30 @@ export async function askGeminiSnap(env, input) {
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: SNAP_PROMPT }] },
       contents: [{ role: 'user', parts }],
-      generationConfig: { temperature: 0.2, maxOutputTokens: 900, responseMimeType: 'application/json', responseSchema: SNAP_SCHEMA },
+      // Thinking off: on a thinking model the hidden reasoning counts against
+      // maxOutputTokens and can leave no room for the card itself.
+      generationConfig: { temperature: 0.2, maxOutputTokens: 2048, responseMimeType: 'application/json', responseSchema: SNAP_SCHEMA, thinkingConfig: { thinkingBudget: 0 } },
     }),
   });
 
   if (!res.ok) throw new ProviderError(`Gemini ${res.status}`, res.status);
 
   const data = await res.json().catch(() => null);
-  const text = data?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '';
+  const candidate = data?.candidates?.[0];
+  const text = candidate?.content?.parts?.map((part) => part.text || '').join('') || '';
+  const meta = { model, finish: candidate?.finishReason || data?.promptFeedback?.blockReason || null, tokens: Number(data?.usageMetadata?.totalTokenCount) || null };
 
-  return { raw: JSON.parse(text), model, tokens: Number(data?.usageMetadata?.totalTokenCount) || null };
+  if (!text) throw new SnapFailure('empty', meta);
+
+  let raw;
+
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    throw new SnapFailure('bad_json', { ...meta, length: text.length });
+  }
+
+  return { raw, model, tokens: meta.tokens };
 }
 
 async function askGroqSnap(env, input) {
@@ -244,7 +271,11 @@ async function askGroqSnap(env, input) {
 export async function makeSnap(env, input) {
   const providers = [];
 
-  if (env.GEMINI_API_KEY) providers.push(askGeminiSnap);
+  if (env.GEMINI_API_KEY) {
+    providers.push((e, i) => askGeminiSnap(e, i));
+    // Photos get a second try on the lite model, which also reads images.
+    if (input.mode === 'photo' && visionModel(env) !== liteModel(env)) providers.push((e, i) => askGeminiSnap(e, i, liteModel(e)));
+  }
   if (input.mode === 'text' && env.GROQ_API_KEY) providers.push(askGroqSnap);
 
   if (providers.length === 0) return { notConfigured: true };
@@ -257,14 +288,31 @@ export async function makeSnap(env, input) {
       const result = sanitizeSnap(raw, input);
 
       if (result) return { result, model, tokens };
+      logSnapFailure('unusable', { model, mode: input.mode, ...shapeOf(raw) });
     } catch (error) {
       if (error instanceof ProviderError && (error.status === 429 || error.status === 503)) busy = true;
       if (error?.name === 'TimeoutError' || error?.name === 'AbortError') busy = true;
-      // Any other failure: try the next provider. Never log the input.
+      // Try the next provider. Log why, never the input or the reply text.
+      logSnapFailure(error instanceof SnapFailure ? error.stage : error instanceof ProviderError ? 'http' : error?.name === 'TimeoutError' || error?.name === 'AbortError' ? 'timeout' : 'error', {
+        mode: input.mode,
+        status: error?.status ?? null,
+        ...(error instanceof SnapFailure ? error.detail : {}),
+      });
     }
   }
 
   return busy ? { busy: true } : { failed: true };
+}
+
+// Lengths only, so a log line shows why sanitizeSnap refused a reply.
+function shapeOf(raw) {
+  if (!raw || typeof raw !== 'object') return { reply: typeof raw };
+
+  return { readable: raw.readable ?? null, qLen: String(raw.question ?? '').length, aLen: String(raw.answer ?? '').length };
+}
+
+function logSnapFailure(stage, detail) {
+  console.warn('snap_failure', JSON.stringify({ stage, ...detail }));
 }
 
 // ---- the endpoint ----------------------------------------------------------
