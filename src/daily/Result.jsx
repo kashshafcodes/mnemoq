@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { track } from '../track';
 import Jonaki from '../components/Jonaki';
 import { CARD_HOME } from './questions';
-import { MAX_SCORE, msUntilNext, scoreOf, shareText } from './puzzle';
+import { MAX_SCORE, msUntilNext, scoreOf } from './puzzle';
 import { loopT } from '../loop/strings';
 import { bnDigits, rankOf } from './strings';
-import { drawShareCard } from './shareImage';
 import { sfx } from './audio';
 import { haptic } from '../haptics';
 
@@ -14,23 +13,9 @@ import { haptic } from '../haptics';
 // so every round has its own little tune), then the score, rank, sharing and
 // the misses worth keeping.
 
-const SHARE_URL = 'https://mnemoq-two.vercel.app/daily';
+// The one share sheet (src/share/), loaded when opened.
+const ShareSheet = lazy(() => import('../share/ShareSheet'));
 const MOODS = { 5: 'wow', 4: 'happy', 3: 'happy', 2: 'idle', 1: 'oops' };
-
-// The result screen's Jonaki as standalone SVG markup for the share image.
-function mascotMarkup() {
-  const svg = document.querySelector('.dly-result .jonaki');
-
-  if (!svg) return null;
-
-  const copy = svg.cloneNode(true);
-
-  copy.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  copy.setAttribute('width', '240');
-  copy.setAttribute('height', '240');
-
-  return new XMLSerializer().serializeToString(copy);
-}
 
 function clock(ms) {
   const total = Math.floor(ms / 1000);
@@ -48,7 +33,8 @@ export default function Result({ number, marks, questions, history, t, lang, num
   const missed = marks.map((m, i) => ({ mark: m, question: questions[i] })).filter(({ mark }) => !mark.correct);
   const [shown, setShown] = useState(0); // lanterns revealed so far
   const [counted, setCounted] = useState(0);
-  const [toast, setToast] = useState('');
+  const [sharing, setSharing] = useState(false);
+  const shareData = useMemo(() => ({ number, marks, score, max: MAX_SCORE, rank }), [number, marks, score, rank]);
   const [left, setLeft] = useState(() => msUntilNext());
   const lanternRefs = useRef([]);
   const done = shown >= marks.length;
@@ -97,72 +83,6 @@ export default function Result({ number, marks, questions, history, t, lang, num
     const id = setInterval(() => setLeft(msUntilNext()), 1000);
     return () => clearInterval(id);
   }, []);
-
-  function flash(message) {
-    setToast(message);
-    setTimeout(() => setToast(''), 2600);
-  }
-
-  async function cardBlob() {
-    return drawShareCard({
-      number: num(number),
-      marks,
-      score: num(score),
-      max: num(MAX_SCORE),
-      rankName: t(`rank_${rank}`),
-      rankLine: t(`rankLine_${rank}`),
-      title: t('title'),
-      url: SHARE_URL,
-      fontFamily: lang === 'bn' ? '"Noto Sans Bengali", "Inter", sans-serif' : '"Inter", sans-serif',
-      mascotSvg: mascotMarkup(),
-    });
-  }
-
-  async function share() {
-    haptic.tap();
-    sfx.tap();
-    track('daily_share', { page: 'daily', number, score });
-
-    const text = shareText({ number, marks, lang, url: SHARE_URL });
-
-    try {
-      const blob = await cardBlob();
-      const file = blob && new File([blob], `mnemoq-daily-${number}.png`, { type: 'image/png' });
-
-      if (file && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], text });
-        return;
-      }
-
-      if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-        await navigator.share({ text });
-        return;
-      }
-
-      await navigator.clipboard.writeText(text);
-      flash(t('copied'));
-    } catch {
-      // Cancelled or blocked.
-    }
-  }
-
-  async function saveImage() {
-    haptic.tap();
-    sfx.tap();
-
-    const blob = await cardBlob();
-
-    if (!blob) return;
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-
-    a.href = url;
-    a.download = `mnemoq-daily-${number}.png`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-    track('daily_image', { page: 'daily', number });
-  }
 
   return (
     <>
@@ -213,11 +133,16 @@ export default function Result({ number, marks, questions, history, t, lang, num
         </dl>
 
         <div className="dly-share-row">
-          <button type="button" className="dly-play" onClick={share}>
+          <button
+            type="button"
+            className="dly-play"
+            onClick={() => {
+              haptic.tap();
+              sfx.tap();
+              setSharing(true);
+            }}
+          >
             {t('share')}
-          </button>
-          <button type="button" className="dly-ghost" onClick={saveImage}>
-            {t('saveImage')}
           </button>
         </div>
         <p className="dly-next">{t('nextIn', { time: lang === 'bn' ? bnDigits(clock(left)) : clock(left) })}</p>
@@ -225,10 +150,10 @@ export default function Result({ number, marks, questions, history, t, lang, num
 
       {inApp ? <AppNext missed={missed} t={t} lang={lang} inApp={inApp} /> : <Misses missed={missed} t={t} lang={lang} />}
 
-      {toast && (
-        <p className="dly-toast" role="status">
-          {toast}
-        </p>
+      {sharing && (
+        <Suspense fallback={null}>
+          <ShareSheet variant="daily" data={shareData} lang={lang} userId={inApp?.userId || null} onClose={() => setSharing(false)} />
+        </Suspense>
       )}
     </>
   );

@@ -1549,6 +1549,7 @@ if (dataError) {
           <Daily
             inApp={{
               onBack: () => go('today'),
+              userId: session?.user?.id || null,
               streakNow: () => computeStreaks(reviewLog, new Date(), streakTimes()).current,
               dueCount: dueMistakes.length,
               onReview: goToReview,

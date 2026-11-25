@@ -12,6 +12,10 @@
 
 export const DAILY_CAP = 100;
 export const SNAPS_PER_DAY = 3;
+// Sharing a card (perks spec §1): at most 1 rewarded share a Dhaka day and 3
+// in the last 7 days, once per card subject, inside the daily cap.
+export const SHARES_PER_DAY = 1;
+export const SHARES_PER_WEEK = 3;
 
 export const AMOUNTS = {
   'review.recalled': 3, // a due card, rated good/easy
@@ -27,6 +31,7 @@ export const AMOUNTS = {
   'round.finish': 10, // every step of Today's round done
   diagnostic: 30, // outside the cap
   mock: 20, // outside the cap
+  share: 3, // a card shared (not saved), once per card subject
 };
 
 // Kinds that pay outside the daily cap.
@@ -43,6 +48,7 @@ const nothing = (reason, key = null) => ({ amount: 0, reason, key, exempt: false
 //   { type: 'round' }
 //   { type: 'diagnostic', path, kind }
 //   { type: 'mock', source, id }                      source 'prepared:x' pays once per paper
+//   { type: 'share', variant, subject, how }          how: image | link | whatsapp | copy (save pays 0)
 function classify(action = {}) {
   switch (action.type) {
     case 'review':
@@ -72,10 +78,16 @@ function classify(action = {}) {
 
       return { row: 'mock', key: prepared ? `mock:${action.source}` : `mock:custom:${action.id}`, once: true };
     }
+    case 'share':
+      if (!SHARE_HOWS.has(action.how)) return { row: null, key: null, reason: 'notShared' };
+      return { row: 'share', key: `share:${action.variant}:${action.subject}`, once: true, share: true };
     default:
       return null;
   }
 }
+
+// A real share. Saving the image or a cancelled sheet never pays.
+const SHARE_HOWS = new Set(['image', 'link', 'whatsapp', 'copy']);
 
 export function award(action, ctx = {}) {
   const kind = classify(action);
@@ -92,24 +104,27 @@ export function award(action, ctx = {}) {
   // Daily lanterns, mocks and diagnostics pay once ever; everything else once a day.
   if (kind.key && (kind.once ? ever.includes(kind.key) || keys.includes(kind.key) : keys.includes(kind.key))) return nothing('again', kind.key);
   if (kind.snap && (day.snaps || 0) >= SNAPS_PER_DAY) return nothing('snapLimit');
+  if (kind.share && (day.shares || 0) >= SHARES_PER_DAY) return nothing('shareDay', kind.key);
+  if (kind.share && (ctx.weekShares || 0) >= SHARES_PER_WEEK) return nothing('shareWeek', kind.key);
 
   if (EXEMPT.has(kind.row)) return { amount: base, reason: kind.row, key: kind.key, exempt: true, capped: false, once: true };
 
   const room = Math.max(0, DAILY_CAP - (day.glow || 0));
   const amount = Math.min(base, room);
 
-  return { amount, reason: amount === 0 ? 'cap' : kind.row, key: kind.key, exempt: false, capped: amount < base, once: Boolean(kind.once), snap: Boolean(kind.snap) };
+  return { amount, reason: amount === 0 ? 'cap' : kind.row, key: kind.key, exempt: false, capped: amount < base, once: Boolean(kind.once), snap: Boolean(kind.snap), share: Boolean(kind.share) };
 }
 
 // The day record after an award. Keys are kept even at the cap, so a capped
 // card does not pay later the same day either.
 export function applyAward(day = {}, result) {
-  const next = { glow: day.glow || 0, extra: day.extra || 0, keys: [...(day.keys || [])], snaps: day.snaps || 0 };
+  const next = { glow: day.glow || 0, extra: day.extra || 0, keys: [...(day.keys || [])], snaps: day.snaps || 0, shares: day.shares || 0 };
 
   if (result.key && result.reason !== 'again' && !next.keys.includes(result.key)) next.keys.push(result.key);
   if (result.exempt) next.extra += result.amount;
   else next.glow += result.amount;
   if (result.snap && result.amount > 0) next.snaps += 1;
+  if (result.share && result.amount > 0) next.shares += 1;
 
   return next;
 }

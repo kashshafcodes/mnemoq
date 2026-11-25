@@ -60,7 +60,7 @@ function saveLedger(ledger, store, user) {
   // Keys only matter today (once per card per day); older days keep totals.
   const today = dhakaKey(new Date());
   const days = Object.fromEntries(
-    Object.entries(ledger.days).map(([day, rec]) => [day, day >= today ? rec : { glow: rec.glow || 0, extra: rec.extra || 0 }]),
+    Object.entries(ledger.days).map(([day, rec]) => [day, day >= today ? rec : { glow: rec.glow || 0, extra: rec.extra || 0, ...(rec.shares ? { shares: rec.shares } : {}) }]),
   );
 
   try {
@@ -87,6 +87,33 @@ export function lifetimeGlow(store = storage(), user = syncUser(), device = devi
   }
 
   return sum;
+}
+
+// Glow per Dhaka day on the account (this device plus the others), for the
+// weekly recap's "Glow earned".
+export function glowByDay(store = storage(), user = syncUser(), device = deviceId(store)) {
+  const ledger = loadLedger(store, user);
+  const account = serverGlowDays(store, user);
+  const out = {};
+
+  for (const day of new Set([...Object.keys(ledger.days), ...Object.keys(account)])) {
+    const others = account[day] || {};
+    let sum = Math.max(dayTotal(ledger.days[day]), Number(others[device]) || 0);
+
+    for (const [id, n] of Object.entries(others)) if (id !== device) sum += Number(n) || 0;
+    out[day] = sum;
+  }
+
+  return out;
+}
+
+// Rewarded shares in the 7 Dhaka days ending `at` (the weekly share cap).
+export function sharesThisWeek(ledger, at = new Date()) {
+  let n = 0;
+
+  for (let i = 0; i < 7; i += 1) n += ledger.days[dhakaKey(new Date(at.getTime() - i * 86400000))]?.shares || 0;
+
+  return n;
 }
 
 export function todayGlow(store = storage(), user = syncUser(), now = new Date()) {
@@ -165,7 +192,7 @@ if (typeof document !== 'undefined') {
   });
 }
 
-const SOURCE = { review: 'review', daily: 'daily', 'daily.finish': 'daily', practice: 'practice', card: 'card', round: 'round', diagnostic: 'diagnostic', mock: 'mock' };
+const SOURCE = { share: 'share', review: 'review', daily: 'daily', 'daily.finish': 'daily', practice: 'practice', card: 'card', round: 'round', diagnostic: 'diagnostic', mock: 'mock' };
 
 // One learning action -> the award (see glow.js). Plays feel('glow.gain')
 // unless `quiet` (when a bigger reward plays on the same action, or for
@@ -176,9 +203,9 @@ export function earn(action, { at = new Date(), store = storage(), user = syncUs
   const ledger = loadLedger(store, user);
   const day = dhakaKey(at);
   const rec = ledger.days[day] || {};
-  const result = award(action, { day: rec, ever: ledger.ever });
+  const result = award(action, { day: rec, ever: ledger.ever, weekShares: sharesThisWeek(ledger, at) });
 
-  if (result.reason === 'again' || result.reason === 'unknown' || result.reason === 'snapLimit' || result.reason === 'none' || result.reason === 'miss') {
+  if (['again', 'unknown', 'snapLimit', 'none', 'miss', 'notShared', 'shareDay', 'shareWeek'].includes(result.reason)) {
     return { ...result, capHit: false };
   }
 

@@ -1,0 +1,148 @@
+/* The share sheet (src/share/ShareSheet.jsx). Night colours from the tokens. */
+.shs-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(11, 10, 31, 0.6);
+}
+
+.shs {
+  width: min(100%, 460px);
+  max-height: 94vh;
+  overflow-y: auto;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--night-deep);
+  color: var(--night-text);
+  outline: none;
+}
+
+.shs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.shs-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--night-text);
+}
+
+.shs-close {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 247, 224, 0.1);
+  color: var(--night-text);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.shs-preview {
+  display: flex;
+  justify-content: center;
+}
+
+.shs-preview img,
+.shs-skeleton {
+  width: min(62vw, 240px);
+  aspect-ratio: 9 / 16;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+.shs-preview img {
+  animation: fx-fade var(--dur-2) var(--ease-out) backwards;
+}
+
+.shs-skeleton {
+  background: var(--night-mid);
+}
+
+.shs-err {
+  margin: 24px 0;
+  color: var(--night-text-2);
+  text-align: center;
+}
+
+.shs-lang {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0;
+  font-size: 0.85rem;
+  color: var(--night-text-2);
+}
+
+.shs-chip {
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 247, 224, 0.3);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--night-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.shs-chip.is-on {
+  border-color: var(--lantern-gold);
+  background: var(--lantern-gold);
+  color: var(--night-deep);
+  font-weight: 700;
+}
+
+.shs-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.shs-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 247, 224, 0.25);
+  border-radius: var(--radius);
+  background: rgba(255, 247, 224, 0.06);
+  color: var(--night-text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--dur-1) var(--ease-out);
+}
+
+.shs-btn:active {
+  transform: scale(0.97);
+}
+
+.shs-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.shs-primary {
+  grid-column: 1 / -1;
+  border-color: var(--lantern-gold);
+  background: var(--lantern-gold);
+  color: var(--night-deep);
+}
+
+.shs-note {
+  margin: 12px 0 0;
+  color: var(--night-text-2);
+  font-size: 0.9rem;
+  text-align: center;
+}

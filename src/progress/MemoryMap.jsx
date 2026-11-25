@@ -1,7 +1,10 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import Jonaki from '../components/Jonaki';
 import { jonakiGlow } from '../glow/glow';
-import { useGlow } from '../glow/store';
+import { glowByDay, useGlow } from '../glow/store';
+import { useI18n } from '../i18n';
+import { weeklyRecap } from '../share/recap';
+import { shareT } from '../share/strings';
 import { useOnline } from '../loop/useRound';
 import { feel } from '../sensory';
 import { streakTimes } from '../streak/activity';
@@ -12,6 +15,7 @@ import './map.css';
 
 // The old dashboard panels, opened from "Details" only.
 const Dashboard = lazy(() => import('../components/Dashboard'));
+const ShareSheet = lazy(() => import('../share/ShareSheet'));
 
 // Progress = the Memory map (spec phase2-glow-memory-map §4, §5): one
 // scrolling screen, one action per block. Readiness first, then the streak,
@@ -40,6 +44,45 @@ function Skeleton() {
       {[72, 120, 96, 80, 120].map((h, i) => (
         <div key={i} className="mm-block mm-skel fx-skeleton" style={{ height: h }} />
       ))}
+    </div>
+  );
+}
+
+// "Share my week" under the streak (share-card spec §4 block 5): locked until
+// 3 days lit in the last 7, then it opens the share sheet with the recap card.
+function RecapShare({ recap, userId }) {
+  const { lang } = useI18n();
+  const st = shareT(lang);
+  const [open, setOpen] = useState(false);
+  const seenLocked = useRef(false);
+
+  useEffect(() => {
+    if (recap.locked && !seenLocked.current) {
+      seenLocked.current = true;
+      track('recap_locked_view', { days: recap.daysLit });
+    }
+  }, [recap.locked, recap.daysLit]);
+
+  if (recap.locked) return <p className="shs-locked">{st('share.recap.locked', { n: recap.daysLit })}</p>;
+
+  return (
+    <div className="shs-recap">
+      <button
+        type="button"
+        className="ghost-button"
+        onClick={() => {
+          feel('tap.primary');
+          track('recap_open', { days: recap.daysLit });
+          setOpen(true);
+        }}
+      >
+        {st('share.title.recap')}
+      </button>
+      {open && (
+        <Suspense fallback={null}>
+          <ShareSheet variant="recap" data={recap} lang={lang} userId={userId} onClose={() => setOpen(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }
@@ -79,6 +122,11 @@ export default function MemoryMap({
     // version: re-read the streak after any Glow award (a new learning day).
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [cards, reviews, pathInfo, glowTotal, historyOk, version]
+  );
+  const recap = useMemo(
+    () => (historyOk ? weeklyRecap({ reviews, extraDays: streakTimes(), cards, glowByDay: glowByDay() }) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [cards, reviews, historyOk, version]
   );
   const [pulse, setPulse] = useState([]);
   const nodes = useRef({});
@@ -223,6 +271,7 @@ export default function MemoryMap({
               <p className="mm-sub" title={t('streak.how')}>{t('streak.rest.line', { n: streak.restUsed })}</p>
             )}
             {streak.atRisk && <p className="mm-note">{t('streak.atRisk')}</p>}
+            {recap && streak.best > 0 && <RecapShare recap={recap} userId={userId} />}
           </>
         ) : (
           <>

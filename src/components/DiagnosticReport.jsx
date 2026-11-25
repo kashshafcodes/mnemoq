@@ -5,7 +5,7 @@ import { trackEvent } from '../googleAnalytics';
 import { pageHref } from '../useRoute';
 import AiBadge from './AiBadge';
 import RichText from './RichText';
-import ShareResult from './ShareResult';
+import DiagShare from '../share/DiagShare';
 import { PRO } from '../proConfig';
 import { priceOf, taka } from '../pricing';
 
@@ -153,7 +153,7 @@ ${m.question}` : m.question,
       </section>
 
       {pathInfo?.readiness !== null && pathInfo?.readiness !== undefined && (
-        <ShareResult
+        <DiagShare
           userId={userId}
           data={{
             pathId,
@@ -164,6 +164,7 @@ ${m.question}` : m.question,
             scaleMin: isSat ? 400 : 0,
             scaleMax: isSat ? 1600 : 100,
             sections: diagnostic.sections.map((s) => ({ name: s.name, correct: s.correct || 0, total: s.total || 0 })),
+            kind: diagnostic.kind || 'diagnostic',
           }}
         />
       )}

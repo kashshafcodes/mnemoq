@@ -260,3 +260,18 @@
 .mm-details[open] summary {
   margin-bottom: 8px;
 }
+
+/* The recap row on the Memory map. */
+.shs-recap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.shs-locked {
+  margin: 8px 0 0;
+  color: var(--ink-3);
+  font-size: 0.85rem;
+}
