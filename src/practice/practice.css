@@ -1,0 +1,41 @@
+/* Kept misses at the end of a practice set or the drill (KeptMisses.jsx). */
+.pr-kept {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--success-soft);
+  border: 1px solid var(--success-line);
+  color: var(--ink);
+  text-align: left;
+}
+
+.pr-kept p {
+  margin: 0;
+}
+
+.pr-kept p + p {
+  margin-top: 6px;
+}
+
+.pr-kept-title b {
+  color: var(--success-ink);
+  font-size: 1.05rem;
+}
+
+.pr-kept-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+}
+
+.pr-kept-actions a,
+.pr-kept-actions .text-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.pr-kept-actions .text-link {
+  padding: 0;
+}

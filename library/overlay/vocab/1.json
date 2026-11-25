@@ -1,0 +1,186 @@
+{
+  "meta": { "collection": "vocab", "set": 1, "batch": 1, "version": 1, "reviewed": { "en": "product agent; definitions are WordNet glosses, kept under the WordNet licence", "bn": "unaudited, best effort" } },
+  "items": {
+    "vocab-1": {
+      "explanation": "Demure describes someone who seems quiet, modest and a little shy. Example: She gave a demure smile and said nothing.",
+      "bn": {
+        "question": "\"demure\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["অত্যন্ত ক্ষতিকর", "নম্র ও লাজুক ভাব দেখানো, অনেক সময় খেলাচ্ছলে বা আকর্ষণ করার ভঙ্গিতে", "শক্তপোক্ত ও মজবুত", "প্রয়োজনের উপযোগী"],
+        "explanation": "Demure মানে নম্র, শান্ত ও কিছুটা লাজুক। উদাহরণ: সে নম্র হাসি হেসে কিছুই বলল না।"
+      },
+      "skill": "word-meaning", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "vocab-2": {
+      "explanation": "A pessimist expects things to go badly. The opposite is an optimist. Example: Only a pessimist would cancel the picnic because of one cloud.",
+      "bn": {
+        "question": "\"pessimist\" (বিশেষ্য) শব্দের অর্থ কী?",
+        "options": ["স্বেচ্ছাচারী ক্ষমতা থেকে মুক্তি; রাজনৈতিক স্বাধীনতা", "আতঙ্ক বা ভয়ের অনুভূতি", "যে সবসময় খারাপটাই আশা করে (নিরাশাবাদী)", "আদর্শ উদাহরণ; কোনো ধারণার নিখুঁত রূপ"],
+        "explanation": "Pessimist হলো নিরাশাবাদী মানুষ, যে ভাবে সব কিছু খারাপ হবে। বিপরীত শব্দ optimist (আশাবাদী)।"
+      },
+      "skill": "word-meaning", "difficulty": 1, "changes": ["explanation", "bn"]
+    },
+    "vocab-3": {
+      "explanation": "Benign means harmless. Doctors call a tumour benign when it is not cancer and does not spread. In everyday English it can also describe something kind and gentle, like a benign smile.",
+      "bn": {
+        "question": "\"benign\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["অভূতপূর্ব; নতুন", "স্বাস্থ্যের জন্য ক্ষতিকর নয়; (বিশেষত টিউমার) যা ছড়ায় না বা বাড়তে থাকে না", "সরল ও ছলনাহীন; দুনিয়াদারির অভিজ্ঞতা কম", "তাড়াহুড়োর, খুঁটিনাটির দিকে নজরহীন; অগভীর"],
+        "explanation": "Benign মানে ক্ষতিহীন। চিকিৎসায় টিউমার ক্যানসার না হলে ও ছড়িয়ে না পড়লে তাকে benign বলে। সাধারণ ইংরেজিতে এর অর্থ কোমল, দয়ালু ভাবও হয়।"
+      },
+      "skill": "word-meaning", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "vocab-4": {
+      "explanation": "An idiosyncrasy is a habit or trait that is peculiar to one person. Example: Eating rice with a spoon only on Fridays is one of his idiosyncrasies.",
+      "bn": {
+        "question": "\"idiosyncrasy\" (বিশেষ্য) শব্দের অর্থ কী?",
+        "options": ["কোনো ব্যক্তির স্বতন্ত্র ও নিজস্ব আচরণগত বৈশিষ্ট্য", "স্বেচ্ছাচারী ক্ষমতা থেকে মুক্তি; রাজনৈতিক স্বাধীনতা", "যে সবসময় খারাপটাই আশা করে (নিরাশাবাদী)", "যা এমন সময়ে বসানো হয়েছে যখন তার থাকা বা ঘটা সম্ভব ছিল না"],
+        "explanation": "Idiosyncrasy হলো কোনো একজনের নিজস্ব অভ্যাস বা বাতিক, যা অন্যদের থেকে আলাদা। উদাহরণ: প্রতিটি দিন একই কলম দিয়ে লেখা তার একটি স্বকীয় বৈশিষ্ট্য।"
+      },
+      "skill": "word-meaning", "difficulty": 3, "changes": ["explanation (example made neutral)", "bn"]
+    },
+    "vocab-5": {
+      "explanation": "Apathy is a lack of feeling, interest or enthusiasm. Example: Voter apathy means many people do not bother to vote.",
+      "bn": {
+        "question": "\"apathy\" (বিশেষ্য) শব্দের অর্থ কী?",
+        "options": ["যে সবসময় খারাপটাই আশা করে (নিরাশাবাদী)", "একটি শব্দের সব রূপভেদের নিয়মিত সাজানো তালিকা", "আবেগ বা উৎসাহের অভাব", "চরম বাড়াবাড়ি"],
+        "explanation": "Apathy মানে উদাসীনতা, অর্থাৎ অনুভূতি, আগ্রহ বা উৎসাহের অভাব। উদাহরণ: ভোটারদের উদাসীনতা মানে অনেকে ভোট দিতে যায় না।"
+      },
+      "skill": "word-meaning", "difficulty": 1, "changes": ["explanation", "bn"]
+    },
+    "vocab-6": {
+      "explanation": "Remorse is deep regret for something wrong you did. Example: He felt remorse after shouting at his sister.",
+      "bn": {
+        "question": "\"remorse\" (বিশেষ্য) শব্দের অর্থ কী?",
+        "options": ["গভীর অনুশোচনা (সাধারণত কোনো অন্যায়ের জন্য)", "রূঢ় ও তিক্ত আচরণ", "যা এমন সময়ে বসানো হয়েছে যখন তার থাকা বা ঘটা সম্ভব ছিল না", "যে সবসময় খারাপটাই আশা করে (নিরাশাবাদী)"],
+        "explanation": "Remorse মানে অনুতাপ, নিজের করা অন্যায়ের জন্য গভীর দুঃখ। উদাহরণ: বোনের উপর চিৎকার করার পর সে অনুতাপ বোধ করল।"
+      },
+      "skill": "word-meaning", "difficulty": 1, "changes": ["explanation", "bn"]
+    },
+    "vocab-7": {
+      "explanation": "Salient means the most noticeable or important. Example: The salient point of the report was that costs had doubled.",
+      "bn": {
+        "question": "\"salient\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["সহজে ও স্পষ্ট ভাষায় নিজেকে প্রকাশ করতে পারে", "যা সহজেই দৃষ্টি আকর্ষণ করে; চোখে পড়ার মতো", "বুদ্ধিবৃত্তিকভাবে উৎপাদনশীল", "প্রকাশে মার্জিত বা সুন্দর নয়"],
+        "explanation": "Salient মানে সবচেয়ে চোখে পড়ার মতো বা গুরুত্বপূর্ণ। উদাহরণ: প্রতিবেদনের মূল কথা ছিল, খরচ দ্বিগুণ হয়েছে।"
+      },
+      "skill": "word-meaning", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "vocab-8": {
+      "hidden": true,
+      "hiddenReason": "Two options fit. 'Astute' is keyed to 'marked by practical hardheaded intelligence', but option D, 'marked by the exercise of good judgment or common sense in practical matters', also describes an astute person, so a student who knows the word can be marked wrong.",
+      "changes": ["hidden"]
+    },
+    "vocab-9": {
+      "explanation": "To abstain is to choose not to do something. A voter who abstains does not vote for anyone. Example: Two members abstained from the vote.",
+      "bn": {
+        "question": "\"abstain\" (ক্রিয়া) শব্দের অর্থ কী?",
+        "options": ["কোনো সাধারণ উদ্যোগে একসঙ্গে কাজ করা", "ভোট দেওয়া থেকে বিরত থাকা", "বৃদ্ধি পাওয়া", "(অন্যায়) স্বীকার করা"],
+        "explanation": "Abstain মানে কোনো কাজ থেকে ইচ্ছা করে বিরত থাকা। যে ভোটার abstain করে, সে কাউকেই ভোট দেয় না। উদাহরণ: দুজন সদস্য ভোটদানে বিরত থাকলেন।"
+      },
+      "skill": "word-meaning", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "vocab-10": {
+      "options": ["marked by casual disrespect", "deeply moving; arousing sadness or tender feeling", "liable to sudden unpredictable change", "worthy of high praise"],
+      "card": { "question": "What does \"poignant\" mean?", "answer": "deeply moving; arousing sadness or tender feeling" },
+      "explanation": "Poignant describes something that touches your feelings, often with sadness. Example: The film's last scene, a father's farewell, was poignant.",
+      "bn": {
+        "question": "\"poignant\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["অবজ্ঞাসূচক, অনাদরের", "মনকে গভীরভাবে নাড়া দেয়; দুঃখ বা কোমল অনুভূতি জাগায়", "হঠাৎ অপ্রত্যাশিতভাবে বদলে যায়", "উচ্চ প্রশংসার যোগ্য"],
+        "explanation": "Poignant মানে মর্মস্পর্শী, যা অনুভূতিকে স্পর্শ করে, প্রায়ই দুঃখের সঙ্গে। উদাহরণ: সিনেমার শেষ দৃশ্যে বাবার বিদায় ছিল মর্মস্পর্শী।"
+      },
+      "skill": "word-meaning", "difficulty": 3,
+      "changes": ["option B reworded: the original 'arousing affect' used 'affect' as psychology jargon, which most students cannot decode", "card answer updated to match", "explanation", "bn"]
+    },
+    "vocab-11": {
+      "explanation": "Hackneyed describes something used so often that it has lost its freshness, like a cliché. Example: 'Time heals all wounds' is a hackneyed phrase.",
+      "bn": {
+        "question": "\"hackneyed\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["বারবার ব্যবহারে একঘেয়ে ও পুরোনো হয়ে গেছে", "সময়ের চেয়ে এগিয়ে", "প্রচলিত রীতিনীতি মেনে চলা", "স্বভাবতই কথা বলতে অনিচ্ছুক"],
+        "explanation": "Hackneyed মানে এত বেশি ব্যবহৃত যে নতুনত্ব হারিয়েছে, অর্থাৎ গতানুগতিক বা ক্লিশে। উদাহরণ: 'সময়ই সব ক্ষত সারায়' একটি গতানুগতিক বাক্য।"
+      },
+      "skill": "word-meaning", "difficulty": 3, "changes": ["explanation", "bn"]
+    },
+    "vocab-12": {
+      "options": ["wishing or appearing to wish evil to others; arising from intense ill will or hatred", "expressing much in few words", "following accepted customs and proprieties", "withdrawn from society; seeking solitude"],
+      "explanation": "Conventional means following the usual, accepted way of doing things. Example: A conventional wedding often follows the same set of customs.",
+      "bn": {
+        "question": "\"conventional\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["অন্যের ক্ষতি চাওয়া বা চাওয়ার ভান করা; তীব্র বিদ্বেষ থেকে উৎপন্ন", "অল্প কথায় অনেক কিছু প্রকাশ করা", "প্রচলিত রীতিনীতি মেনে চলা", "সমাজ থেকে সরে থাকা; নির্জনতা খোঁজা"],
+        "explanation": "Conventional মানে প্রচলিত, সবাই যেভাবে করে সেভাবেই করা। উদাহরণ: প্রচলিত বিয়েতে সাধারণত একই রীতিগুলো মানা হয়।"
+      },
+      "skill": "word-meaning", "difficulty": 2,
+      "changes": ["distractor D replaced: 'not fanciful or imaginative' is also a fair sense of 'conventional'", "explanation", "bn"]
+    },
+    "vocab-13": {
+      "explanation": "A dogmatic person states opinions as if they were certain facts and will not consider other views. Example: He was dogmatic about the one right way to study.",
+      "bn": {
+        "question": "\"dogmatic\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["শিক্ষামূলক (বিশেষত মাত্রাতিরিক্ত)", "এত বেশি যে গোনা যায় না", "প্রমাণহীন বা অপ্রমাণযোগ্য নীতিকে জোর দিয়ে দাবি করা", "কাজ বা কথা থেকে ইঙ্গিতে বোঝা যায় এমন"],
+        "explanation": "Dogmatic মানে গোঁড়া বা মতান্ধ: নিজের মতকে অকাট্য সত্যের মতো বলা এবং অন্যের মত না শোনা। উদাহরণ: পড়ার একটিমাত্র সঠিক পদ্ধতি নিয়ে সে গোঁড়া ছিল।"
+      },
+      "skill": "word-meaning", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "vocab-14": {
+      "explanation": "Conducive means helping to bring something about. Example: A quiet room is conducive to studying.",
+      "bn": {
+        "question": "\"conducive\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["খুঁটিনাটির সঙ্গে নিখুঁত সামঞ্জস্যপূর্ণ", "সুখ-দুঃখে অবিচল মনে হয়; ভাবলেশহীন", "কিছু ঘটাতে সহায়ক; আংশিকভাবে এর কারণ", "অত্যন্ত উদার"],
+        "explanation": "Conducive মানে সহায়ক, যা কোনো কিছু ঘটতে সাহায্য করে। উদাহরণ: শান্ত ঘর পড়াশোনার জন্য সহায়ক।"
+      },
+      "skill": "word-meaning", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "vocab-15": {
+      "explanation": "Querulous describes someone who often complains in a whining way. Example: The querulous customer found fault with everything.",
+      "bn": {
+        "question": "\"querulous\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["অভ্যাসগতভাবে অভিযোগ করে এমন", "কণ্ঠস্বরে কর্কশ বা তীক্ষ্ণ", "আকার বা শক্তিতে এত বিশাল যে বিস্ময় জাগায়", "অল্প কথায় অনেক কিছু প্রকাশ করা"],
+        "explanation": "Querulous মানে খুঁতখুঁতে, যে ঘ্যানঘ্যান করে প্রায়ই অভিযোগ করে। উদাহরণ: খুঁতখুঁতে ক্রেতা সবকিছুতেই দোষ পেল।"
+      },
+      "skill": "word-meaning", "difficulty": 3, "changes": ["explanation", "bn"]
+    },
+    "vocab-16": {
+      "explanation": "Equanimity is calmness of mind, especially when things are hard. Example: She faced the exam results with equanimity.",
+      "bn": {
+        "question": "\"equanimity\" (বিশেষ্য) শব্দের অর্থ কী?",
+        "options": ["চাপের মধ্যেও মনের স্থিরতা", "আতঙ্ক বা ভয়ের অনুভূতি", "স্বাভাবিক নিয়ম বা গড়ন থেকে বিচ্যুতি", "(যুক্তিবিদ্যা) নিজেকেই খণ্ডন করে এমন উক্তি"],
+        "explanation": "Equanimity মানে সমচিত্ততা, অর্থাৎ কঠিন সময়েও মনের শান্ত স্থিরতা। উদাহরণ: সে শান্ত মনে পরীক্ষার ফল গ্রহণ করল।"
+      },
+      "skill": "word-meaning", "difficulty": 3, "changes": ["explanation", "bn"]
+    },
+    "vocab-17": {
+      "explanation": "As an adjective, aggregate means made up of many separate parts gathered into one whole. Example: The aggregate score is the total of all five tests.",
+      "bn": {
+        "question": "\"aggregate\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["স্বস্তি বা আশ্বাস দেয় না", "আকার, মাত্রা বা বিস্তারে সমতুল্য", "আলাদা আলাদা অংশ জড়ো হয়ে একটি সমষ্টি গঠিত", "অনুরোধ, যুক্তি বা বোঝানোতে অটল"],
+        "explanation": "Aggregate (বিশেষণ) মানে বহু আলাদা অংশ জড়ো হয়ে গঠিত একটি সমষ্টি। উদাহরণ: সমষ্টিগত নম্বর মানে পাঁচটি পরীক্ষার মোট নম্বর।"
+      },
+      "skill": "word-meaning", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "vocab-18": {
+      "explanation": "Reticent describes someone who prefers not to talk, especially about their own thoughts or feelings. Example: He was reticent about his plans.",
+      "bn": {
+        "question": "\"reticent\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["অংশগুলোর সুশৃঙ্খল, যুক্তিসংগত ও সুসংগত বিন্যাস", "পক্ষপাতহীন", "স্বভাবতই কম কথা বলে", "অত্যন্ত যত্ন ও বিস্তর পরিশ্রম"],
+        "explanation": "Reticent মানে স্বল্পভাষী, বিশেষত নিজের ভাবনা বা অনুভূতি নিয়ে কম বলে। উদাহরণ: নিজের পরিকল্পনা নিয়ে সে কম কথা বলছিল।"
+      },
+      "skill": "word-meaning", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "vocab-19": {
+      "explanation": "Surreptitious means done secretly, trying not to be noticed. Example: He took a surreptitious glance at his phone during class.",
+      "bn": {
+        "question": "\"surreptitious\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["চুপিসারে, সতর্কভাবে ও গোপনে; কেউ দেখে ফেলবে না এমন চেষ্টা", "তীক্ষ্ণ সতর্কতা ও সজাগ বিচক্ষণতা", "নীতিহীন", "অত্যন্ত প্ররোচক"],
+        "explanation": "Surreptitious মানে গোপনে, চুপিসারে করা, যেন কেউ টের না পায়। উদাহরণ: ক্লাসে সে চুপিসারে ফোনের দিকে তাকাল।"
+      },
+      "skill": "word-meaning", "difficulty": 3, "changes": ["explanation", "bn"]
+    },
+    "vocab-20": {
+      "explanation": "Trivial means of very little importance. Example: Do not worry about trivial mistakes in a first draft.",
+      "bn": {
+        "question": "\"trivial\" (বিশেষণ) শব্দের অর্থ কী?",
+        "options": ["তুচ্ছ; গুরুত্বহীন", "অন্যায়ে একগুঁয়েভাবে লেগে থাকা", "অত্যন্ত ক্ষতিকর", "বেপরোয়াভাবে অপচয়কারী"],
+        "explanation": "Trivial মানে তুচ্ছ, খুবই কম গুরুত্বপূর্ণ। উদাহরণ: প্রথম খসড়ার ছোটখাটো ভুল নিয়ে চিন্তা করবেন না।"
+      },
+      "skill": "word-meaning", "difficulty": 1, "changes": ["explanation", "bn"]
+    }
+  }
+}

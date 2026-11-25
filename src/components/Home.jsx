@@ -6,6 +6,7 @@ import { pageHref } from '../useRoute';
 import AiBadge from './AiBadge';
 import RichText, { inlinePreview } from './RichText';
 import CATALOG from '../../library/catalog.json';
+import { freeTotals } from '../practice/access';
 import DailyTile, { dailyStatus } from '../daily/DailyTile';
 import { streakTimes } from '../streak/activity';
 import PlayButton from '../loop/PlayButton';
@@ -280,8 +281,8 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
             </span>
           </header>
           <p className="mq-tile-note">
-            {CATALOG.total.toLocaleString()} questions from vocabulary to physics, in sets of {CATALOG.setSize}. The first set of each is free, and every
-            mistake can become a review card.
+            {CATALOG.total.toLocaleString()} questions from vocabulary to physics, in sets of {CATALOG.setSize}. Half of every collection is free ({freeTotals(CATALOG).questions.toLocaleString()}{' '}
+            questions), and every mistake you make comes back as a review card.
           </p>
         </a>
 

@@ -53,6 +53,7 @@ import { loopT } from './loop/strings';
 import MeExtras from './nav/MeExtras';
 import { navT } from './nav/strings';
 import { track } from './track';
+import { pickNewMisses, readKept, writeKept } from './practice/missCards';
 
 // Pages that are not the first screen load on demand (smaller first download).
 const TryDiagnostic = lazy(() => import('./components/TryDiagnostic'));
@@ -1299,20 +1300,48 @@ if (dataError) {
     }
   }
 
-  // Saves missed practice-library questions as review cards.
+  // Keeps missed practice-library and drill questions as review cards, due
+  // now (src/practice/missCards.js): at most 10 per session, never the same
+  // question twice. Returns the new card ids so "Don't keep these" can undo.
   async function addPracticeCards(list) {
-    let added = 0;
+    const userId = session?.user?.id;
 
-    for (const card of list) {
+    if (!userId) return { added: 0, ids: [], error: 'Please log in to keep your misses as cards.' };
+
+    const kept = readKept(userId);
+    const fresh = pickNewMisses(list, kept, mistakes);
+    const ids = [];
+
+    for (const { sourceId, ...card } of fresh) {
       // eslint-disable-next-line no-await-in-loop
       const result = await addCard(card);
 
-      if (result?.error) return { added, error: result.error };
+      if (result?.error) return { added: ids.length, ids, error: result.error };
 
-      added += 1;
+      ids.push(result.id);
+      writeKept(userId, { [sourceId]: result.id });
     }
 
-    return { added };
+    return { added: ids.length, ids };
+  }
+
+  // "Don't keep these": removes the cards a practice set just kept.
+  async function removePracticeCards(ids) {
+    const userId = session?.user?.id;
+
+    if (!userId) return { error: 'Please log in first.' };
+
+    const { error } = await supabase.from('mistakes').delete().in('id', ids).eq('user_id', userId);
+
+    if (error) return { error: error.message };
+
+    const gone = new Set(ids);
+    const kept = readKept(userId);
+
+    writeKept(userId, Object.fromEntries(Object.entries(kept).filter(([, cardId]) => gone.has(cardId)).map(([sourceId]) => [sourceId, null])));
+    setMistakes((current) => current.filter((item) => !gone.has(item.id)));
+
+    return { error: '' };
   }
 
   // Turns missed diagnostic questions into review cards (with their wrong options for multiple choice).
@@ -1526,7 +1555,7 @@ if (dataError) {
                   roundNext={roundNext}
                 />
               ) : round.drill ? (
-                <Drill source={round.drill} onFinish={round.markDrillDone} onDone={continueRound} onLeave={() => go('today')} onAddCards={addPracticeCards} />
+                <Drill source={round.drill} onFinish={round.markDrillDone} onDone={continueRound} onLeave={() => go('today')} onAddCards={addPracticeCards} onRemoveCards={removePracticeCards} />
               ) : (
                 <DoneToday cards={mistakes} play={play} onPlay={playNow} userId={session.user.id} plan={roundNow} dueCount={dueMistakes.length} onExtra={anotherRound} />
               )}
@@ -1690,7 +1719,7 @@ if (dataError) {
 
         {page === 'admin' && isAdmin && <AdminStats />}
 
-        {examView === 'practice' && <Practice plan={plan} onAddCards={addPracticeCards} />}
+        {examView === 'practice' && <Practice plan={plan} onAddCards={addPracticeCards} onRemoveCards={removePracticeCards} />}
 
         {examView === 'report' &&
           (pathState.status === 'loading' ? (

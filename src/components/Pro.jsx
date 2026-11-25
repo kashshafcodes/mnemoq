@@ -95,7 +95,7 @@ const COMPARE = [
   ['Full adaptive practice tests', false, true],
   ['AI coach analysis', 'First one', 'After every test'],
   ['AI uses a day', '5', '50'],
-  ['Practice library (11,000+ questions)', 'First set of each', 'Everything'],
+  ['Practice library (11,000+ questions)', 'Half of every collection', 'Everything'],
   ['Study plan to your test day', false, true],
 ];
 

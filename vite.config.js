@@ -2,10 +2,12 @@ import react from '@vitejs/plugin-react'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { defineConfig } from 'vite'
+import { applyOverlay } from './src/practice/overlay.js'
 
 // On the development server only: answer /api/library from the files in
 // library/, so the practice page works without Vercel. (Every set is sent
-// here; the real api/library.js keeps sets after the first for Pro.)
+// here, with the curated overlay joined; the real api/library.js keeps the
+// second half of each collection for Pro.)
 function devLibrary() {
   return {
     name: 'mnemoq-dev-library',
@@ -40,7 +42,16 @@ function devLibrary() {
         const n = Number(url.searchParams.get('n'))
 
         try {
-          const questions = JSON.parse(readFileSync(join(process.cwd(), 'library', 'sets', id, `${Number.isInteger(n) ? n : 0}.json`), 'utf8'))
+          const file = `${Number.isInteger(n) ? n : 0}.json`
+          let overlay = null
+
+          try {
+            overlay = JSON.parse(readFileSync(join(process.cwd(), 'library', 'overlay', id, file), 'utf8'))
+          } catch {
+            // No overlay for this set.
+          }
+
+          const questions = applyOverlay(JSON.parse(readFileSync(join(process.cwd(), 'library', 'sets', id, file), 'utf8')), overlay)
 
           res.setHeader('Content-Type', 'application/json')
           res.end(JSON.stringify({ collection: id, n, questions }))

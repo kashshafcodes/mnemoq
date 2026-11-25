@@ -1,0 +1,18 @@
+{
+  "meta": { "collection": "quant", "set": 1, "batch": 0, "version": 1, "reviewed": { "en": "test fixture" } },
+  "items": {
+    "quant-2": {
+      "question": "Fixture question about ৳150",
+      "options": ["1", "2", "3", "4", "5"],
+      "answer": 3,
+      "explanation": "Fixture explanation.",
+      "bn": { "question": "ফিক্সচার প্রশ্ন 12", "explanation": "ফিক্সচার ব্যাখ্যা 3" },
+      "skill": "line-segments",
+      "difficulty": 2,
+      "changes": ["audit only"]
+    },
+    "quant-3": { "hidden": true, "hiddenReason": "fixture" },
+    "quant-4": { "options": ["too", "short"], "answer": 9, "skill": "logic-puzzles" },
+    "quant-999": { "question": "No such question" }
+  }
+}

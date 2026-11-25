@@ -8,6 +8,9 @@ import { recordActivity } from '../streak/activity';
 import RichText from '../components/RichText';
 import Jonaki from '../components/Jonaki';
 import { useLoopT } from './strings';
+import { useI18n } from '../i18n';
+import { localizeQuestion } from '../practice/overlay';
+import KeptMisses from '../practice/KeptMisses';
 import './round.css';
 import './drill.css';
 
@@ -16,15 +19,6 @@ import './drill.css';
 // this device and fires practice_done, like a practice set does.
 
 const LETTERS = 'ABCDE';
-
-const SUBJECT_FOR = {
-  vocab: 'English',
-  quant: 'Mathematics',
-  'school-maths': 'Mathematics',
-  physics: 'Physics',
-  chemistry: 'Chemistry',
-  biology: 'Biology',
-};
 
 async function fetchQuestions(source) {
   const { data } = await supabase.auth.getSession();
@@ -42,12 +36,12 @@ async function fetchQuestions(source) {
   return list.slice(start, start + source.size);
 }
 
-export default function Drill({ source, onFinish, onDone, onLeave, onAddCards }) {
+export default function Drill({ source, onFinish, onDone, onLeave, onAddCards, onRemoveCards }) {
   const t = useLoopT();
+  const { lang } = useI18n();
   const [state, setState] = useState({ status: 'loading', questions: [] });
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState({});
-  const [saved, setSaved] = useState(null);
   const started = useRef(Date.now());
   const collection = CATALOG.collections.find((c) => c.id === source?.collection);
 
@@ -93,36 +87,13 @@ export default function Drill({ source, onFinish, onDone, onLeave, onAddCards })
   const score = questions.filter((q) => picked[q.id] === q.answer).length;
 
   if (finished) {
-    const missed = questions.filter((q) => picked[q.id] !== q.answer);
-
-    async function save() {
-      setSaved('busy');
-      const result = await onAddCards(
-        missed.map((q) => ({
-          subject: SUBJECT_FOR[source.collection] || collection?.title || 'Practice',
-          category: String(q.topic || collection?.title || 'Practice').slice(0, 40),
-          question: q.card?.question || q.question,
-          correctAnswer: q.card?.answer || q.options[q.answer],
-          yourAnswer: Number.isInteger(picked[q.id]) ? q.options[picked[q.id]] : '',
-          explanation: (q.explain || '').slice(0, 600),
-          distractors: q.card ? [] : q.options.filter((_, i) => i !== q.answer).slice(0, 3),
-        }))
-      );
-
-      setSaved(result?.error ? 'error' : 'done');
-    }
-
     return (
       <section className="mq-drill mq-drill-center">
         <Jonaki mood={score === questions.length ? 'wow' : 'happy'} size={96} />
         <p className="eyebrow">{source.skill}</p>
         <h2>{t('drill.score', { score, n: questions.length })}</h2>
+        <KeptMisses collection={collection} n={source.set} questions={questions} picked={picked} onAddCards={onAddCards} onRemoveCards={onRemoveCards} />
         <div className="mq-empty-actions">
-          {missed.length > 0 && saved !== 'done' && (
-            <button type="button" className="mq-btn mq-btn-ghost" disabled={saved === 'busy'} onClick={save}>
-              {t('drill.save', { n: missed.length })}
-            </button>
-          )}
           <button
             type="button"
             className="mq-btn mq-btn-primary"
@@ -134,12 +105,11 @@ export default function Drill({ source, onFinish, onDone, onLeave, onAddCards })
             {t('round.continue')}
           </button>
         </div>
-        {saved === 'done' && <p role="status">{t('drill.saved')}</p>}
       </section>
     );
   }
 
-  const q = questions[index];
+  const q = localizeQuestion(questions[index], lang);
   const chosen = picked[q.id];
   const answered = Number.isInteger(chosen);
   const last = index === questions.length - 1;

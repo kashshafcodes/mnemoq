@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { cardsProgress, freshSteps, newRecord, playFromRound, roundPlan } from '../src/loop/roundPlan.js';
 import { drillSourceFor } from '../src/loop/drillSource.js';
+import { freeSetCount } from '../src/practice/access.js';
+import CATALOG_FOR_DRILL from '../library/catalog.json';
 import { loadRound, pruneRounds, roundKey, saveRound } from '../src/loop/roundStore.js';
 import { STRINGS, loopT } from '../src/loop/strings.js';
 import { NAV_STRINGS } from '../src/nav/strings.js';
@@ -214,14 +216,21 @@ describe('the drill source', () => {
     expect(drillSourceFor(null)).toBe(null);
   });
 
-  it('rotates the five questions daily; free users stay in the free set', () => {
+  it('rotates the five questions daily; free users stay in the free half', () => {
     const a = drillSourceFor(weakest, { day: 0 });
     const b = drillSourceFor(weakest, { day: 1 });
 
     expect(a.offset).toBe(0);
     expect(b.offset).toBe(5);
-    expect(drillSourceFor(weakest, { day: 9 }).set).toBe(1);
-    expect(drillSourceFor(weakest, { day: 9, pro: true }).set).toBeGreaterThan(1);
+    expect(drillSourceFor(weakest, { day: 9 }).set).toBe(3);
+    expect(drillSourceFor(weakest, { day: 9, pro: true }).set).toBe(3);
+
+    const sets = new Set(Array.from({ length: 2000 }, (_, day) => drillSourceFor(weakest, { day }).set));
+    const proSets = new Set(Array.from({ length: 2000 }, (_, day) => drillSourceFor(weakest, { day, pro: true }).set));
+    const total = CATALOG_FOR_DRILL.collections.find((c) => c.id === drillSourceFor(weakest).collection).sets;
+
+    expect(Math.max(...sets)).toBe(freeSetCount(total));
+    expect(Math.max(...proSets)).toBe(total);
   });
 });
 

@@ -1,8 +1,11 @@
 // GET /api/library?c=<collection>&n=<set number>
 //
 // Sends one 20-question practice set from library/ (built by
-// scripts/build-library.mjs). Set 1 of every collection is free for anyone;
-// every other set is sent only to Pro accounts, checked here on the server.
+// scripts/build-library.mjs). The first half of each collection's sets
+// (src/practice/access.js) is free for anyone; every other set is sent only to
+// Pro accounts, checked here on the server. The curated-core overlay
+// (library/overlay/<collection>/<set>.json, src/practice/overlay.js) is joined
+// over the set before it is sent.
 //
 // Replies:
 //   200 { collection, n, questions }
@@ -14,6 +17,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { hasPro } from './_plan.js';
 import { getUser, supabaseConfig } from './suggest.js';
+import { isFreeSet } from '../src/practice/access.js';
+import { applyOverlay } from '../src/practice/overlay.js';
 
 const ROOT = join(process.cwd(), 'library');
 let catalog = null;
@@ -24,7 +29,27 @@ function loadCatalog() {
   return catalog;
 }
 
-export const FREE_SETS = 1;
+const overlays = new Map();
+
+// The overlay file for one set, or null when there is none. A missing folder,
+// a missing file or a file that does not parse changes nothing.
+export function loadOverlay(dir, collection, n) {
+  const key = `${dir}|${collection}|${n}`;
+
+  if (overlays.has(key)) return overlays.get(key);
+
+  let overlay = null;
+
+  try {
+    overlay = JSON.parse(readFileSync(join(dir, collection, `${n}.json`), 'utf8'));
+  } catch (error) {
+    if (error?.code !== 'ENOENT') console.error(`library overlay ${collection}/${n} ignored:`, error.message);
+  }
+
+  overlays.set(key, overlay);
+
+  return overlay;
+}
 
 function send(res, status, body, cache = 'private, no-store') {
   res.setHeader?.('Cache-Control', cache);
@@ -44,7 +69,9 @@ export default async function handler(req, res, env = process.env) {
 
   if (!entry || !Number.isInteger(n) || n < 1 || n > entry.sets) return send(res, 404, { error: 'That practice set does not exist.', code: 'missing' });
 
-  if (n > FREE_SETS) {
+  const free = isFreeSet(entry.sets, n);
+
+  if (!free) {
     const cfg = supabaseConfig(env);
     const header = String(req.headers?.authorization || '');
     const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
@@ -55,7 +82,8 @@ export default async function handler(req, res, env = process.env) {
   }
 
   // `id` was matched against the catalog and `n` is a checked integer, so this path is safe.
-  const questions = JSON.parse(readFileSync(join(ROOT, 'sets', entry.id, `${n}.json`), 'utf8'));
+  const original = JSON.parse(readFileSync(join(ROOT, 'sets', entry.id, `${n}.json`), 'utf8'));
+  const questions = applyOverlay(original, loadOverlay(join(ROOT, 'overlay'), entry.id, n));
 
-  return send(res, 200, { collection: entry.id, n, questions }, n <= FREE_SETS ? 'public, max-age=3600' : 'private, no-store');
+  return send(res, 200, { collection: entry.id, n, questions }, free ? 'public, max-age=3600' : 'private, no-store');
 }

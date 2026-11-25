@@ -1,0 +1,208 @@
+{
+  "meta": { "collection": "school-maths", "set": 1, "batch": 1, "version": 1, "reviewed": { "en": "product agent, every answer re-solved by hand", "bn": "unaudited, best effort" } },
+  "items": {
+    "school-maths-1": {
+      "question": "Which interval contains every u such that neither 2u nor −20u lies in the interval (−∞, −1)?",
+      "options": ["[−1/2, 0]", "[−1, 1]", "[−1/2, 1/20]", "[0, 2]"],
+      "explanation": "2u is not below −1 when 2u ≥ −1, so u ≥ −1/2. −20u is not below −1 when −20u ≥ −1. Dividing by −20 flips the inequality: u ≤ 1/20. Both conditions together give −1/2 ≤ u ≤ 1/20.",
+      "bn": {
+        "question": "কোন ব্যবধিতে এমন সব u আছে যাদের জন্য 2u ও −20u কোনোটিই (−∞, −1) ব্যবধিতে পড়ে না?",
+        "options": ["[−1/2, 0]", "[−1, 1]", "[−1/2, 1/20]", "[0, 2]"],
+        "explanation": "2u, −1-এর চেয়ে ছোট না হতে হলে 2u ≥ −1, অর্থাৎ u ≥ −1/2। −20u, −1-এর চেয়ে ছোট না হতে হলে −20u ≥ −1; −20 দিয়ে ভাগ করলে অসমতার দিক উল্টে যায়: u ≤ 1/20। দুই শর্ত মিলিয়ে −1/2 ≤ u ≤ 1/20।"
+      },
+      "skill": "intervals-inequalities", "difficulty": 2,
+      "changes": ["OPTION CORRECTED: the original option C was [−1/2, −1/20], a sign slip; the correct interval [−1/2, 1/20] replaces it in the same position, so the answer index is unchanged", "plain-text maths (no LaTeX)", "explanation", "bn"]
+    },
+    "school-maths-2": {
+      "question": "A dentist notices that about two children in every seven he sees develop cavities before they turn 10. Last week he examined five unrelated children under 10. Let X be the number who develop cavities before turning 10. Which expression gives the probability that at least one of them will?",
+      "options": ["P(X = 2, 3, 4, 5, 6, 7)", "P(X = 2 out of 7)", "P(X = 1)", "1 − P(X = 0)"],
+      "explanation": "'At least one' is the opposite of 'none', so P(at least one) = 1 − P(X = 0). The other choices are wrong: X cannot be 6 or 7 with only five children, 'X = 2 out of 7' is not a value of X, and P(X = 1) means exactly one.",
+      "bn": {
+        "question": "একজন দন্তচিকিৎসক লক্ষ করেছেন, তাঁর কাছে আসা প্রতি সাতজন শিশুর মধ্যে প্রায় দুজনের 10 বছর বয়সের আগে দাঁতে ক্ষয় হয়। গত সপ্তাহে তিনি 10 বছরের কম বয়সী পাঁচজন সম্পর্কহীন শিশুর দাঁত পরীক্ষা করলেন। 10 বছর হওয়ার আগে যতজনের দাঁতে ক্ষয় হবে তা X। অন্তত একজনের ক্ষয় হওয়ার সম্ভাব্যতা কোনটি?",
+        "options": ["P(X = 2, 3, 4, 5, 6, 7)", "P(7-এর মধ্যে X = 2)", "P(X = 1)", "1 − P(X = 0)"],
+        "explanation": "'অন্তত একজন' মানে 'কেউ না'-এর বিপরীত, তাই P(অন্তত একজন) = 1 − P(X = 0)। বাকিগুলো ভুল: পাঁচজন শিশুর মধ্যে X কখনও 6 বা 7 হতে পারে না, 'সাতের মধ্যে X = 2' X-এর কোনো মান নয়, আর P(X = 1) মানে ঠিক একজন।"
+      },
+      "skill": "probability", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "school-maths-3": {
+      "question": "Rafi is in charge of the lights at a school cultural programme. The red light blinks every 2 seconds, the yellow every 3 seconds and the blue every 5 seconds. If we count both the very start and the very end of a 7-minute programme, how many times do all three lights blink together? (All three blink together at the very start.)",
+      "explanation": "All three blink together every LCM(2, 3, 5) = 30 seconds. 7 minutes = 420 seconds. The joint blinks are at 0, 30, 60, …, 420 seconds. That is 420 ÷ 30 = 14 gaps, so 14 + 1 = 15 times (the +1 counts the start).",
+      "bn": {
+        "question": "রাফি একটি স্কুলের সাংস্কৃতিক অনুষ্ঠানের আলো সামলাচ্ছে। লাল আলো প্রতি 2 সেকেন্ডে, হলুদ প্রতি 3 সেকেন্ডে এবং নীল প্রতি 5 সেকেন্ডে জ্বলে। 7 মিনিটের অনুষ্ঠানের একেবারে শুরু ও শেষ ধরে তিনটি আলো কতবার একসঙ্গে জ্বলবে? (শুরুতে তিনটিই একসঙ্গে জ্বলে।)",
+        "explanation": "তিনটি আলো প্রতি ল.সা.গু.(2, 3, 5) = 30 সেকেন্ড পরপর একসঙ্গে জ্বলে। 7 মিনিট = 420 সেকেন্ড। একসঙ্গে জ্বলবে 0, 30, 60, …, 420 সেকেন্ডে। 420 ÷ 30 = 14টি ব্যবধান, তাই 14 + 1 = 15 বার (1 যোগ হলো শুরুর বারটির জন্য)।"
+      },
+      "skill": "lcm-multiples", "difficulty": 2, "changes": ["name and context", "explanation", "bn"]
+    },
+    "school-maths-4": {
+      "question": "What is the least common multiple (LCM) of 4 and 10?",
+      "explanation": "Multiples of 4: 4, 8, 12, 16, 20. Multiples of 10: 10, 20. The smallest number in both lists is 20.",
+      "bn": {
+        "question": "4 ও 10-এর ল.সা.গু. কত?",
+        "explanation": "4-এর গুণিতক: 4, 8, 12, 16, 20। 10-এর গুণিতক: 10, 20। দুই তালিকায় সবচেয়ে ছোট সাধারণ সংখ্যা 20।"
+      },
+      "skill": "lcm-multiples", "difficulty": 1, "changes": ["explanation", "bn"]
+    },
+    "school-maths-5": {
+      "question": "Find the length of the curve y = ln x between the points where y = 1/2 and y = 1.",
+      "explanation": "Arc length = ∫ √(1 + (dy/dx)²) dx. For y = ln x, dy/dx = 1/x. The limits are x = e^(1/2) ≈ 1.649 (y = 1/2) and x = e ≈ 2.718 (y = 1). So L = ∫ √(1 + 1/x²) dx = ∫ √(x² + 1)/x dx between those limits, which evaluates to about 1.18. (University-level calculus.)",
+      "bn": {
+        "question": "y = ln x বক্ররেখার যে অংশে y = 1/2 থেকে y = 1, তার দৈর্ঘ্য নির্ণয় করুন।",
+        "explanation": "বক্ররেখার দৈর্ঘ্য = ∫ √(1 + (dy/dx)²) dx। y = ln x হলে dy/dx = 1/x। সীমা: x = e^(1/2) ≈ 1.649 (y = 1/2) এবং x = e ≈ 2.718 (y = 1)। অতএব L = ∫ √(1 + 1/x²) dx = ∫ √(x² + 1)/x dx, এই সীমায় যার মান প্রায় 1.18। (বিশ্ববিদ্যালয় স্তরের ক্যালকুলাস।)"
+      },
+      "skill": "calculus-arc-length", "difficulty": 3, "changes": ["explanation (value 1.1825 checked by Simpson's rule and by the exact antiderivative)", "bn", "level note: university calculus in a free 'school' set"]
+    },
+    "school-maths-6": {
+      "question": "Which expression is equivalent to 5(6x + 3y)?",
+      "explanation": "Multiply every term inside the bracket by 5: 5 × 6x = 30x and 5 × 3y = 15y. So 5(6x + 3y) = 30x + 15y.",
+      "bn": {
+        "question": "5(6x + 3y)-এর সমান কোনটি?",
+        "explanation": "বন্ধনীর ভেতরের প্রতিটি পদকে 5 দিয়ে গুণ করুন: 5 × 6x = 30x এবং 5 × 3y = 15y। অতএব 5(6x + 3y) = 30x + 15y।"
+      },
+      "skill": "algebra-expressions", "difficulty": 1, "changes": ["explanation", "bn"]
+    },
+    "school-maths-7": {
+      "question": "Find x, given that √x ÷ (x√3 + √2) = 1 ÷ (2x√6 + 4).",
+      "options": ["3/4", "1/4", "1/2", "1/8"],
+      "explanation": "Notice 2x√6 + 4 = 2√2 × (x√3 + √2), because 2√2 × x√3 = 2x√6 and 2√2 × √2 = 4. The bracket (x√3 + √2) now cancels from both sides, leaving √x = 1/(2√2). Square both sides: x = 1/8.",
+      "bn": {
+        "question": "√x ÷ (x√3 + √2) = 1 ÷ (2x√6 + 4) হলে x-এর মান নির্ণয় করুন।",
+        "options": ["3/4", "1/4", "1/2", "1/8"],
+        "explanation": "লক্ষ করুন 2x√6 + 4 = 2√2 × (x√3 + √2), কারণ 2√2 × x√3 = 2x√6 এবং 2√2 × √2 = 4। তাই দুই পক্ষ থেকে (x√3 + √2) কেটে গেলে থাকে √x = 1/(2√2)। দুই পক্ষ বর্গ করলে x = 1/8।"
+      },
+      "skill": "radical-equations", "difficulty": 3, "changes": ["plain-text maths (no LaTeX)", "explanation (also checked numerically at x = 1/8: both sides 0.2168)", "bn"]
+    },
+    "school-maths-8": {
+      "question": "f(x) is an invertible function with f(2) = 4 and f⁻¹(2) = 4. What is the value of f(f(2))?",
+      "explanation": "f(2) = 4, so f(f(2)) = f(4). Now f⁻¹(2) = 4 means f(4) = 2. So f(f(2)) = 2.",
+      "bn": {
+        "question": "f(x) একটি বিপরীতযোগ্য ফাংশন এবং f(2) = 4, f⁻¹(2) = 4। f(f(2))-এর মান কত?",
+        "explanation": "f(2) = 4, তাই f(f(2)) = f(4)। আবার f⁻¹(2) = 4 মানে f(4) = 2। অতএব f(f(2)) = 2।"
+      },
+      "skill": "functions-inverse", "difficulty": 2, "changes": ["plain-text maths", "explanation", "bn"]
+    },
+    "school-maths-9": {
+      "question": "Rafi paid ৳65 to wash his car. Each ৳5 coin runs the car wash for 60 seconds. How long did the wash take?",
+      "explanation": "65 ÷ 5 = 13 coins. Each coin gives 60 seconds, so 13 × 60 seconds = 13 minutes.",
+      "bn": {
+        "question": "রাফি তার গাড়ি ধুতে ৳65 দিল। প্রতি ৳5-এর কয়েনে কার ওয়াশ মেশিন 60 সেকেন্ড চলে। গাড়ি ধুতে কত সময় লাগল?",
+        "options": ["10 মিনিট", "13 মিনিট", "16 মিনিট", "32.5 মিনিট"],
+        "explanation": "65 ÷ 5 = 13টি কয়েন। প্রতিটি কয়েনে 60 সেকেন্ড, তাই 13 × 60 সেকেন্ড = 13 মিনিট।"
+      },
+      "skill": "ratio-rates", "difficulty": 1, "changes": ["currency $ to ৳ (quarter to ৳5 coin)", "name", "explanation", "bn"]
+    },
+    "school-maths-10": {
+      "question": "Which pair of ratios are both equal to 4 : 32?",
+      "explanation": "4 : 32 simplifies to 1 : 8 (divide both by 4). 12 : 96 = 1 : 8 and 2 : 16 = 1 : 8, so the second choice is right. 2 : 96 is 1 : 48 and 12 : 16 is 3 : 4, so they are not equal.",
+      "bn": {
+        "question": "কোন অনুপাত জোড়া দুটিই 4 : 32-এর সমান?",
+        "explanation": "4 : 32-কে 4 দিয়ে ভাগ করলে হয় 1 : 8। 12 : 96 = 1 : 8 এবং 2 : 16 = 1 : 8, তাই দ্বিতীয় বিকল্পটি সঠিক। 2 : 96 হলো 1 : 48 আর 12 : 16 হলো 3 : 4, অর্থাৎ সমান নয়।"
+      },
+      "skill": "ratio-rates", "difficulty": 1, "changes": ["question wording", "explanation", "bn"]
+    },
+    "school-maths-11": {
+      "question": "The half-life of a radioactive substance is 8 years. How many years will it take for two-thirds of the substance to decay?",
+      "explanation": "If two-thirds has decayed, one-third remains. Solve (1/2)^(t/8) = 1/3. Then t/8 = log₂3 ≈ 1.585, so t = 8 × 1.585 ≈ 12.68 years.",
+      "bn": {
+        "question": "একটি তেজস্ক্রিয় পদার্থের অর্ধায়ু 8 বছর। পদার্থটির দুই-তৃতীয়াংশ ক্ষয় হতে কত বছর লাগবে?",
+        "explanation": "দুই-তৃতীয়াংশ ক্ষয় হলে এক-তৃতীয়াংশ বাকি থাকে। সমাধান করুন (1/2)^(t/8) = 1/3। তাহলে t/8 = log₂3 ≈ 1.585, অতএব t = 8 × 1.585 ≈ 12.68 বছর।"
+      },
+      "skill": "exponential-decay", "difficulty": 3, "changes": ["explanation", "bn"]
+    },
+    "school-maths-12": {
+      "question": "A teacher has three bundles of pencils: one with 56, one with 48 and one with 58. She shares all the pencils equally among 27 students. How many pencils does each student get?",
+      "options": ["6 pencils", "9 pencils", "54 pencils", "81 pencils"],
+      "explanation": "Total pencils = 56 + 48 + 58 = 162. Shared among 27 students: 162 ÷ 27 = 6 pencils each.",
+      "bn": {
+        "question": "একজন শিক্ষকের কাছে তিন বান্ডিল পেন্সিল আছে: একটিতে 56, একটিতে 48 ও একটিতে 58টি। তিনি সব পেন্সিল 27 জন শিক্ষার্থীর মধ্যে সমান ভাগ করে দিলে প্রত্যেকে কয়টি পাবে?",
+        "options": ["6টি পেন্সিল", "9টি পেন্সিল", "54টি পেন্সিল", "81টি পেন্সিল"],
+        "explanation": "মোট পেন্সিল = 56 + 48 + 58 = 162। 27 জনের মধ্যে ভাগ: 162 ÷ 27 = প্রত্যেকে 6টি।"
+      },
+      "skill": "arithmetic-word", "difficulty": 1, "changes": ["stickers to pencils", "explanation", "bn"]
+    },
+    "school-maths-13": {
+      "question": "In a clinical trial, 30 patients with high blood pressure are randomly assigned to two groups. One group takes the currently marketed medicine and the other takes an experimental medicine. Each week the patients visit the clinic for blood tests, and the lab technician does not know which medicine each patient takes. How can this design be described?",
+      "explanation": "Patients are assigned to groups at random and each group gets one treatment, so it is a completely randomized design with two treatments. A randomized block design would first group patients by a trait such as age; a matched-pairs design would pair similar patients. The technician not knowing the medicine is called blinding. It is not a type of design.",
+      "bn": {
+        "question": "একটি ক্লিনিক্যাল ট্রায়ালে উচ্চ রক্তচাপের 30 জন রোগীকে দৈবভাবে দুই দলে ভাগ করা হলো। একদল বাজারে প্রচলিত ওষুধ এবং অন্যদল পরীক্ষামূলক ওষুধ খায়। প্রতি সপ্তাহে রোগীরা ক্লিনিকে এসে রক্ত পরীক্ষা করায়, আর ল্যাব টেকনিশিয়ান জানেন না কে কোন ওষুধ খাচ্ছে। এই নকশাকে কীভাবে বর্ণনা করা যায়?",
+        "options": ["সম্পূর্ণ দৈব নকশা, যেখানে প্রচলিত ও পরীক্ষামূলক ওষুধ দুটি চিকিৎসা (treatment)", "ম্যাচড-পেয়ার নকশা, যেখানে প্রচলিত ও পরীক্ষামূলক ওষুধ একটি জোড়া", "দৈব ব্লক নকশা, যেখানে প্রচলিত ও পরীক্ষামূলক ওষুধ দুটি ব্লক", "দৈব ব্লক নকশা, যেখানে প্রচলিত ও পরীক্ষামূলক ওষুধ দুটি চিকিৎসা"],
+        "explanation": "রোগীদের দৈবভাবে দলে ভাগ করা হয়েছে এবং প্রতিটি দল একটিমাত্র চিকিৎসা পাচ্ছে, তাই এটি দুটি চিকিৎসাসহ সম্পূর্ণ দৈব নকশা। দৈব ব্লক নকশায় আগে রোগীদের বয়সের মতো কোনো বৈশিষ্ট্য অনুযায়ী ব্লকে ভাগ করা হয়; ম্যাচড-পেয়ারে সদৃশ রোগীদের জোড়া বাঁধা হয়। টেকনিশিয়ানের না জানাকে বলে ব্লাইন্ডিং, এটি নকশার ধরন নয়।"
+      },
+      "skill": "experimental-design", "difficulty": 2, "changes": ["condition changed from sickle cell anaemia to high blood pressure for local familiarity", "explanation", "bn"]
+    },
+    "school-maths-14": {
+      "question": "A library has a scanner that detects materials that have not been checked out. The scanner has a 98% chance of sounding the alarm for an item with an active chip, and a 3% chance of sounding it for a person with no active chip. About 0.5% of visitors try to leave with an active chip. If the alarm sounds, what is the probability that the person really has an item with an active chip?",
+      "explanation": "Out of 1,000 visitors: 5 have an active chip, and 4.9 of them set off the alarm (98%). The other 995 have no chip, and 29.85 of them set off the alarm (3%). Total alarms = 4.9 + 29.85 = 34.75. The share that are real = 4.9 ÷ 34.75 ≈ 0.141. So most alarms (about 86%) are false alarms.",
+      "bn": {
+        "question": "একটি লাইব্রেরিতে স্ক্যানার আছে, যা এখনও ইস্যু না-করা বই শনাক্ত করে। সক্রিয় চিপযুক্ত বইয়ের জন্য স্ক্যানারের অ্যালার্ম বাজার সম্ভাবনা 98%, আর সক্রিয় চিপ ছাড়া কেউ গেলেও 3% সম্ভাবনায় বাজে। প্রায় 0.5% দর্শনার্থী সক্রিয় চিপসহ বের হতে চায়। অ্যালার্ম বাজলে ওই ব্যক্তির কাছে সত্যিই সক্রিয় চিপযুক্ত বই থাকার সম্ভাবনা কত?",
+        "explanation": "1,000 জন দর্শনার্থীর মধ্যে 5 জনের কাছে সক্রিয় চিপ আছে, তাদের মধ্যে 4.9 জনের (98%) অ্যালার্ম বাজে। বাকি 995 জনের চিপ নেই, তাদের মধ্যে 29.85 জনের (3%) অ্যালার্ম বাজে। মোট অ্যালার্ম = 4.9 + 29.85 = 34.75। এর মধ্যে সত্যিকারের = 4.9 ÷ 34.75 ≈ 0.141। অর্থাৎ বেশিরভাগ অ্যালার্ম (প্রায় 86%) ভুল সংকেত।"
+      },
+      "skill": "conditional-probability", "difficulty": 3, "changes": ["explanation uses natural frequencies", "bn"]
+    },
+    "school-maths-15": {
+      "question": "The distance between Nila's house and Rina's house is 444.44 metres. Which statement about the values of the digits in 444.44 is true?",
+      "explanation": "In 444.44 the tenths 4 is worth 0.4 and the hundredths 4 is worth 0.04. Since 0.4 = 10 × 0.04, the last statement is true. The others fail: 0.4 is 1/100 (not 1/10) of 40, 0.04 is 1/100 (not 1/10) of 4, and 400 is 100 times (not 10 times) 4.",
+      "bn": {
+        "question": "নীলার বাড়ি থেকে রীনার বাড়ির দূরত্ব 444.44 মিটার। 444.44-এর অঙ্কগুলোর স্থানীয় মান সম্পর্কে কোন বক্তব্যটি সত্য?",
+        "options": ["দশমিকের পর প্রথম স্থানের 4-এর মান দশক স্থানের 4-এর মানের 1/10 অংশ।", "দশমিকের পর দ্বিতীয় স্থানের 4-এর মান এককের স্থানের 4-এর মানের 1/10 অংশ।", "শতক স্থানের 4-এর মান এককের স্থানের 4-এর মানের 10 গুণ।", "দশমিকের পর প্রথম স্থানের 4-এর মান দশমিকের পর দ্বিতীয় স্থানের 4-এর মানের 10 গুণ।"],
+        "explanation": "444.44-এ দশমিকের পর প্রথম স্থানের 4 মানে 0.4 এবং দ্বিতীয় স্থানের 4 মানে 0.04। যেহেতু 0.4 = 10 × 0.04, তাই শেষ বক্তব্যটি সত্য। অন্যগুলো ভুল: 0.4 হলো 40-এর 1/100 (1/10 নয়), 0.04 হলো 4-এর 1/100 (1/10 নয়), আর 400 হলো 4-এর 100 গুণ (10 গুণ নয়)।"
+      },
+      "options": ["The value of the 4 in the tenths place is 1/10 the value of the 4 in the tens place.", "The value of the 4 in the hundredths place is 1/10 the value of the 4 in the ones place.", "The value of the 4 in the hundreds place is 10 times the value of the 4 in the ones place.", "The value of the 4 in the tenths place is 10 times the value of the 4 in the hundredths place."],
+      "skill": "place-value", "difficulty": 1, "changes": ["names", "option C: 'greater than' removed so every option reads the same way", "explanation", "bn"]
+    },
+    "school-maths-16": {
+      "question": "At the start of a class period, half of the students go to the library. Later, half of the students still in the class go to the computer lab. If 8 students remain, how many students were in the class originally?",
+      "explanation": "Work backwards. 8 remain after half left for the computer lab, so before that there were 8 × 2 = 16. 16 remained after half left for the library, so originally there were 16 × 2 = 32.",
+      "bn": {
+        "question": "ক্লাসের শুরুতে অর্ধেক শিক্ষার্থী লাইব্রেরিতে গেল। পরে ক্লাসে যারা ছিল তাদের অর্ধেক কম্পিউটার ল্যাবে গেল। ক্লাসে এখন 8 জন বাকি থাকলে শুরুতে ক্লাসে কতজন ছিল?",
+        "options": ["12 জন", "16 জন", "24 জন", "32 জন"],
+        "explanation": "উল্টো দিক থেকে হিসাব করুন। কম্পিউটার ল্যাবে অর্ধেক যাওয়ার পর 8 জন বাকি, অর্থাৎ তার আগে ছিল 8 × 2 = 16 জন। লাইব্রেরিতে অর্ধেক যাওয়ার পর 16 জন বাকি, অর্থাৎ শুরুতে ছিল 16 × 2 = 32 জন।"
+      },
+      "options": ["12 students", "16 students", "24 students", "32 students"],
+      "skill": "working-backwards", "difficulty": 1, "changes": ["explanation", "bn"]
+    },
+    "school-maths-17": {
+      "question": "A teacher prepares a five-question true-false quiz. Before writing each question she flips a coin: heads means she writes a true statement, tails means a false one. What is the probability that the correct answers are T F T F T, in that order? Give a fraction.",
+      "options": ["1/6", "1/64", "1/32", "1/2"],
+      "explanation": "Each coin flip decides one answer, with probability 1/2 for true and 1/2 for false. The five flips are independent, so the chance of this exact order is (1/2)⁵ = 1/32.",
+      "bn": {
+        "question": "একজন শিক্ষক পাঁচ প্রশ্নের একটি সত্য-মিথ্যা কুইজ তৈরি করছেন। প্রতিটি প্রশ্ন লেখার আগে তিনি একটি মুদ্রা ছোড়েন: হেড এলে সত্য বক্তব্য, টেল এলে মিথ্যা বক্তব্য লেখেন। সঠিক উত্তরগুলো ঠিক এই ক্রমে স-মি-স-মি-স (T F T F T) হওয়ার সম্ভাবনা কত? ভগ্নাংশে লিখুন।",
+        "options": ["1/6", "1/64", "1/32", "1/2"],
+        "explanation": "প্রতিটি মুদ্রা ছোড়া একটি উত্তর ঠিক করে; সত্য ও মিথ্যা দুটিরই সম্ভাবনা 1/2। পাঁচটি ছোড়া স্বাধীন, তাই এই নির্দিষ্ট ক্রমের সম্ভাবনা (1/2)⁵ = 1/32।"
+      },
+      "skill": "probability", "difficulty": 1, "changes": ["plain-text maths", "explanation", "bn"]
+    },
+    "school-maths-18": {
+      "question": "Which of the following can change the value of the correlation r?",
+      "options": ["Changing the units of measurement (for example cm to metres)", "Swapping which variable is called x and which is called y", "Adding the same constant to every x value", "None of the above can change r."],
+      "explanation": "The correlation r measures how closely the points follow a straight line. Changing units (multiplying by a positive number), swapping x and y, and adding a constant to every value all leave that pattern the same, so r does not change. The answer is 'none of the above'.",
+      "bn": {
+        "question": "নিচের কোনটি সহসম্পর্ক সহগ r-এর মান বদলে দিতে পারে?",
+        "options": ["পরিমাপের একক বদলানো (যেমন সেমি থেকে মিটার)", "কোন চলকটি x আর কোনটি y, তা অদলবদল করা", "প্রতিটি x মানের সঙ্গে একই ধ্রুবক যোগ করা", "উপরের কোনোটিই r-এর মান বদলাতে পারে না।"],
+        "explanation": "সহগ r মাপে বিন্দুগুলো কতটা সরলরেখা বরাবর আছে। একক বদলানো (ধনাত্মক সংখ্যা দিয়ে গুণ), x ও y অদলবদল করা এবং প্রতিটি মানে ধ্রুবক যোগ করা, এসবে বিন্যাস একই থাকে, তাই r বদলায় না। উত্তর: 'উপরের কোনোটিই নয়'।"
+      },
+      "skill": "correlation", "difficulty": 2, "changes": ["option A clarified (a positive-factor change of units)", "explanation", "bn"]
+    },
+    "school-maths-19": {
+      "question": "Changing from a 90% confidence interval for a population proportion to a 99% confidence interval, with everything else equal,",
+      "explanation": "The width of the interval is proportional to the critical value z*. For 90%, z* ≈ 1.645; for 99%, z* ≈ 2.576. The ratio is 2.576 ÷ 1.645 ≈ 1.57, so the interval becomes about 57% wider.",
+      "bn": {
+        "question": "জনগোষ্ঠীর অনুপাতের জন্য 90% আস্থা ব্যবধান থেকে 99% আস্থা ব্যবধানে গেলে, বাকি সবকিছু একই থাকলে,",
+        "options": ["ব্যবধানের আকার 9% বাড়ে।", "ব্যবধানের আকার 9% কমে।", "ব্যবধানের আকার 57% বাড়ে।", "ব্যবধানের আকার 57% কমে।"],
+        "explanation": "ব্যবধানের প্রস্থ ক্রান্তি মান z*-এর সমানুপাতিক। 90%-এর জন্য z* ≈ 1.645; 99%-এর জন্য z* ≈ 2.576। অনুপাত 2.576 ÷ 1.645 ≈ 1.57, অর্থাৎ ব্যবধান প্রায় 57% চওড়া হয়।"
+      },
+      "options": ["increases the interval size by 9%.", "decreases the interval size by 9%.", "increases the interval size by 57%.", "decreases the interval size by 57%."],
+      "skill": "confidence-intervals", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "school-maths-20": {
+      "question": "Which situation could be represented by the expression 6 × 2?",
+      "options": ["Rafi walked 6 km each day for 2 days.", "Rafi had 6 mangoes and gave away 2 of them.", "Rafi had 6 pencils in total, in 2 boxes.", "Rafi walked 6 km and then walked 2 km more."],
+      "explanation": "6 × 2 means 2 groups of 6. Walking 6 km a day for 2 days is 6 + 6 = 12 km, which is 6 × 2. Giving away is subtraction (6 − 2), 6 pencils in 2 boxes is division (6 ÷ 2), and 'then 2 km more' is addition (6 + 2).",
+      "bn": {
+        "question": "6 × 2 রাশিটি কোন পরিস্থিতিকে প্রকাশ করতে পারে?",
+        "options": ["রাফি প্রতিদিন 6 কিমি করে 2 দিন হাঁটল।", "রাফির কাছে 6টি আম ছিল, তার মধ্যে 2টি সে দিয়ে দিল।", "রাফির কাছে মোট 6টি পেন্সিল ছিল, 2টি বাক্সে।", "রাফি 6 কিমি হাঁটল, তারপর আরও 2 কিমি হাঁটল।"],
+        "explanation": "6 × 2 মানে 6-এর 2টি দল। প্রতিদিন 6 কিমি করে 2 দিনে 6 + 6 = 12 কিমি, যা 6 × 2। দিয়ে দেওয়া মানে বিয়োগ (6 − 2), 2টি বাক্সে 6টি পেন্সিল মানে ভাগ (6 ÷ 2), আর 'তারপর আরও 2 কিমি' মানে যোগ (6 + 2)।"
+      },
+      "skill": "multiplication-meaning", "difficulty": 1, "changes": ["miles to km, names and context", "explanation", "bn"]
+    }
+  }
+}

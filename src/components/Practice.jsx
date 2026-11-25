@@ -4,29 +4,20 @@ import { trackEvent } from '../googleAnalytics';
 import { supabase } from '../supabaseClient';
 import { Paywall, ProBadge } from './Pro';
 import RichText from './RichText';
+import { useI18n } from '../i18n';
+import { freeSetCount, freeTotals, isFreeSet } from '../practice/access';
+import { localizeQuestion } from '../practice/overlay';
+import KeptMisses from '../practice/KeptMisses';
 
 // The practice library (#/practice): thousands of questions in 20-question
-// sets, from openly licensed sources (library/SOURCES.md). Set 1 of every
-// collection is free; the rest are Pro (enforced by api/library.js).
-// Every miss can become a review card, which is the point of Mnemoq.
+// sets, from openly licensed sources (library/SOURCES.md). The first half of
+// each collection's sets is free and the rest are Pro (src/practice/access.js,
+// enforced by api/library.js). Every miss is kept as a review card
+// (src/practice/KeptMisses.jsx), which is the point of Mnemoq.
 
-const FREE_SETS = 1;
 const PROGRESS_KEY = 'mnemoq-practice';
 const LETTERS = 'ABCDE';
-
-const SUBJECT_FOR = {
-  vocab: 'English',
-  'word-problems': 'Mathematics',
-  quant: 'Mathematics',
-  'school-maths': 'Mathematics',
-  'higher-maths': 'Mathematics',
-  physics: 'Physics',
-  chemistry: 'Chemistry',
-  biology: 'Biology',
-  'computer-science': 'Computer Science',
-  economics: 'Economics',
-  geography: 'Geography',
-};
+const FREE = freeTotals(CATALOG);
 
 function readProgress() {
   try {
@@ -63,9 +54,10 @@ async function fetchSet(id, n) {
 }
 
 function Runner({ collection, n, questions, onDone, onQuit }) {
+  const { lang } = useI18n();
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState({});
-  const q = questions[index];
+  const q = localizeQuestion(questions[index], lang);
   const chosen = picked[q.id];
   const answered = Number.isInteger(chosen);
   const correctSoFar = questions.filter((x) => picked[x.id] === x.answer).length;
@@ -143,30 +135,10 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
   );
 }
 
-function Summary({ collection, n, questions, picked, plan, onAddCards, onNext, onBack }) {
+function Summary({ collection, n, questions, picked, plan, onAddCards, onRemoveCards, onNext, onBack }) {
   const missed = questions.filter((q) => picked[q.id] !== q.answer);
   const score = questions.length - missed.length;
-  const [saved, setSaved] = useState(null);
-  const [busy, setBusy] = useState(false);
   const hasNext = n < collection.sets;
-
-  async function save() {
-    setBusy(true);
-
-    const cards = missed.map((q) => ({
-      subject: SUBJECT_FOR[collection.id] || collection.title,
-      category: String(q.topic || collection.title).slice(0, 40),
-      question: q.card?.question || q.question,
-      correctAnswer: q.card?.answer || q.options[q.answer],
-      yourAnswer: Number.isInteger(picked[q.id]) ? q.options[picked[q.id]] : '',
-      explanation: (q.explain || '').slice(0, 600),
-      distractors: q.card ? [] : q.options.filter((_, i) => i !== q.answer).slice(0, 3),
-    }));
-    const result = await onAddCards(cards);
-
-    setBusy(false);
-    setSaved(result?.error ? { error: result.error } : { added: result?.added ?? cards.length });
-  }
 
   return (
     <section className="pr-summary">
@@ -176,38 +148,23 @@ function Summary({ collection, n, questions, picked, plan, onAddCards, onNext, o
       <h2>
         {score} of {questions.length} correct
       </h2>
-      <p className="pr-muted">
-        {score === questions.length
-          ? 'A perfect set. Try the next one.'
-          : `Save the ${missed.length} you missed as review cards and Mnemoq will bring each one back right before you forget it.`}
-      </p>
+      {score === questions.length && <p className="pr-muted">A perfect set. Try the next one.</p>}
+      <KeptMisses collection={collection} n={n} questions={questions} picked={picked} onAddCards={onAddCards} onRemoveCards={onRemoveCards} />
       <div className="mq-focus-actions">
-        {missed.length > 0 && !saved && (
-          <button type="button" className="mq-btn mq-btn-primary" disabled={busy} onClick={save}>
-            {busy ? 'Saving…' : `Save ${missed.length} as review cards`}
-          </button>
-        )}
         {hasNext && (
-          <button type="button" className={missed.length > 0 && !saved ? 'mq-btn mq-btn-ghost' : 'mq-btn mq-btn-primary'} onClick={onNext}>
-            {n + 1 > FREE_SETS && !plan.pro ? <>Next set <ProBadge /></> : 'Next set'}
+          <button type="button" className="mq-btn mq-btn-primary" onClick={onNext}>
+            {!isFreeSet(collection.sets, n + 1) && !plan.pro ? <>Next set <ProBadge /></> : 'Next set'}
           </button>
         )}
         <button type="button" className="mq-btn mq-btn-quiet" onClick={onBack}>
           All sets
         </button>
       </div>
-      {saved?.added > 0 && (
-        <p className="pr-saved" role="status">
-          Saved {saved.added} cards. They are in your review queue now.{' '}
-          <a href="#/review">Review them now →</a>
-        </p>
-      )}
-      {saved?.error && <p className="pro-message">{saved.error}</p>}
     </section>
   );
 }
 
-export default function Practice({ plan, onAddCards }) {
+export default function Practice({ plan, onAddCards, onRemoveCards }) {
   const [group, setGroup] = useState('All');
   const [view, setView] = useState({ name: 'home' });
   const [progress, setProgress] = useState(readProgress);
@@ -222,8 +179,13 @@ export default function Practice({ plan, onAddCards }) {
   }, [view.name, view.n]);
 
   async function open(c, n) {
-    if (n > FREE_SETS && !plan.pro) {
-      setPaywall({ feature: 'bank', reason: `Set 1 of every collection is free. The other ${(c.sets - FREE_SETS).toLocaleString()} sets of ${c.title} come with Mnemoq Pro, along with ${(CATALOG.total - CATALOG.collections.length * CATALOG.setSize).toLocaleString()} more questions across every subject.` });
+    if (!isFreeSet(c.sets, n) && !plan.pro) {
+      const free = freeSetCount(c.sets);
+
+      setPaywall({
+        feature: 'bank',
+        reason: `Sets 1 to ${free} of ${c.title} are free. Pro opens the other ${(c.sets - free).toLocaleString()}, ${(CATALOG.total - FREE.questions).toLocaleString()} more questions across every subject, plus your plan and readiness report.`,
+      });
       return;
     }
 
@@ -279,6 +241,7 @@ export default function Practice({ plan, onAddCards }) {
           picked={view.picked}
           plan={plan}
           onAddCards={onAddCards}
+          onRemoveCards={onRemoveCards}
           onNext={() => open(collection, view.n + 1)}
           onBack={() => setView({ name: 'collection', collectionId: view.collectionId })}
         />
@@ -301,20 +264,21 @@ export default function Practice({ plan, onAddCards }) {
           <p className="pr-muted">{collection.blurb}</p>
           <p className="pr-meta">
             {collection.questions.toLocaleString()} questions · {collection.sets} sets of {CATALOG.setSize}
-            {collection.worked ? ' · worked solutions' : ''} · {doneCount} done
+            {collection.worked ? ' · worked solutions' : ''} · {freeSetCount(collection.sets)} free · {doneCount} done
           </p>
         </header>
         {error && <p className="pro-message">{error}</p>}
         <ol className="pr-sets">
           {Array.from({ length: collection.sets }, (_, i) => i + 1).map((n) => {
             const p = progress[`${collection.id}:${n}`];
-            const locked = n > FREE_SETS && !plan.pro;
+            const free = isFreeSet(collection.sets, n);
+            const locked = !free && !plan.pro;
 
             return (
               <li key={n}>
                 <button type="button" className={`pr-set${p ? ' done' : ''}${locked ? ' locked' : ''}`} disabled={loading} onClick={() => open(collection, n)}>
                   <span>Set {n}</span>
-                  {p ? <b>{p.best}/{p.total}</b> : n <= FREE_SETS ? <em>Free</em> : locked ? <ProBadge /> : <em>Start</em>}
+                  {p ? <b>{p.best}/{p.total}</b> : free ? <em>Free</em> : locked ? <ProBadge /> : <em>Start</em>}
                 </button>
               </li>
             );
@@ -339,8 +303,8 @@ export default function Practice({ plan, onAddCards }) {
       <header className="mq-page-head">
         <h1>Practice library</h1>
         <p className="pr-muted">
-          {CATALOG.total.toLocaleString()} questions in {CATALOG.collections.length} collections, from vocabulary to physics. Set 1 of every collection is free. Every
-          mistake can become a review card.
+          {CATALOG.total.toLocaleString()} questions in {CATALOG.collections.length} collections, from vocabulary to physics. The first half of every collection is free
+          ({FREE.questions.toLocaleString()} questions), and every mistake comes back as a review card.
         </p>
       </header>
       <div className="mq-seg pr-groups" role="tablist" aria-label="Subjects">

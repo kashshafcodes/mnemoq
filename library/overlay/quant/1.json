@@ -1,0 +1,210 @@
+{
+  "meta": { "collection": "quant", "set": 1, "batch": 1, "version": 1, "reviewed": { "en": "product agent, every answer re-solved by hand", "bn": "unaudited, best effort" } },
+  "items": {
+    "quant-1": {
+      "question": "If 1 + 2 = 10, 2 + 3 = 26 and 3 + 4 = 50, then 4 + 5 = ?",
+      "explanation": "Find the rule: add the two numbers, square the sum, then add 1. (1+2)² + 1 = 10, (2+3)² + 1 = 26, (3+4)² + 1 = 50. So 4 + 5 gives 9² + 1 = 82.",
+      "bn": {
+        "question": "যদি 1 + 2 = 10, 2 + 3 = 26 এবং 3 + 4 = 50 হয়, তাহলে 4 + 5 = কত?",
+        "explanation": "নিয়মটি খুঁজে বের করুন: দুই সংখ্যা যোগ করে যোগফলের বর্গ নিন, তারপর 1 যোগ করুন। (1+2)² + 1 = 10, (2+3)² + 1 = 26, (3+4)² + 1 = 50। তাই 4 + 5 = 9² + 1 = 82।"
+      },
+      "skill": "number-patterns", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "quant-2": {
+      "question": "R, S, T and U are points on a line, and U is the midpoint of segment ST. RS = 5, RT = 17 and ST = 22. What is the length of RU?",
+      "explanation": "SR + RT = 5 + 17 = 22 = ST, so R lies between S and T. U is the midpoint, so SU = 22 ÷ 2 = 11. Since SR = 5 is less than 11, R lies between S and U. Then RU = SU − SR = 11 − 5 = 6.",
+      "bn": {
+        "question": "R, S, T ও U একটি সরলরেখার উপর চারটি বিন্দু এবং U হলো রেখাংশ ST-এর মধ্যবিন্দু। RS = 5, RT = 17 এবং ST = 22 হলে RU-এর দৈর্ঘ্য কত?",
+        "explanation": "SR + RT = 5 + 17 = 22 = ST, তাই R বিন্দুটি S ও T-এর মাঝখানে। U মধ্যবিন্দু বলে SU = 22 ÷ 2 = 11। SR = 5, যা 11-এর চেয়ে ছোট, তাই R বিন্দু S ও U-এর মাঝে। অতএব RU = 11 − 5 = 6।"
+      },
+      "skill": "line-segments", "difficulty": 1, "changes": ["explanation", "bn"]
+    },
+    "quant-3": {
+      "question": "Rahim scored 76, 65, 82, 67 and 85 out of 100 in English, Mathematics, Physics, Chemistry and Biology. What are his average marks?",
+      "explanation": "Average = total ÷ number of subjects. 76 + 65 + 82 + 67 + 85 = 375, and 375 ÷ 5 = 75.",
+      "bn": {
+        "question": "রহিম ইংরেজি, গণিত, পদার্থবিজ্ঞান, রসায়ন ও জীববিজ্ঞানে 100-এর মধ্যে যথাক্রমে 76, 65, 82, 67 ও 85 পেয়েছে। তার গড় নম্বর কত?",
+        "explanation": "গড় = মোট নম্বর ÷ বিষয়ের সংখ্যা। 76 + 65 + 82 + 67 + 85 = 375, আর 375 ÷ 5 = 75।"
+      },
+      "skill": "averages", "difficulty": 1, "changes": ["name", "explanation", "bn"]
+    },
+    "quant-4": {
+      "question": "You take the first pill now, then one more every 30 minutes, until you have taken all three pills. After how many minutes do you take the last pill?",
+      "options": ["45 min", "55 min", "50 min", "70 min", "60 min"],
+      "explanation": "Pill 1 is at minute 0, pill 2 at minute 30 and pill 3 at minute 60. Three pills have only two gaps between them, so 2 × 30 = 60 minutes, not 90.",
+      "bn": {
+        "question": "আপনি এখনই প্রথম ট্যাবলেটটি খেলেন, তারপর প্রতি 30 মিনিট পরপর একটি করে খান, যতক্ষণ না তিনটি ট্যাবলেটই শেষ হয়। শেষ ট্যাবলেটটি কত মিনিট পরে খাবেন?",
+        "options": ["45 মিনিট", "55 মিনিট", "50 মিনিট", "70 মিনিট", "60 মিনিট"],
+        "explanation": "প্রথম ট্যাবলেট 0 মিনিটে, দ্বিতীয়টি 30 মিনিটে, তৃতীয়টি 60 মিনিটে। তিনটি ট্যাবলেটের মাঝে ফাঁক মাত্র দুটি, তাই 2 × 30 = 60 মিনিট; 90 নয়।"
+      },
+      "skill": "logic-puzzles", "difficulty": 1, "changes": ["question reworded: the original asked how long the pills 'run', which is ambiguous", "options", "explanation", "bn"]
+    },
+    "quant-5": {
+      "question": "Each of the following equations has at least one solution EXCEPT one. Which one? (Read −2^n as −(2^n).)",
+      "options": ["−2^n = (−2)^(−n)", "2^(−n) = (−2)^n", "2^n = (−2)^(−n)", "(−2)^n = −2^n", "(−2)^(−n) = −2^(−n)"],
+      "explanation": "Try n = 0 and n = 1. B and C both hold at n = 0 (1 = 1). D holds at n = 1 (−2 = −2). E holds at n = 1 (−1/2 = −1/2). In A the left side −(2^n) is always negative. The right side (−2)^(−n) is negative only for odd n, where it equals −1/2^n. That needs 2^n = 1/2^n, true only at n = 0, which is not odd. So A has no solution.",
+      "bn": {
+        "question": "নিচের সমীকরণগুলোর মধ্যে একটি বাদে প্রতিটির অন্তত একটি সমাধান আছে। কোনটির নেই? (−2^n মানে −(2^n))",
+        "options": ["−2^n = (−2)^(−n)", "2^(−n) = (−2)^n", "2^n = (−2)^(−n)", "(−2)^n = −2^n", "(−2)^(−n) = −2^(−n)"],
+        "explanation": "n = 0 ও n = 1 বসিয়ে দেখুন। B ও C দুটিই n = 0-তে সত্য (1 = 1)। D সত্য n = 1-এ (−2 = −2)। E সত্য n = 1-এ (−1/2 = −1/2)। A-তে বামপক্ষ −(2^n) সবসময় ঋণাত্মক। ডানপক্ষ (−2)^(−n) ঋণাত্মক হয় কেবল n বিজোড় হলে, তখন মান −1/2^n। তাহলে 2^n = 1/2^n লাগবে, যা শুধু n = 0-তে সত্য, আর 0 বিজোড় নয়। তাই A-এর কোনো সমাধান নেই।"
+      },
+      "skill": "exponents", "difficulty": 3, "changes": ["notation clarified", "explanation", "bn"]
+    },
+    "quant-6": {
+      "question": "A man takes twice as long to row a distance against the stream as to row the same distance with the stream. What is the ratio of the speed of the boat in still water to the speed of the stream?",
+      "explanation": "Same distance, double the time, so the upstream speed is half the downstream speed. Let upstream = x and downstream = 2x. Boat in still water = (2x + x) ÷ 2 = 1.5x. Stream = (2x − x) ÷ 2 = 0.5x. The ratio 1.5x : 0.5x is 3 : 1.",
+      "bn": {
+        "question": "একজন মাঝি স্রোতের বিপরীতে কোনো দূরত্ব বাইতে স্রোতের অনুকূলে একই দূরত্ব বাওয়ার দ্বিগুণ সময় নেন। স্থির পানিতে নৌকার বেগ ও স্রোতের বেগের অনুপাত কত?",
+        "options": ["3 : 1", "1 : 3", "1 : 2", "2 : 1", "কোনোটিই নয়"],
+        "explanation": "দূরত্ব এক, সময় দ্বিগুণ, তাই স্রোতের বিপরীতে বেগ অনুকূলের অর্ধেক। ধরি বিপরীতে বেগ x, অনুকূলে 2x। স্থির পানিতে নৌকার বেগ = (2x + x) ÷ 2 = 1.5x। স্রোতের বেগ = (2x − x) ÷ 2 = 0.5x। অনুপাত 1.5x : 0.5x = 3 : 1।"
+      },
+      "skill": "boats-streams", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "quant-7": {
+      "question": "How many 4-digit positive integers are odd, are multiples of 5, and do not use the digit 3?",
+      "explanation": "A multiple of 5 ends in 0 or 5, and it must be odd, so the last digit is 5 (1 choice). The first digit can be 1–9 except 3: 8 choices. The second and third digits can be 0–9 except 3: 9 choices each. Total = 8 × 9 × 9 × 1 = 648.",
+      "bn": {
+        "question": "কতগুলো 4 অঙ্কের ধনাত্মক পূর্ণসংখ্যা বিজোড়, 5-এর গুণিতক এবং তাতে 3 অঙ্কটি নেই?",
+        "explanation": "5-এর গুণিতকের শেষ অঙ্ক 0 বা 5; সংখ্যাটি বিজোড় হতে হবে, তাই শেষ অঙ্ক 5 (1 উপায়)। প্রথম অঙ্ক 1–9, তবে 3 বাদে: 8 উপায়। দ্বিতীয় ও তৃতীয় অঙ্ক 0–9, তবে 3 বাদে: প্রতিটি 9 উপায়। মোট = 8 × 9 × 9 × 1 = 648।"
+      },
+      "skill": "counting", "difficulty": 2, "changes": ["question reworded", "explanation", "bn"]
+    },
+    "quant-8": {
+      "question": "A train has 12 coaches, each 15 metres long. It crosses a telegraph pole in 9 seconds. If one coach is removed, how long will the train take to cross the pole?",
+      "options": ["18 sec", "12 sec", "15 sec", "8.25 sec", "None of these"],
+      "explanation": "Length = 12 × 15 = 180 m, so speed = 180 ÷ 9 = 20 m/s. With 11 coaches the length is 11 × 15 = 165 m, so time = 165 ÷ 20 = 8.25 seconds.",
+      "bn": {
+        "question": "একটি ট্রেনে 12টি বগি, প্রতিটি 15 মিটার লম্বা। ট্রেনটি একটি টেলিগ্রাফ খুঁটি 9 সেকেন্ডে পার হয়। একটি বগি খুলে নিলে খুঁটিটি পার হতে কত সময় লাগবে?",
+        "options": ["18 সেকেন্ড", "12 সেকেন্ড", "15 সেকেন্ড", "8.25 সেকেন্ড", "কোনোটিই নয়"],
+        "explanation": "ট্রেনের দৈর্ঘ্য = 12 × 15 = 180 মিটার, তাই বেগ = 180 ÷ 9 = 20 মি/সে। 11টি বগিতে দৈর্ঘ্য 11 × 15 = 165 মিটার, তাই সময় = 165 ÷ 20 = 8.25 সেকেন্ড।"
+      },
+      "skill": "trains", "difficulty": 2, "changes": ["grammar", "explanation", "bn"]
+    },
+    "quant-9": {
+      "question": "Rafiq, Rahim and Rubel together can finish a job in 5 days. Rafiq alone takes 10 days and Rahim alone takes 20 days. How many days will Rubel alone take?",
+      "options": ["10 days", "15 days", "20 days", "30 days", "18 days"],
+      "explanation": "Work per day: all three = 1/5, Rafiq = 1/10, Rahim = 1/20. Rubel = 1/5 − 1/10 − 1/20 = (4 − 2 − 1)/20 = 1/20 of the job per day. So Rubel alone takes 20 days.",
+      "bn": {
+        "question": "রফিক, রহিম ও রুবেল একসঙ্গে একটি কাজ 5 দিনে শেষ করতে পারে। রফিক একা 10 দিনে এবং রহিম একা 20 দিনে কাজটি করতে পারে। রুবেল একা কত দিনে কাজটি করবে?",
+        "options": ["10 দিন", "15 দিন", "20 দিন", "30 দিন", "18 দিন"],
+        "explanation": "প্রতিদিনের কাজ: তিনজন মিলে 1/5, রফিক 1/10, রহিম 1/20। রুবেল = 1/5 − 1/10 − 1/20 = (4 − 2 − 1)/20 = 1/20 অংশ। তাই রুবেল একা 20 দিনে করবে।"
+      },
+      "skill": "work-and-time", "difficulty": 2, "changes": ["names", "options spacing", "explanation", "bn"]
+    },
+    "quant-10": {
+      "question": "A sequence is defined for every positive integer n by t(n+1) = t(n) + n, and t(3) = 14. What is t(24)?",
+      "explanation": "t(24) = t(3) + 3 + 4 + 5 + … + 23. The sum 1 + 2 + … + 23 = 23 × 24 ÷ 2 = 276. Take away 1 + 2 = 3 to get 3 + … + 23 = 273. So t(24) = 14 + 273 = 287.",
+      "bn": {
+        "question": "প্রতিটি ধনাত্মক পূর্ণসংখ্যা n-এর জন্য একটি ধারা এভাবে সংজ্ঞায়িত: t(n+1) = t(n) + n এবং t(3) = 14। t(24)-এর মান কত?",
+        "explanation": "t(24) = t(3) + 3 + 4 + 5 + … + 23। 1 + 2 + … + 23 = 23 × 24 ÷ 2 = 276। এখান থেকে 1 + 2 = 3 বাদ দিলে 3 + … + 23 = 273। তাই t(24) = 14 + 273 = 287।"
+      },
+      "skill": "sequences", "difficulty": 3, "changes": ["notation", "explanation", "bn"]
+    },
+    "quant-11": {
+      "question": "A launch can travel at 16 km/h in still water. The river current is 5 km/h. How long will it take to cover 168 km downstream?",
+      "options": ["4 hours", "5 hours", "6 hours", "7 hours", "8 hours"],
+      "explanation": "Going downstream, the current adds to the launch's speed: 16 + 5 = 21 km/h. Time = distance ÷ speed = 168 ÷ 21 = 8 hours.",
+      "bn": {
+        "question": "একটি লঞ্চ স্থির পানিতে ঘণ্টায় 16 কিমি যায়। নদীর স্রোতের বেগ ঘণ্টায় 5 কিমি। স্রোতের অনুকূলে 168 কিমি যেতে কত সময় লাগবে?",
+        "options": ["4 ঘণ্টা", "5 ঘণ্টা", "6 ঘণ্টা", "7 ঘণ্টা", "8 ঘণ্টা"],
+        "explanation": "স্রোতের অনুকূলে স্রোতের বেগ লঞ্চের বেগের সঙ্গে যোগ হয়: 16 + 5 = 21 কিমি/ঘণ্টা। সময় = দূরত্ব ÷ বেগ = 168 ÷ 21 = 8 ঘণ্টা।"
+      },
+      "skill": "boats-streams", "difficulty": 1, "changes": ["context", "explanation", "bn"]
+    },
+    "quant-12": {
+      "question": "Envelopes cost ৳150 for a pack of 100, ৳100 for a pack of 50, or ৳3 each. What is the greatest number of envelopes you can buy with ৳790?",
+      "options": ["426", "430", "443", "480", "513"],
+      "answer": 4,
+      "explanation": "Cost per envelope: ৳1.50 in the 100-pack, ৳2 in the 50-pack, ৳3 singly. So buy as many 100-packs as you can: 5 packs cost ৳750 (a 6th would cost ৳900, too much). The remaining ৳40 buys 13 single envelopes (৳39). Total = 500 + 13 = 513. Buying 4 packs of 100, one pack of 50 and 30 singles gives only 480.",
+      "bn": {
+        "question": "খামের দাম: 100টির প্যাকেট ৳150, 50টির প্যাকেট ৳100, আর একটি করে কিনলে ৳3। ৳790 দিয়ে সর্বোচ্চ কতগুলো খাম কেনা যাবে?",
+        "explanation": "প্রতি খামের দাম: 100-র প্যাকেটে ৳1.50, 50-র প্যাকেটে ৳2, একটি করে কিনলে ৳3। তাই যত বেশি সম্ভব 100-র প্যাকেট কিনুন: 5টি প্যাকেটে ৳750 (ষষ্ঠটি কিনলে ৳900, যা বেশি)। বাকি ৳40 দিয়ে 13টি খাম (৳39) কেনা যায়। মোট = 500 + 13 = 513। 4টি 100-র প্যাকেট, একটি 50-র প্যাকেট ও 30টি আলাদা খামে মাত্র 480 হয়।"
+      },
+      "skill": "money-optimisation", "difficulty": 3,
+      "changes": ["currency ($ to ৳, amounts x100)", "ANSWER CORRECTED: the original key 480 is not the maximum; 5 packs of 100 plus 13 singles gives 513, which was not an option, so option E (486) was replaced by 513 and the answer moved from D to E", "explanation", "bn"]
+    },
+    "quant-13": {
+      "question": "Arif, Bithi and Chanchal invest ৳2,000, ৳3,000 and ৳4,000 in a business. After 2 years Arif withdraws his money; Bithi and Chanchal continue for one more year. If the total profit after 3 years is ৳4,800, what is Arif's share?",
+      "options": ["৳600", "৳400", "৳678", "৳867", "৳768"],
+      "explanation": "Profit is shared in the ratio (money × time). Arif: 2,000 × 2 years, Bithi: 3,000 × 3, Chanchal: 4,000 × 3. That is 4,000 : 9,000 : 12,000 = 4 : 9 : 12. Arif's share = 4/25 × 4,800 = ৳768.",
+      "bn": {
+        "question": "আরিফ, বিথী ও চঞ্চল একটি ব্যবসায় যথাক্রমে ৳2,000, ৳3,000 ও ৳4,000 বিনিয়োগ করল। 2 বছর পর আরিফ তার টাকা তুলে নিল; বিথী ও চঞ্চল আরও এক বছর ব্যবসা চালাল। 3 বছর পর মোট লাভ ৳4,800 হলে আরিফের অংশ কত?",
+        "explanation": "লাভ ভাগ হয় (টাকা × সময়)-এর অনুপাতে। আরিফ: 2,000 × 2 বছর, বিথী: 3,000 × 3, চঞ্চল: 4,000 × 3। অর্থাৎ 4,000 : 9,000 : 12,000 = 4 : 9 : 12। আরিফের অংশ = 4/25 × 4,800 = ৳768।"
+      },
+      "skill": "partnership-ratio", "difficulty": 2, "changes": ["currency Rs. to ৳", "names", "explanation", "bn"]
+    },
+    "quant-14": {
+      "question": "The compound interest on a sum for 2 years at 12½% per year is ৳510. What is the simple interest on the same sum at the same rate for the same 2 years?",
+      "options": ["৳400", "৳450", "৳460", "৳480", "৳580"],
+      "explanation": "12½% = 1/8, so after 2 years the sum grows by (9/8)² − 1 = 17/64. P × 17/64 = 510, so P = ৳1,920. Simple interest = 1,920 × 12.5 × 2 ÷ 100 = ৳480.",
+      "bn": {
+        "question": "কোনো আসলের উপর বার্ষিক 12½% হারে 2 বছরের চক্রবৃদ্ধি মুনাফা ৳510। একই আসলে একই হারে 2 বছরের সরল মুনাফা কত?",
+        "options": ["৳400", "৳450", "৳460", "৳480", "৳580"],
+        "explanation": "12½% = 1/8, তাই 2 বছরে আসল বাড়ে (9/8)² − 1 = 17/64 অংশ। আসল × 17/64 = 510, অতএব আসল = ৳1,920। সরল মুনাফা = 1,920 × 12.5 × 2 ÷ 100 = ৳480।"
+      },
+      "skill": "interest", "difficulty": 2, "changes": ["currency Rs. to ৳", "explanation", "bn"]
+    },
+    "quant-15": {
+      "question": "x and y are integers, x + y < 11 and x > 6. What is the smallest possible value of x − y?",
+      "explanation": "For integers, x ≥ 7 and x + y ≤ 10, so y ≤ 10 − x. Then x − y ≥ x − (10 − x) = 2x − 10. This is smallest when x is smallest, x = 7, giving 2(7) − 10 = 4 (with y = 3).",
+      "bn": {
+        "question": "x ও y পূর্ণসংখ্যা, x + y < 11 এবং x > 6। x − y-এর ক্ষুদ্রতম সম্ভাব্য মান কত?",
+        "explanation": "পূর্ণসংখ্যার ক্ষেত্রে x ≥ 7 এবং x + y ≤ 10, অর্থাৎ y ≤ 10 − x। তাহলে x − y ≥ x − (10 − x) = 2x − 10। x সবচেয়ে ছোট, অর্থাৎ x = 7 হলে মান সবচেয়ে ছোট: 2(7) − 10 = 4 (তখন y = 3)।"
+      },
+      "skill": "inequalities", "difficulty": 2, "changes": ["explanation", "bn"]
+    },
+    "quant-16": {
+      "question": "The price of a collectible cricket card falls 20% in the first year and 10% in the second year. What is the total percentage fall over the two years?",
+      "explanation": "Start at 100. After a 20% fall: 80. The 10% fall is taken from 80, not 100: 80 × 0.9 = 72. The total fall is 100 − 72 = 28, so 28%. (It is not 30%, because the second fall applies to a smaller price.)",
+      "bn": {
+        "question": "একটি সংগ্রহযোগ্য ক্রিকেট কার্ডের দাম প্রথম বছরে 20% এবং দ্বিতীয় বছরে 10% কমল। দুই বছরে মোট শতকরা কত কমল?",
+        "explanation": "ধরি শুরুতে দাম 100। 20% কমে হলো 80। দ্বিতীয় বছরের 10% কমে 80 থেকে, 100 থেকে নয়: 80 × 0.9 = 72। মোট কমেছে 100 − 72 = 28, অর্থাৎ 28%। (30% নয়, কারণ দ্বিতীয়বার কম দামের উপর হ্রাস হয়েছে।)"
+      },
+      "skill": "percentages", "difficulty": 1, "changes": ["context baseball to cricket", "explanation", "bn"]
+    },
+    "quant-17": {
+      "question": "In an election, candidate A gets 75% of the valid votes. 15% of all votes were declared invalid, and the total number of votes was 5,60,000 (5.6 lakh). How many valid votes did candidate A get?",
+      "options": ["3,30,000", "3,40,000", "3,47,000", "3,56,000", "3,57,000"],
+      "explanation": "Invalid votes = 15% of 5,60,000 = 84,000. Valid votes = 5,60,000 − 84,000 = 4,76,000. Candidate A got 75% of the valid votes: 0.75 × 4,76,000 = 3,57,000.",
+      "bn": {
+        "question": "একটি নির্বাচনে প্রার্থী A বৈধ ভোটের 75% পেলেন। মোট ভোটের 15% বাতিল হয়েছে এবং মোট ভোট 5,60,000 (5.6 লাখ) হলে প্রার্থী A কত বৈধ ভোট পেয়েছেন?",
+        "options": ["3,30,000", "3,40,000", "3,47,000", "3,56,000", "3,57,000"],
+        "explanation": "বাতিল ভোট = 5,60,000-এর 15% = 84,000। বৈধ ভোট = 5,60,000 − 84,000 = 4,76,000। প্রার্থী A বৈধ ভোটের 75% পেয়েছেন: 0.75 × 4,76,000 = 3,57,000।"
+      },
+      "skill": "percentages", "difficulty": 2, "changes": ["lakh grouping", "explanation", "bn"]
+    },
+    "quant-18": {
+      "question": "A made-up number-plate system uses 2 different letters (from the 26 letters) followed by 2 digits, and digits may repeat. How many different plates are possible?",
+      "options": ["74453", "64543", "74325", "65000", "97656"],
+      "explanation": "Letters: 26 choices for the first and 25 for the second (they must differ) = 26 × 25 = 650. Digits: 10 × 10 = 100. Total = 650 × 100 = 65,000.",
+      "bn": {
+        "question": "একটি কাল্পনিক নম্বর প্লেটে প্রথমে ইংরেজি বর্ণমালার 2টি আলাদা অক্ষর, তারপর 2টি অঙ্ক থাকে (অঙ্ক পুনরাবৃত্ত হতে পারে)। কতগুলো ভিন্ন নম্বর প্লেট সম্ভব?",
+        "options": ["74453", "64543", "74325", "65000", "97656"],
+        "explanation": "অক্ষর: প্রথমটি 26 উপায়ে, দ্বিতীয়টি 25 উপায়ে (আলাদা হতে হবে) = 26 × 25 = 650। অঙ্ক: 10 × 10 = 100। মোট = 650 × 100 = 65,000।"
+      },
+      "skill": "counting", "difficulty": 2,
+      "changes": ["question reworded: the original sentence was garbled", "explanation (original said 6P2, a typo for 26P2)", "bn"]
+    },
+    "quant-19": {
+      "question": "The average age of 20 students in a class is 15.6 years. Five new students join and the average becomes 15.56 years. What is the average age of the five new students?",
+      "options": ["15.5", "15.4", "15.25", "15.3", "15.6"],
+      "explanation": "Total age of the first 20 = 20 × 15.6 = 312. Total age of all 25 = 25 × 15.56 = 389. The five new students add 389 − 312 = 77, so their average is 77 ÷ 5 = 15.4.",
+      "bn": {
+        "question": "একটি ক্লাসের 20 জন শিক্ষার্থীর গড় বয়স 15.6 বছর। আরও 5 জন নতুন শিক্ষার্থী যোগ দেওয়ায় গড় বয়স হলো 15.56 বছর। নতুন 5 জনের গড় বয়স কত?",
+        "explanation": "প্রথম 20 জনের মোট বয়স = 20 × 15.6 = 312। 25 জনের মোট বয়স = 25 × 15.56 = 389। নতুন 5 জনের মোট বয়স 389 − 312 = 77, তাই তাদের গড় = 77 ÷ 5 = 15.4।"
+      },
+      "skill": "averages", "difficulty": 2, "changes": ["context men to students", "explanation", "bn"]
+    },
+    "quant-20": {
+      "question": "A bus completes a journey in 15 hours. It covers the first half of the distance at 21 km/h and the second half at 24 km/h. What is the total distance?",
+      "options": ["336 km", "216 km", "314 km", "224 km", "544 km"],
+      "explanation": "Let the total distance be x km. Time = (x/2) ÷ 21 + (x/2) ÷ 24 = x/42 + x/48 = 15. The common denominator is 336: (8x + 7x)/336 = 15, so 15x = 15 × 336 and x = 336 km.",
+      "bn": {
+        "question": "একটি বাস 15 ঘণ্টায় একটি যাত্রা শেষ করে। মোট পথের প্রথম অর্ধেক ঘণ্টায় 21 কিমি বেগে এবং দ্বিতীয় অর্ধেক ঘণ্টায় 24 কিমি বেগে যায়। মোট দূরত্ব কত?",
+        "options": ["336 কিমি", "216 কিমি", "314 কিমি", "224 কিমি", "544 কিমি"],
+        "explanation": "ধরি মোট দূরত্ব x কিমি। সময় = (x/2) ÷ 21 + (x/2) ÷ 24 = x/42 + x/48 = 15। সাধারণ হর 336: (8x + 7x)/336 = 15, অর্থাৎ 15x = 15 × 336, তাই x = 336 কিমি।"
+      },
+      "skill": "speed-distance-time", "difficulty": 2, "changes": ["context", "explanation", "bn"]
+    }
+  }
+}
