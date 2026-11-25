@@ -6,6 +6,7 @@ import { trafficSource } from './track';
 import { guestMetadata } from './guestResult';
 import { playedSample, sampleMetadata } from './sample/store';
 import { feel } from './sensory';
+import { fromRef } from './referral/client';
 
 // Sensory (spec 5): press feedback only; success is step.done (no
 // celebration for an account), errors are the two soft error notes.
@@ -42,6 +43,7 @@ export default function Auth({ startWith = 'signup', compact = false, title = ''
         // An empty identities array can mean an existing account (anti-enumeration).
         if (data.user && (!Array.isArray(data.user.identities) || data.user.identities.length > 0)) {
           trackEvent('sign_up', { method: 'email', from: playedSample() ? 'sample' : undefined });
+          trackEvent('ref_signup', { from_ref: fromRef(() => src) });
         }
 
         feel('step.done');

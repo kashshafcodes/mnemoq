@@ -1,4 +1,5 @@
 import { loadHistory } from '../daily/calendar';
+import { afterDaysSynced, sendClaim } from '../referral/client';
 import { batchIsEmpty, buildBatch, markSent, noteLearning, onQueue, queueDailyResult, saveServerDays, saveServerSeen, setSyncUser, syncUser } from './queue';
 
 // Account sync, the network part. App.jsx starts it when someone signs in and
@@ -52,6 +53,10 @@ export function flush() {
     }
 
     markSent(batch, parts);
+
+    // A new learning day reached the account: the referral check (at most
+    // once a day, only for accounts that came through a friend's link).
+    if (batch.days.length && parts.days) afterDaysSynced(client, batch.user);
 
     return parts.days && parts.results && parts.profile;
   })().finally(() => {
@@ -137,6 +142,7 @@ export function startSync(supabase, user) {
   onQueue(flushSoon);
   uploadGuestHistory(user);
   pullDays(user);
+  sendClaim(supabase, user);
 
   const onVisible = () => flush();
   const onOnline = () => {
