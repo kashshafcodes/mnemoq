@@ -498,7 +498,9 @@ export function Badges({ badges }) {
   );
 }
 
-export default function Dashboard({ cards, reviews, dueCount, showForm, onToggleAdd, onReview }) {
+// details: inside the Memory map's "Details" (src/progress/MemoryMap.jsx):
+// no hero and no streak number (the map shows the one streak).
+export default function Dashboard({ cards, reviews, dueCount, showForm, onToggleAdd, onReview, details = false }) {
   const data = useMemo(() => computeAnalytics(cards, reviews, new Date(), { extraDays: streakTimes() }), [cards, reviews]);
   const { stats } = data;
   const message = headline(stats);
@@ -520,6 +522,7 @@ export default function Dashboard({ cards, reviews, dueCount, showForm, onToggle
 
   return (
     <div className="dash">
+      {!details && (
       <section className="welcome-card dash-hero">
         <div className="dash-hero-text">
           <p className="eyebrow">YOUR PROGRESS</p>
@@ -554,10 +557,12 @@ export default function Dashboard({ cards, reviews, dueCount, showForm, onToggle
           </div>
         )}
       </section>
+      )}
 
       {stats.totalCards > 0 && (
         <>
           <section className="dash-kpis" aria-label="Your numbers">
+            {!details && (
             <Kpi
               label="Streak"
               value={stats.streak.current}
@@ -568,6 +573,7 @@ export default function Dashboard({ cards, reviews, dueCount, showForm, onToggle
                   : 'Review today to start one'
               }
             />
+            )}
             <Kpi
               label="Reviews done"
               value={stats.reviewsTotal}

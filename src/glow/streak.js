@@ -102,6 +102,14 @@ function strip(D, T, earliest, start) {
   return out;
 }
 
+// Day keys ("2026-11-25") -> the streak at `todayKey`. For callers that
+// already hold calendar days (the reminder job, in the person's own zone).
+export function streakFromKeys(keys = [], todayKey) {
+  const { strip: lastDays, ...rest } = streakFromNumbers([...keys].filter(Boolean).map(toNumber), toNumber(todayKey));
+
+  return { ...rest, days: lastDays.map(({ n, state }) => ({ day: toKey(n), state })) };
+}
+
 // Dates or ISO times -> the streak, on Dhaka days.
 //   { current, best, reviewedToday, restUsed, atRisk, days: [{ day, state }] }
 export function streakFromTimes(times = [], now = new Date()) {

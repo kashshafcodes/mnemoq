@@ -117,8 +117,10 @@ function goalDays(reviews, goal = 10) {
   return [...perDay.values()].filter((n) => n >= goal).length;
 }
 
-export function buildAchievements({ cards = [], reviews = [], mocks = [], readiness, target, hasDiagnostic, now = new Date() }) {
-  const streak = computeStreaks(reviews, now);
+// extraDays: the other learning days (streakTimes(), src/streak/activity.js),
+// so the streak here is the same number as on Today.
+export function buildAchievements({ cards = [], reviews = [], mocks = [], readiness, target, hasDiagnostic, now = new Date(), extraDays = [] }) {
+  const streak = computeStreaks(reviews, now, extraDays);
   const total = reviews.length;
   const overall = readiness?.overall ?? null;
   const bestSection = Math.max(0, ...(readiness?.sections || []).map((s) => s.score ?? 0));

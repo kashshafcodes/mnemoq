@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { PATHS, getPath, scaleOf } from '../../paths';
 import { daysLeftFor, describeProgress } from '../../readiness';
 import { computeStreaks } from '../../analytics';
+import { streakTimes } from '../../streak/activity';
 import { EXAM_FACTS, SECTIONS, SOURCES, skillName } from '../../sat/blueprint';
 import { buildAchievements, buildMissions, buildStudyPlan, hasBaseline, nextStep } from '../../sat/coach';
 import { ESSENTIAL_DECKS } from '../../sat/essentials';
@@ -297,10 +298,11 @@ export default function SatDashboard({
   const studyPlan = useMemo(() => buildStudyPlan({ estimate, target: pathCfg.target, daysLeft }), [estimate, pathCfg.target, daysLeft]);
   const history = useMemo(() => scoreHistory(diagnostic, mocks), [diagnostic, mocks]);
   const achievements = useMemo(
-    () => buildAchievements({ estimate, map, cards, reviews, mocks, target: pathCfg.target, hasDiagnostic: Boolean(diagnostic) }),
+    () => buildAchievements({ estimate, map, cards, reviews, mocks, target: pathCfg.target, hasDiagnostic: Boolean(diagnostic), extraDays: streakTimes() }),
     [estimate, map, cards, reviews, mocks, pathCfg.target, diagnostic]
   );
-  const streak = useMemo(() => computeStreaks(reviews, new Date()).current, [reviews]);
+  // The one streak (same days as Today: reviews plus every other learning day).
+  const streak = useMemo(() => computeStreaks(reviews, new Date(), streakTimes()).current, [reviews]);
   const others = paths.filter((p) => p.pathId !== pathCfg.pathId);
   const analysis = diagnostic?.analysis;
 

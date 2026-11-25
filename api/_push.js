@@ -7,6 +7,7 @@
 //   - Supabase calls made with the service role key (server only)
 
 import { pushLine } from './_pushCopy.js';
+import { streakFromKeys } from '../src/glow/streak.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -72,9 +73,12 @@ export function dailyDue(settings, now) {
   return late >= 0 && late < SEND_WINDOW_MIN && settings.last_sent_on !== local.date && !quiet(settings, local.minutes);
 }
 
-// Is it the evening window for the streak nudge, and is their streak alive
-// (reviewed yesterday, not yet today)? `reviewDates` are the local dates
-// (YYYY-MM-DD) on which they reviewed something recently. Not inside quiet hours.
+// Is it the evening window for the streak nudge, and does tonight matter? The
+// one streak rule (src/glow/streak.js): only when the streak is alive, nothing
+// is done today and both free rest days in the last 7 are used (atRisk). With a
+// rest day left, today is a rest day and nothing is sent. `reviewDates` are the
+// local dates (YYYY-MM-DD) with any learning in the last 14 days. Not inside
+// quiet hours.
 export function streakWindow(settings, reviewDates, now) {
   if (!settings?.enabled || !settings.streak_nudge || !validTimeZone(settings.timezone)) return false;
 
@@ -84,7 +88,7 @@ export function streakWindow(settings, reviewDates, now) {
   if (since < 0 || since >= STREAK_WINDOW_MIN || settings.last_streak_on === local.date) return false;
   if (quiet(settings, local.minutes)) return false;
 
-  return reviewDates.has(dayBefore(local.date)) && !reviewDates.has(local.date);
+  return streakFromKeys(reviewDates, local.date).atRisk;
 }
 
 // The streak nudge, only when there is something to review: with nothing due,

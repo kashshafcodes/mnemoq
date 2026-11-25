@@ -100,9 +100,12 @@ describe('reminder job', () => {
 
 describe('reminder rules', () => {
   const device = (id) => ({ user_id: id, endpoint: `https://fcm.googleapis.com/fcm/send/${id}` });
-  // 20:30 in Dhaka on 15 Nov; they reviewed on 14 Nov but not yet today.
+  // 20:30 in Dhaka on 15 Nov; nothing yet today. Learning on 9, 10, 12 and 14
+  // Nov: both free rest days of the last 7 are used (11 and 13), so tonight
+  // matters (the one streak rule, atRisk).
   const evening = new Date('2026-11-15T14:30:00Z');
-  const yesterday = [{ user_id: 's', created_at: '2026-11-14T13:00:00Z' }];
+  const yesterday = ['09', '10', '12', '14'].map((d) => ({ user_id: 's', created_at: `2026-11-${d}T13:00:00Z` }));
+  const atRiskDates = new Set(['2026-11-09', '2026-11-10', '2026-11-12', '2026-11-14']);
   const streaker = person('s', { remind_time: '06:00', last_sent_on: '2026-11-15', streak_nudge: true });
 
   it('sends no streak reminder when nothing is due', async () => {
@@ -123,14 +126,14 @@ describe('reminder rules', () => {
 
     expect(result.streak).toBe(1);
     expect(JSON.parse(webpush.sendNotification.mock.calls[0][1]).title).toBe(streakMessage(evening).title);
-    expect(streakDue(streaker, new Set(['2026-11-14']), evening, 0)).toBe(false);
-    expect(streakDue(streaker, new Set(['2026-11-14']), evening, 2)).toBe(true);
+    expect(streakDue(streaker, atRiskDates, evening, 0)).toBe(false);
+    expect(streakDue(streaker, atRiskDates, evening, 2)).toBe(true);
   });
 
   it('respects quiet hours for every reminder type', () => {
     // 22:40 in Dhaka.
     const late = new Date('2026-11-15T16:40:00Z');
-    const dates = new Set(['2026-11-14']);
+    const dates = atRiskDates;
 
     expect(dailyDue(person('q', { remind_time: '22:30', quiet_start: '23:30', quiet_end: '07:00' }), late)).toBe(true);
     expect(dailyDue(person('q', { remind_time: '22:30', quiet_start: '22:00', quiet_end: '07:00' }), late)).toBe(false);

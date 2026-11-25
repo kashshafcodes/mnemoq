@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { getPath } from '../paths';
 import { computeReadiness, daysLeftFor, describeProgress } from '../readiness';
 import { computeStreaks } from '../analytics';
+import { streakTimes } from '../streak/activity';
 import { buildAchievements, buildMissions } from '../missions';
 import AiBadge from './AiBadge';
 import { pageHref } from '../useRoute';
@@ -79,10 +80,11 @@ export default function PathDashboard({
     [pathCfg.examDate, readiness, cards, reviews, mocks, diagnostic]
   );
   const achievements = useMemo(
-    () => buildAchievements({ cards, reviews, mocks, readiness, target: pathCfg.target, hasDiagnostic: Boolean(diagnostic) }),
+    () => buildAchievements({ cards, reviews, mocks, readiness, target: pathCfg.target, hasDiagnostic: Boolean(diagnostic), extraDays: streakTimes() }),
     [cards, reviews, mocks, readiness, pathCfg.target, diagnostic]
   );
-  const streak = useMemo(() => computeStreaks(reviews, new Date()).current, [reviews]);
+  // The one streak (same days as Today: reviews plus every other learning day).
+  const streak = useMemo(() => computeStreaks(reviews, new Date(), streakTimes()).current, [reviews]);
   const [editing, setEditing] = useState(false);
   const [date, setDate] = useState(pathCfg.examDate || '');
   const [target, setTarget] = useState(pathCfg.target);

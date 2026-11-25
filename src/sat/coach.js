@@ -154,8 +154,9 @@ export function nextStep({ estimate, map, mocks = [], now = new Date() }) {
 
 // ---- achievements ------------------------------------------------------------------
 
-export function buildAchievements({ estimate, map, cards = [], reviews = [], mocks = [], target, hasDiagnostic, now = new Date() }) {
-  const streak = computeStreaks(reviews, now);
+// extraDays: the other learning days (streakTimes()), so the streak matches Today.
+export function buildAchievements({ estimate, map, cards = [], reviews = [], mocks = [], target, hasDiagnostic, now = new Date(), extraDays = [] }) {
+  const streak = computeStreaks(reviews, now, extraDays);
   const overall = estimate.overall ?? 0;
   const kinds = mocks.map((m) => kindOf(m.source));
   const count = (kind) => kinds.filter((k) => k === kind).length;

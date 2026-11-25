@@ -60,7 +60,7 @@ import { pickNewMisses, readKept, writeKept } from './practice/missCards';
 
 // Pages that are not the first screen load on demand (smaller first download).
 const TryDiagnostic = lazy(() => import('./components/TryDiagnostic'));
-const Dashboard = lazy(() => import('./components/Dashboard'));
+const MemoryMap = lazy(() => import('./progress/MemoryMap'));
 const AdminStats = lazy(() => import('./components/AdminStats'));
 const Practice = lazy(() => import('./components/Practice'));
 const DiagnosticReport = lazy(() => import('./components/DiagnosticReport'));
@@ -89,6 +89,10 @@ const emptyForm = {
 
 function App() {
   const [dataLoading, setDataLoading] = useState(true);
+  // The review history failed to load (the Memory map shows "—", never 0), and
+  // a counter to try again.
+  const [historyFailed, setHistoryFailed] = useState(false);
+  const [historyTry, setHistoryTry] = useState(0);
   const [dataError, setDataError] = useState('');
   const formRef = useRef(null);
   const { page, sub, go } = useRoute();
@@ -427,7 +431,7 @@ useEffect(() => {
   return () => {
     cancelled = true;
   };
-}, [session?.user?.id]);
+}, [session?.user?.id, historyTry]);
 
 
 // Account sync (src/sync/): learning days, Daily results and the app
@@ -466,11 +470,13 @@ useEffect(() => {
 
     if (error) {
       historySavingOk.current = false;
+      setHistoryFailed(true);
       console.warn('Review history is not available yet:', error.message);
       return;
     }
 
     historySavingOk.current = true;
+    setHistoryFailed(false);
     setReviewLog(
       (data || []).map((row) => ({
         id: String(row.id),
@@ -1172,6 +1178,7 @@ const reviewMistake =
           target: pathCfg.target,
           progress: describeProgress(readiness.overall, pathCfg.target, daysLeft, scale),
           weakest: readiness.weakest,
+          sections: readiness.sections,
           // A logged score is as good a starting point as a diagnostic.
           hasDiagnostic: Boolean(pathState.diagnostic) || readiness.overall !== null,
         };
@@ -1674,12 +1681,21 @@ if (dataError) {
         )}
 
         {page === 'progress' && (
-          <Dashboard
+          <MemoryMap
             cards={mistakes}
             reviews={reviewLog}
             dueCount={dueMistakes.length}
-            showForm={false}
-            onToggleAdd={() => go('snap')}
+            pathInfo={pathInfo}
+            historyOk={!historyFailed}
+            loading={dataLoading || pathState.status === 'loading'}
+            userId={session.user.id}
+            onPlay={() => go('today')}
+            onPickExam={() => go('exam')}
+            onTakeCheck={() => go('exam/path')}
+            onDrill={() => go('exam/practice')}
+            onLibrary={() => go('library')}
+            onRetry={() => setHistoryTry((n) => n + 1)}
+            onAdd={() => go('snap')}
             onReview={goToReview}
           />
         )}

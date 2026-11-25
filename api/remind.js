@@ -88,16 +88,28 @@ export async function runReminders({ env, now = new Date(), webpush, cfg }) {
   const byUser = new Map();
   const reviewDates = new Map();
   const lastReview = new Map();
-  // Recent reviews, to know who is keeping a streak.
+  // Recent reviews (local dates, the last review time) and 14 days of learning
+  // days (any learning, one row per Dhaka day), for the one streak rule.
   const since = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();
+  const daysSince = new Date(now.getTime() + 6 * 3600000 - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   // Ask about people in batches: thousands of ids in one address is too long.
   for (const batch of chunks(ids, 150)) {
     const idList = `(${batch.join(',')})`;
-    const [devices, recent] = await Promise.all([
+    const [devices, recent, learned] = await Promise.all([
       rest(cfg, `push_subscriptions?select=*&user_id=in.${idList}&limit=5000`),
       rest(cfg, `reviews?select=user_id,created_at&user_id=in.${idList}&created_at=gte.${encodeURIComponent(since)}&limit=20000`),
+      rest(cfg, `learning_days?select=user_id,day&user_id=in.${idList}&day=gte.${daysSince}&limit=5000`).catch(() => []),
     ]);
+
+    for (const row of Array.isArray(learned) ? learned : []) {
+      if (!settingsById.has(row.user_id) || !row.day) continue;
+
+      const set = reviewDates.get(row.user_id) || new Set();
+
+      set.add(String(row.day).slice(0, 10));
+      reviewDates.set(row.user_id, set);
+    }
 
     for (const d of devices) byUser.set(d.user_id, [...(byUser.get(d.user_id) || []), d]);
 

@@ -1,0 +1,262 @@
+/* The Memory map (Progress). Colours from the tokens in src/index.css;
+   motion from src/sensory/motion (transform and opacity only). */
+
+.mm {
+  display: grid;
+  gap: 12px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.mm-block {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.mm-block h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.mm-block p {
+  margin: 0;
+}
+
+.mm-skel {
+  background: var(--surface-2);
+}
+
+.mm-head {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  background: var(--night-deep);
+  color: var(--night-text);
+  border-color: transparent;
+}
+
+.mm-head h2 {
+  margin: 0;
+  color: var(--night-text);
+  font-size: 1.25rem;
+}
+
+.mm-head h2 span,
+.mm-head .mm-sub {
+  color: var(--night-text-2);
+  font-weight: 500;
+}
+
+.mm-head-text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mm-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--night-text-2);
+}
+
+.mm-badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.mm-jonaki {
+  font-style: italic;
+  color: var(--night-text);
+}
+
+.mm-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 247, 224, 0.16);
+  overflow: hidden;
+}
+
+.mm-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--highlight);
+}
+
+.mm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mm-big {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.mm-num {
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mm-sub {
+  color: var(--ink-3);
+  font-size: 0.875rem;
+}
+
+.mm-fine {
+  color: var(--ink-3);
+  font-size: 0.8rem;
+}
+
+.mm-note {
+  color: var(--warn-ink);
+  font-size: 0.875rem;
+}
+
+.mm-empty button,
+.mm-block > button {
+  justify-self: start;
+}
+
+/* The 14-day strip: lit dots, moons for rest days, a ring for today. */
+.mm-strip {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mm-dot {
+  aspect-ratio: 1;
+  max-width: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+}
+
+.mm-dot.is-lit {
+  border-color: var(--highlight);
+  background: var(--highlight);
+}
+
+.mm-dot.is-rest {
+  border-color: var(--highlight);
+  background: transparent;
+  box-shadow: inset 5px -2px 0 0 var(--highlight-soft), inset -3px 0 0 0 var(--highlight);
+}
+
+.mm-dot.is-today {
+  border-style: dashed;
+  border-color: var(--highlight-ink);
+}
+
+.mm-tap {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mm-stages {
+  display: flex;
+  gap: 2px;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.mm-stages i,
+.mm-legend i {
+  display: block;
+}
+
+.mm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 0.75rem;
+  color: var(--ink-3);
+}
+
+.mm-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mm-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.is-new { background: var(--surface-3); }
+.is-learning { background: var(--info); }
+.is-strong { background: var(--accent); }
+.is-mastered { background: var(--success); }
+
+.mm-skills {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mm-skill {
+  grid-template-columns: minmax(0, 7rem) 1fr auto;
+  align-items: center;
+  min-height: 36px;
+}
+
+.mm-skill-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mm-skill-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.mm-skill-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.mm-details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.mm-details[open] summary {
+  margin-bottom: 8px;
+}
