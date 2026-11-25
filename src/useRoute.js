@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PAGES, applyRedirect, hrefFor, resolveRoute } from './nav/routes';
 import { track } from './track';
+import { noteMoved } from './nav/moved';
 
 // Tiny page router built on the address bar's #hash, so every section has its
 // own address (https://.../#/today) and the browser Back button works, with
@@ -9,7 +10,10 @@ import { track } from './track';
 
 export { PAGES };
 
-const reportRedirect = (info) => track('route_redirect', info);
+const reportRedirect = (info) => {
+  track('route_redirect', info);
+  noteMoved(info);
+};
 
 function current() {
   return applyRedirect(window.location, window.history, reportRedirect);

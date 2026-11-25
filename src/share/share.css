@@ -146,3 +146,16 @@
   font-size: 0.9rem;
   text-align: center;
 }
+
+/* "Give a friend 7 days of Pro →" (ShareSheet.jsx): a quiet link under the actions. */
+.shs-ref {
+  display: block;
+  margin: 14px auto 0;
+  padding: 10px 12px;
+  min-height: 44px;
+  color: var(--night-text-2);
+  font-size: 0.92rem;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

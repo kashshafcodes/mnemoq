@@ -98,7 +98,7 @@ describe('streakDue with rest days', () => {
         }
         if (u.includes('/push_subscriptions?select')) return json([{ user_id: 's', endpoint: 'https://fcm.googleapis.com/fcm/send/s' }]);
         if (u.includes('/reviews?select')) return json([{ user_id: 's', created_at: '2026-11-14T13:00:00Z' }]);
-        if (u.includes('/learning_days?select')) return json(['09', '10', '12'].map((d) => ({ user_id: 's', day: `2026-11-${d}` })));
+        if (u.includes('/learning_days?select')) return json(['09', '10', '12'].map((d) => ({ user_id: 's', day: `2026-11-${d}`, sources: { daily: 1 } })));
         if (u.includes('/mistakes?select')) return { ok: true, headers: new Headers({ 'content-range': '0-0/3' }) };
 
         return { ok: true, status: 204, json: async () => null, headers: new Headers() };

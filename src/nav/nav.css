@@ -260,3 +260,29 @@
   0% { transform: scale(var(--scale-pop-from)); }
   100% { transform: scale(1); }
 }
+
+/* "Moved: this is now Exam." (MovedToast.jsx): above the tab bar on phones. */
+.mq-moved {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  width: fit-content;
+  max-width: min(92vw, 420px);
+  margin: 0 auto;
+  padding: 10px 16px;
+  text-align: center;
+  border-radius: 999px;
+  background: var(--ink, #1f1a3d);
+  color: var(--surface, #fff);
+  font-size: 0.92rem;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+  cursor: pointer;
+}
+
+@media (min-width: 900px) {
+  .mq-moved {
+    bottom: 24px;
+  }
+}

@@ -12,6 +12,7 @@ import { feel } from '../sensory';
 import { CountUp } from '../sensory/celebrate';
 import { earn, flushGlowEvents } from '../glow/store';
 import { recordActivity } from '../streak/activity';
+import { practiceT, usePracticeT } from '../practice/strings';
 
 // The practice library (#/practice): thousands of questions in 20-question
 // sets, from openly licensed sources (library/SOURCES.md). The first half of
@@ -39,7 +40,7 @@ function saveProgress(next) {
   }
 }
 
-async function fetchSet(id, n) {
+async function fetchSet(id, n, lang) {
   const { data } = await supabase.auth.getSession();
   const token = data?.session?.access_token;
   const response = await fetch(`/api/library?c=${encodeURIComponent(id)}&n=${n}`, {
@@ -48,7 +49,7 @@ async function fetchSet(id, n) {
   const body = await response.json().catch(() => null);
 
   if (!response.ok || !body?.questions) {
-    const error = new Error(body?.error || 'This set could not be loaded. Check your connection.');
+    const error = new Error(body?.code === 'pro' && body?.error ? body.error : practiceT(lang)('pr.error'));
 
     error.code = body?.code || 'failed';
     throw error;
@@ -59,6 +60,7 @@ async function fetchSet(id, n) {
 
 function Runner({ collection, n, questions, onDone, onQuit }) {
   const { lang } = useI18n();
+  const t = usePracticeT();
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState({});
   const q = localizeQuestion(questions[index], lang);
@@ -71,11 +73,11 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
     <section className="pr-run">
       <header className="pr-run-head">
         <span>
-          {collection.title} · Set {n} · {index + 1} of {questions.length}
+          {t('pr.run.where', { title: collection.title, n, i: index + 1, total: questions.length })}
         </span>
-        <span className="pr-score">{correctSoFar} correct</span>
+        <span className="pr-score">{t('pr.run.score', { n: correctSoFar })}</span>
         <button type="button" className="text-link" onClick={onQuit}>
-          Leave
+          {t('pr.run.leave')}
         </button>
       </header>
       <div className="try-progress" aria-hidden="true">
@@ -87,7 +89,7 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
         <RichText text={q.question} />
       </div>
 
-      <div className="try-options" role="radiogroup" aria-label="Answers">
+      <div className="try-options" role="radiogroup" aria-label={t('pr.run.answers')}>
         {q.options.map((option, i) => {
           const state = !answered ? '' : i === q.answer ? ' right' : i === chosen ? ' wrong' : ' dim';
 
@@ -118,7 +120,7 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
 
       {answered && (
         <div className={chosen === q.answer ? 'pr-feedback ok' : 'pr-feedback'} role="status">
-          <b>{chosen === q.answer ? 'Correct.' : `Not quite. The answer is ${LETTERS[q.answer]}.`}</b>
+          <b>{chosen === q.answer ? t('pr.run.correct') : t('pr.run.wrong', { letter: LETTERS[q.answer] })}</b>
           {q.explain && (
             <div className="pr-explain">
               <RichText text={q.explain} />
@@ -129,7 +131,7 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
 
       <footer className="try-nav">
         <button type="button" className="mq-btn mq-btn-ghost" disabled={index === 0} onClick={() => setIndex(index - 1)}>
-          Back
+          {t('pr.run.back')}
         </button>
         {last ? (
           <button
@@ -141,7 +143,7 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
               onDone(picked);
             }}
           >
-            See my score
+            {t('pr.run.finish')}
           </button>
         ) : (
           <button
@@ -153,7 +155,7 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
               setIndex(index + 1);
             }}
           >
-            Next
+            {t('pr.run.next')}
           </button>
         )}
       </footer>
@@ -162,6 +164,7 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
 }
 
 function Summary({ collection, n, questions, picked, plan, onAddCards, onRemoveCards, onNext, onBack }) {
+  const t = usePracticeT();
   const missed = questions.filter((q) => picked[q.id] !== q.answer);
   const score = questions.length - missed.length;
   const hasNext = n < collection.sets;
@@ -169,21 +172,21 @@ function Summary({ collection, n, questions, picked, plan, onAddCards, onRemoveC
   return (
     <section className="pr-summary">
       <p className="lp-kicker">
-        {collection.title} · Set {n}
+        {t('pr.sum.where', { title: collection.title, n })}
       </p>
       <h2>
-        <CountUp value={score} /> of {questions.length} correct
+        <CountUp value={score} /> {t('pr.sum.score', { total: questions.length })}
       </h2>
-      {score === questions.length && <p className="pr-muted">A perfect set. Try the next one.</p>}
+      {score === questions.length && <p className="pr-muted">{t('pr.sum.perfect')}</p>}
       <KeptMisses collection={collection} n={n} questions={questions} picked={picked} onAddCards={onAddCards} onRemoveCards={onRemoveCards} />
       <div className="mq-focus-actions">
         {hasNext && (
           <button type="button" className="mq-btn mq-btn-primary" onClick={onNext}>
-            {!isFreeSet(collection.sets, n + 1) && !plan.pro ? <>Next set <ProBadge /></> : 'Next set'}
+            {!isFreeSet(collection.sets, n + 1) && !plan.pro ? <>{t('pr.sum.next')} <ProBadge /></> : t('pr.sum.next')}
           </button>
         )}
         <button type="button" className="mq-btn mq-btn-quiet" onClick={onBack}>
-          All sets
+          {t('pr.sum.all')}
         </button>
       </div>
     </section>
@@ -191,6 +194,8 @@ function Summary({ collection, n, questions, picked, plan, onAddCards, onRemoveC
 }
 
 export default function Practice({ plan, onAddCards, onRemoveCards }) {
+  const { lang } = useI18n();
+  const t = usePracticeT();
   const [group, setGroup] = useState('All');
   const [view, setView] = useState({ name: 'home' });
   const [progress, setProgress] = useState(readProgress);
@@ -212,7 +217,7 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
 
       setPaywall({
         feature: 'bank',
-        reason: `Sets 1 to ${free} of ${c.title} are free. Pro opens the other ${(c.sets - free).toLocaleString()}, ${(CATALOG.total - FREE.questions).toLocaleString()} more questions across every subject, plus your plan and readiness report.`,
+        reason: t('pr.lock', { free, title: c.title, rest: (c.sets - free).toLocaleString(), more: (CATALOG.total - FREE.questions).toLocaleString() }),
       });
       return;
     }
@@ -221,7 +226,7 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
     setError('');
 
     try {
-      const questions = await fetchSet(c.id, n);
+      const questions = await fetchSet(c.id, n, lang);
 
       trackEvent('practice_start', { collection: c.id, set: n });
       setView({ name: 'run', collectionId: c.id, n, questions, run: Date.now() });
@@ -288,15 +293,16 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
     return (
       <div className="pr fx-deeper">
         <button type="button" className="text-link pr-back" onClick={() => setView({ name: 'home' })}>
-          ← All collections
+          {t('pr.back')}
         </button>
         <header className="mq-page-head">
           <p className="pr-group">{collection.group}</p>
           <h1>{collection.title}</h1>
           <p className="pr-muted">{collection.blurb}</p>
           <p className="pr-meta">
-            {collection.questions.toLocaleString()} questions · {collection.sets} sets of {CATALOG.setSize}
-            {collection.worked ? ' · worked solutions' : ''} · {freeSetCount(collection.sets)} free · {doneCount} done
+            {t('pr.meta.full', { q: collection.questions.toLocaleString(), sets: collection.sets, size: CATALOG.setSize })}
+            {collection.worked ? t('pr.meta.worked') : ''}
+            {t('pr.meta.free', { free: freeSetCount(collection.sets), done: doneCount })}
           </p>
         </header>
         {error && <p className="pro-message">{error}</p>}
@@ -309,15 +315,15 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
             return (
               <li key={n}>
                 <button type="button" className={`pr-set${p ? ' done' : ''}${locked ? ' locked' : ''}`} disabled={loading} onClick={() => open(collection, n)}>
-                  <span>Set {n}</span>
-                  {p ? <b>{p.best}/{p.total}</b> : free ? <em>Free</em> : locked ? <ProBadge /> : <em>Start</em>}
+                  <span>{t('pr.set', { n })}</span>
+                  {p ? <b>{t('pr.n', { n: `${p.best}/${p.total}` })}</b> : free ? <em>{t('pr.free')}</em> : locked ? <ProBadge /> : <em>{t('pr.start')}</em>}
                 </button>
               </li>
             );
           })}
         </ol>
         <p className="pr-credit">
-          Questions from{' '}
+          {t('pr.credit')}{' '}
           <a href={collection.source.url} target="_blank" rel="noreferrer">
             {collection.source.name}
           </a>{' '}
@@ -333,16 +339,13 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
   return (
     <div className="pr">
       <header className="mq-page-head">
-        <h1>Practice library</h1>
-        <p className="pr-muted">
-          {CATALOG.total.toLocaleString()} questions in {CATALOG.collections.length} collections, from vocabulary to physics. The first half of every collection is free
-          ({FREE.questions.toLocaleString()} questions), and every mistake comes back as a review card.
-        </p>
+        <h1>{t('pr.title')}</h1>
+        <p className="pr-muted">{t('pr.intro', { total: CATALOG.total.toLocaleString(), n: CATALOG.collections.length, free: FREE.questions.toLocaleString() })}</p>
       </header>
-      <div className="mq-seg pr-groups" role="tablist" aria-label="Subjects">
+      <div className="mq-seg pr-groups" role="tablist" aria-label={t('pr.subjects')}>
         {groups.map((g) => (
           <button key={g} type="button" role="tab" aria-selected={group === g} className={group === g ? 'active' : ''} onClick={() => setGroup(g)}>
-            {g}
+            {g === 'All' ? t('pr.all') : g}
           </button>
         ))}
       </div>
@@ -356,7 +359,8 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
               <h2>{c.title}</h2>
               <p>{c.blurb}</p>
               <span className="pr-meta">
-                {c.questions.toLocaleString()} questions · {c.sets} sets{done ? ` · ${done} done` : ''}
+                {t('pr.meta.card', { q: c.questions.toLocaleString(), sets: c.sets })}
+                {done ? t('pr.meta.done', { n: done }) : ''}
               </span>
             </button>
           );

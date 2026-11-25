@@ -340,18 +340,16 @@ export function serverDayTimes(store = storage(), user = activeUser) {
 
   if (!user || server.user !== user) return [];
 
-  // A day whose only entry is friend-opened Glow (written by the server) is
-  // not a learning day: a friend playing does not light your streak.
+  // A day counts only when it holds a learning source (review, daily, drill,
+  // snap, practice, exam). Glow alone does not: a share, or a friend opening
+  // your link, earns Glow but is not a day you learned.
   return Object.entries(server.days)
-    .filter(([, sources]) => !friendOnly(sources))
+    .filter(([, sources]) => learnedOn(sources))
     .map(([day]) => `${day}T12:00:00+06:00`);
 }
 
-function friendOnly(sources) {
-  const keys = Object.keys(sources || {});
-  const glow = Object.keys(sources?.glow || {});
-
-  return keys.length === 1 && keys[0] === 'glow' && glow.length > 0 && glow.every((id) => id === 'friend');
+export function learnedOn(sources) {
+  return Object.entries(sources || {}).some(([key, n]) => key !== 'glow' && Number(n) > 0);
 }
 
 // Friend-opened Glow the server wrote (api/referral.js action 'friends'):

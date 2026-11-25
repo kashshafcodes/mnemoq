@@ -248,12 +248,9 @@ export default async function handler(req, res, env = process.env, deps = {}) {
   }
 }
 
-// A learning_days row whose only entry is friend-opened Glow (api/referral.js
-// writes sources.glow.friend): not a day the person learned. Same rule as
-// serverDayTimes in src/sync/queue.js.
+// A learning_days row with Glow but no learning source (a share, or
+// friend-opened Glow written by api/referral.js): not a day the person
+// learned. Same rule as learnedOn in src/sync/queue.js.
 export function friendOnlyDay(sources) {
-  const keys = Object.keys(sources || {});
-  const glow = Object.keys(sources?.glow || {});
-
-  return keys.length === 1 && keys[0] === 'glow' && glow.length > 0 && glow.every((id) => id === 'friend');
+  return !Object.entries(sources || {}).some(([key, n]) => key !== 'glow' && Number(n) > 0);
 }

@@ -78,6 +78,17 @@ export default function InviteCard({ where = 'me' }) {
     if (earned && jonaki.current) sparks(jonaki.current, { hero: true });
   }, [earned]);
 
+  // Opened from the share sheet's "Give a friend 7 days of Pro" (#/me?invite=1):
+  // bring the card into view once, then drop the flag from the address.
+  const self = useRef(null);
+
+  useEffect(() => {
+    if (where !== 'me' || !/[?&]invite=1/.test(window.location.hash)) return;
+
+    self.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.history.replaceState(window.history.state ?? null, '', window.location.hash.replace(/[?&]invite=1/, ''));
+  }, [where]);
+
   const link = data?.refcode ? inviteLink(SITE, data.refcode) : '';
 
   async function copy(how = 'copy') {
@@ -112,7 +123,7 @@ export default function InviteCard({ where = 'me' }) {
   }
 
   return (
-    <section className={`profile-card ref-invite ref-invite-${where}`} aria-labelledby={`ref-invite-${where}`}>
+    <section ref={self} className={`profile-card ref-invite ref-invite-${where}`} aria-labelledby={`ref-invite-${where}`}>
       <div className="ref-invite-head">
         <span className="ref-invite-jonaki" ref={jonaki}>
           <Jonaki mood={earned ? 'wow' : 'happy'} size={48} glow={earned ? 0.95 : 0.7} charm={hasCharm(user)} />

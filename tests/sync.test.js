@@ -160,6 +160,22 @@ describe('streak merge across devices', () => {
 
     expect(computeStreaks([], NOW, times).current).toBe(1);
   });
+
+  it('a day with only Glow (a share, a friend opening your link) is not a learning day', () => {
+    const store = fakeStore();
+
+    saveServerDays(
+      'u1',
+      [
+        { day: dhakaDay(-1), sources: { glow: { dev1: 3 } } },
+        { day: dhakaDay(-2), sources: { glow: { friend: 5, dev1: 3 } } },
+        { day: dhakaDay(-3), sources: { snap: 1, glow: { dev1: 3 } } },
+      ],
+      store
+    );
+
+    expect(serverDayTimes(store, 'u1')).toEqual([`${dhakaDay(-3)}T12:00:00+06:00`]);
+  });
 });
 
 describe('flush', () => {

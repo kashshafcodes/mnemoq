@@ -7,8 +7,8 @@
 // friend, never an id, email or code of anyone but the caller. The admin
 // actions return emails, and only after isAdmin() said yes.
 
-import { addDays, dhakaDay, learningWindow, NEEDED_DAYS, validRefcode } from './rules';
-import { cappedFriendGlow, FRIEND_DEVICE, friendGlow, PLAYED_EVENTS, weekOf } from './friendGlow';
+import { addDays, dhakaDay, learningWindow, NEEDED_DAYS, validRefcode } from './rules.js';
+import { cappedFriendGlow, FRIEND_DEVICE, friendGlow, PLAYED_EVENTS, weekOf } from './friendGlow.js';
 
 const enc = encodeURIComponent;
 const list = (rows) => (Array.isArray(rows) ? rows : []);

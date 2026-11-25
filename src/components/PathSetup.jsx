@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PATH_LIST, scaleOf } from '../paths';
 import AiBadge from './AiBadge';
 import { entryExam } from '../entryExam';
+import { useExamT } from '../exam/strings';
 
 const todayString = () => {
   const d = new Date();
@@ -13,6 +14,7 @@ const todayString = () => {
 //   replaces: name of the exam that will be replaced, when the account can
 //             only hold one path (supabase/stage4.sql has not been run)
 export default function PathSetup({ onSave, saving, error, exclude = [], onCancel = null, replaces = '' }) {
+  const t = useExamT();
   const choices = PATH_LIST.filter((p) => !exclude.includes(p.id));
   // Pre-select the exam their entry link was about (/sat, ?exam=nsu ...), if any.
   const [pathId, setPathId] = useState(() => (choices.find((p) => p.id === entryExam()) || choices[0])?.id || '');
@@ -35,21 +37,18 @@ export default function PathSetup({ onSave, saving, error, exclude = [], onCance
   return (
     <section className="path-setup">
       <header>
-        <p className="eyebrow">{onCancel ? 'ADD AN EXAM' : 'YOUR EXAM PATH'}</p>
+        <p className="eyebrow">{onCancel ? t('ex.kicker.add') : t('ex.kicker')}</p>
         <h2>
-          What are you preparing for? <AiBadge>AI-built plan</AiBadge>
+          {t('ex.title')} <AiBadge>{t('ex.ai')}</AiBadge>
         </h2>
-        <p className="subtitle">
-          Pick your exam and Mnemoq builds your preparation around it: a countdown, a diagnostic of every section, and a
-          score that moves as you practise.
-        </p>
+        <p className="subtitle">{t('ex.sub')}</p>
       </header>
 
       {choices.length === 0 ? (
-        <p className="subtitle">You already follow every exam Mnemoq offers. More are on the way.</p>
+        <p className="subtitle">{t('ex.all')}</p>
       ) : (
         <form onSubmit={submit} className="path-form">
-          <div className="path-choices" role="radiogroup" aria-label="Exam path">
+          <div className="path-choices" role="radiogroup" aria-label={t('ex.choices')}>
             {choices.map((path) => (
               <button
                 key={path.id}
@@ -64,18 +63,20 @@ export default function PathSetup({ onSave, saving, error, exclude = [], onCance
               </button>
             ))}
             <div className="path-choice path-soon" aria-disabled="true">
-              <strong>More exams soon</strong>
-              <span>BUET, medical and more are on the way.</span>
+              <strong>{t('ex.soon')}</strong>
+              <span>{t('ex.soon.sub')}</span>
             </div>
           </div>
 
           <label htmlFor="path-date">
-            {chosen?.engine === 'sat' ? 'Test date' : 'Exam date'} <span className="optional">(optional, you can add it later)</span>
+            {chosen?.engine === 'sat' ? t('ex.date.sat') : t('ex.date')} <span className="optional">{t('ex.optional')}</span>
           </label>
           <input id="path-date" type="date" min={todayString()} value={examDate} onChange={(e) => setExamDate(e.target.value)} />
 
           <label htmlFor="path-target">
-            Target {scale.word}: <b>{target}</b> out of {scale.max}
+            {t('ex.target', { word: scale.word === 'readiness' ? t('ex.word.readiness') : t('ex.word.score') })}
+            <b>{t('ex.n', { n: target })}</b>
+            {t('ex.outOf', { max: scale.max })}
           </label>
           <input
             id="path-target"
@@ -89,15 +90,12 @@ export default function PathSetup({ onSave, saving, error, exclude = [], onCance
             onChange={(e) => setTarget(Number(e.target.value))}
           />
           <p className="path-hint">
-            {chosen?.engine === 'sat'
-              ? 'Your target is the total SAT score you want, from 400 to 1600. Many scholarship programmes look for 1400 or more. You can change it at any time.'
-              : `Readiness is your estimated chance-ready score. Most students aim for about ${chosen?.target ?? 75}.`}
+            {chosen?.engine === 'sat' ? t('ex.hint.sat') : t('ex.hint', { n: chosen?.target ?? 75 })}
           </p>
 
           {replaces && (
             <p className="path-notice" role="status">
-              Your account can hold one exam at the moment, so this will replace {replaces}. Your {replaces} results stay saved.
-              To keep both side by side, the site owner needs to run <code>supabase/stage4.sql</code>.
+              {t('ex.replaces', { name: replaces })} To keep both side by side, the site owner needs to run <code>supabase/stage4.sql</code>.
             </p>
           )}
 
@@ -108,14 +106,14 @@ export default function PathSetup({ onSave, saving, error, exclude = [], onCance
           )}
 
           <button type="submit" className="qa-primary" disabled={saving || !chosen}>
-            {saving ? 'Saving...' : onCancel ? 'Add this exam' : 'Start my path'}
+            {saving ? t('ex.saving') : onCancel ? t('ex.add') : t('ex.start')}
           </button>
         </form>
       )}
 
       {onCancel && (
         <button type="button" className="text-link" onClick={onCancel}>
-          Cancel
+          {t('ex.cancel')}
         </button>
       )}
     </section>

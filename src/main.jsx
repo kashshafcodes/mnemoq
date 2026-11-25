@@ -8,6 +8,7 @@ import { startAppShell } from './install/runtime'
 import { startErrorReporting } from './errors/report'
 import InstallPrompt from './install/InstallPrompt'
 import OfflineBanner from './install/OfflineBanner'
+import MovedToast from './nav/MovedToast'
 import PageLoading from './components/PageLoading'
 import { rememberEntryExam } from './entryExam'
 import { startGoogleAnalytics } from './googleAnalytics'
@@ -36,6 +37,7 @@ createRoot(document.getElementById('root')).render(
         <Page />
       </Suspense>
       <InstallPrompt />
+      <MovedToast />
     </I18nProvider>
   </StrictMode>,
 )

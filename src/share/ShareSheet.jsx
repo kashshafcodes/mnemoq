@@ -19,6 +19,10 @@ import './share.css';
 
 const REWARDED = new Set(['image', 'link', 'whatsapp', 'copy']);
 
+// The invite card on Me (src/referral/InviteCard.jsx scrolls itself into view
+// for ?invite=1). An absolute path, so it also works from the /daily page.
+export const INVITE_HREF = '/#/me?invite=1';
+
 export default function ShareSheet({ variant, data, lang = 'en', userId = null, onClose }) {
   const t = useMemo(() => shareT(lang), [lang]);
   const [cardLang, setCardLang] = useState(lang);
@@ -205,6 +209,18 @@ export default function ShareSheet({ variant, data, lang = 'en', userId = null, 
         </div>
 
         {!online && <p className="shs-note">{t('share.offline')}</p>}
+        {userId && (
+          <a
+            className="shs-ref"
+            href={INVITE_HREF}
+            onClick={() => {
+              track('ref_invite_entry', { how: 'share_sheet', variant });
+              onClose?.();
+            }}
+          >
+            {t('share.ref')}
+          </a>
+        )}
         {note && (
           <p className="shs-note fx-toast" role="status">
             {note}

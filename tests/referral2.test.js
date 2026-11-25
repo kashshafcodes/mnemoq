@@ -68,7 +68,10 @@ describe('friend-opened Glow (pure)', () => {
 
   it('a friend-only day is not a learning day (reminder rule)', () => {
     expect(friendOnlyDay({ glow: { friend: 5 } })).toBe(true);
-    expect(friendOnlyDay({ glow: { friend: 5, dev1: 3 } })).toBe(false);
+    // Share Glow on a device is not learning either (close-out fix).
+    expect(friendOnlyDay({ glow: { friend: 5, dev1: 3 } })).toBe(true);
+    expect(friendOnlyDay({ glow: { dev1: 3 } })).toBe(true);
+    expect(friendOnlyDay({ review: 0, glow: { dev1: 3 } })).toBe(true);
     expect(friendOnlyDay({ daily: 1, glow: { friend: 5 } })).toBe(false);
   });
 });

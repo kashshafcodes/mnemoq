@@ -14,7 +14,7 @@
 //
 // The charm: 3 different friends have opened your links (lifetime).
 
-import { addDays, dhakaDay } from './rules';
+import { addDays, dhakaDay } from './rules.js';
 
 export const FRIEND_GLOW = 5;
 export const FRIEND_DAY_CAP = 2;

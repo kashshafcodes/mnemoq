@@ -1,16 +1,14 @@
 import { useMemo, useState } from 'react';
 import { streakTimes } from '../streak/activity';
-import { computeAnalytics, formatDays, formatGap, headline } from '../analytics';
+import { computeAnalytics, headline } from '../analytics';
 import { subjectAccent } from '../subjects';
+import { useDashT } from '../progress/dashStrings';
 
 // The home screen: how the person is doing, in numbers and small charts.
 // Charts are plain SVG/CSS (no chart library). Every chart has a hidden table
 // for screen readers, and tooltips open on hover and on keyboard/tap focus.
 
 const percent = (value) => `${Math.round(value * 100)}%`;
-const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
-const shortDate = (date) =>
-  date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
 
 function Panel({ title, note, wide, action, children }) {
   return (
@@ -77,6 +75,7 @@ const STAGE_COLORS = {
 };
 
 function StageRing({ stages, total, masteredPct }) {
+  const t = useDashT();
   const size = 176;
   const stroke = 22;
   const radius = (size - stroke) / 2;
@@ -86,7 +85,7 @@ function StageRing({ stages, total, masteredPct }) {
 
   return (
     <div className="stage-ring">
-      <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${percent(masteredPct)} of cards mastered`}>
+      <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label={t('d.ring.aria', { pct: percent(masteredPct) })}>
         <circle cx={size / 2} cy={size / 2} r={radius} className="ring-track" strokeWidth={stroke} fill="none" />
         {stages.map((stage) => {
           if (stage.count === 0) return null;
@@ -107,7 +106,7 @@ function StageRing({ stages, total, masteredPct }) {
               transform={`rotate(-90 ${size / 2} ${size / 2})`}
               tabIndex={0}
             >
-              <title>{`${stage.label}: ${plural(stage.count, 'card')}`}</title>
+              <title>{`${t(`d.stage.${stage.id}`, {}, stage.label)}: ${t.n('d.card', stage.count)}`}</title>
             </circle>
           );
 
@@ -115,10 +114,10 @@ function StageRing({ stages, total, masteredPct }) {
           return circle;
         })}
         <text x="50%" y="48%" textAnchor="middle" className="ring-value">
-          {percent(masteredPct)}
+          {t('d.n', { n: percent(masteredPct) })}
         </text>
         <text x="50%" y="62%" textAnchor="middle" className="ring-label">
-          mastered
+          {t('d.mastered')}
         </text>
       </svg>
 
@@ -127,18 +126,18 @@ function StageRing({ stages, total, masteredPct }) {
           <li key={stage.id}>
             <span className="swatch" style={{ background: STAGE_COLORS[stage.id] }} aria-hidden="true" />
             <span className="stage-name">
-              {stage.label}
-              <small>{stage.hint}</small>
+              {t(`d.stage.${stage.id}`, {}, stage.label)}
+              <small>{t(`d.stage.${stage.id}.hint`, {}, stage.hint)}</small>
             </span>
-            <strong>{stage.count}</strong>
+            <strong>{t('d.n', { n: stage.count })}</strong>
           </li>
         ))}
       </ul>
 
       <SrTable
-        caption="Cards by stage"
-        head={['Stage', 'Cards']}
-        rows={stages.map((stage) => [stage.label, stage.count])}
+        caption={t('d.stage.caption')}
+        head={[t('d.stage.head.stage'), t('d.stage.head.cards')]}
+        rows={stages.map((stage) => [t(`d.stage.${stage.id}`, {}, stage.label), stage.count])}
       />
     </div>
   );
@@ -146,18 +145,20 @@ function StageRing({ stages, total, masteredPct }) {
 
 // Reviews per day, split into recalled and missed.
 function ActivityBars({ days }) {
+  const t = useDashT();
+  const shortDate = (date) => t.date(date);
   const max = Math.max(1, ...days.map((day) => day.total));
 
   return (
-    <div className="dash-cols" role="group" aria-label="Reviews per day, last 14 days">
+    <div className="dash-cols" role="group" aria-label={t('d.bars.aria')}>
       {days.map((day) => {
         const tip = `${shortDate(day.date)}: ${
-          day.total === 0 ? 'no reviews' : `${day.recalled} recalled, ${day.missed} missed`
+          day.total === 0 ? t('d.bars.none') : t('d.bars.tip', { recalled: day.recalled, missed: day.missed })
         }`;
 
         return (
           <div className={day.isToday ? 'dash-col today' : 'dash-col'} key={day.key}>
-            <span className="dash-col-total">{day.total > 0 ? day.total : ''}</span>
+            <span className="dash-col-total">{day.total > 0 ? t('d.n', { n: day.total }) : ''}</span>
             <div className="dash-col-track">
               <div
                 className="dash-col-stack"
@@ -170,13 +171,13 @@ function ActivityBars({ days }) {
                 {day.recalled > 0 && <span className="seg hit" style={{ flexGrow: day.recalled }} />}
               </div>
             </div>
-            <span className="dash-col-label">{day.date.getDate()}</span>
+            <span className="dash-col-label">{t('d.n', { n: day.date.getDate() })}</span>
           </div>
         );
       })}
       <SrTable
-        caption="Reviews per day"
-        head={['Day', 'Recalled', 'Missed']}
+        caption={t('d.bars.caption')}
+        head={[t('d.head.day'), t('d.head.recalled'), t('d.head.missed')]}
         rows={days.map((day) => [shortDate(day.date), day.recalled, day.missed])}
       />
     </div>
@@ -185,6 +186,8 @@ function ActivityBars({ days }) {
 
 // Recall rate as a line, by day or by week. Only buckets that have reviews get a point.
 function RecallTrend({ buckets, unit }) {
+  const t = useDashT();
+  const shortDate = (date) => t.date(date);
   const width = 480;
   const height = 210;
   const pad = { left: 42, right: 28, top: 22, bottom: 44 };
@@ -198,9 +201,9 @@ function RecallTrend({ buckets, unit }) {
     .filter((bucket) => bucket.rate !== null);
   const path = points.map((p, k) => `${k === 0 ? 'M' : 'L'}${x(p.i)},${y(p.rate)}`).join(' ');
   const last = points[points.length - 1];
-  const shortMonthDay = (date) => date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  const shortMonthDay = (date) => t.date(date, { day: 'numeric', month: 'short' });
   const labelFor = (bucket, i) => {
-    if (i === buckets.length - 1) return daily ? 'Today' : 'This week';
+    if (i === buckets.length - 1) return daily ? t('d.today') : t('d.thisWeek');
     return shortMonthDay(daily ? bucket.from : bucket.to);
   };
   // Evenly spaced x labels, counted back from the newest bucket so "Today" is
@@ -210,16 +213,21 @@ function RecallTrend({ buckets, unit }) {
   const labelIndexes = [];
   for (let i = buckets.length - 1; i >= 0; i -= labelStep) labelIndexes.unshift(i);
   const tipFor = (p) =>
-    `${daily ? shortDate(p.from) : `${shortDate(p.from)} to ${shortDate(p.to)}`}: ${percent(p.rate)} recalled (${p.recalled} of ${p.total})`;
+    t('d.trend.tip', {
+      when: daily ? shortDate(p.from) : t('d.trend.range', { from: shortDate(p.from), to: shortDate(p.to) }),
+      pct: percent(p.rate),
+      n: p.recalled,
+      total: p.total,
+    });
 
   return (
     <div className="dash-line">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Recall rate by ${daily ? 'day' : 'week'}`}>
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t(daily ? 'd.trend.aria.days' : 'd.trend.aria.weeks')}>
         {[0, 0.5, 1].map((tick) => (
           <g key={tick}>
             <line x1={pad.left} x2={width - pad.right} y1={y(tick)} y2={y(tick)} className="grid" />
             <text x={pad.left - 8} y={y(tick) + 4} textAnchor="end" className="axis">
-              {percent(tick)}
+              {t('d.n', { n: percent(tick) })}
             </text>
           </g>
         ))}
@@ -251,13 +259,13 @@ function RecallTrend({ buckets, unit }) {
         })}
         {last && (
           <text x={x(last.i)} y={last.rate < 0.3 ? y(last.rate) - 12 : y(last.rate) + 20} textAnchor="middle" className="end-label">
-            {percent(last.rate)}
+            {t('d.n', { n: percent(last.rate) })}
           </text>
         )}
       </svg>
       <SrTable
-        caption={`Recall rate by ${daily ? 'day' : 'week'}`}
-        head={[daily ? 'Day' : 'Week ending', 'Reviews', 'Recalled']}
+        caption={t(daily ? 'd.trend.aria.days' : 'd.trend.aria.weeks')}
+        head={[daily ? t('d.head.day') : t('d.head.week'), t('d.head.reviews'), t('d.head.recalled')]}
         rows={buckets.map((bucket) => [shortDate(bucket.to), bucket.total, bucket.rate === null ? '-' : percent(bucket.rate)])}
       />
     </div>
@@ -265,11 +273,13 @@ function RecallTrend({ buckets, unit }) {
 }
 
 function TrendToggle({ unit, onChange }) {
+  const t = useDashT();
+
   return (
-    <div className="seg-toggle" role="group" aria-label="Chart range">
+    <div className="seg-toggle" role="group" aria-label={t('d.trend.range.aria')}>
       {[
-        ['days', 'Days'],
-        ['weeks', 'Weeks'],
+        ['days', t('d.trend.days')],
+        ['weeks', t('d.trend.weeks')],
       ].map(([id, label]) => (
         <button key={id} type="button" aria-pressed={unit === id} className={unit === id ? 'on' : ''} onClick={() => onChange(id)}>
           {label}
@@ -290,6 +300,8 @@ function readTrendUnit() {
 }
 
 function SubjectBars({ subjects }) {
+  const t = useDashT();
+
   return (
     <ul className="subject-bars">
       {subjects.map((subject) => {
@@ -303,19 +315,19 @@ function SubjectBars({ subjects }) {
                 {subject.name}
               </span>
               <span className="subject-bar-count">
-                {subject.mastered} of {plural(subject.total, 'card')} mastered
+                {t('d.subj.count', { n: subject.mastered, cards: t.n('d.card', subject.total) })}
               </span>
             </div>
             <div
               className="subject-track"
               role="img"
-              aria-label={`${subject.name}: ${subject.mastered} of ${subject.total} mastered`}
+              aria-label={t('d.subj.aria', { name: subject.name, n: subject.mastered, total: subject.total })}
             >
               <div className="subject-fill" style={{ width: `${Math.max(share * 100, subject.mastered > 0 ? 4 : 0)}%` }} />
             </div>
             <p className="subject-bar-sub">
-              {subject.rate !== null ? `${percent(subject.rate)} recalled` : 'Not enough reviews yet'}
-              {subject.due > 0 ? ` · ${subject.due} due` : ''}
+              {subject.rate !== null ? t('d.subj.rate', { pct: percent(subject.rate) }) : t('d.subj.none')}
+              {subject.due > 0 ? t('d.subj.due', { n: subject.due }) : ''}
             </p>
           </li>
         );
@@ -325,16 +337,18 @@ function SubjectBars({ subjects }) {
 }
 
 function Upcoming({ days }) {
+  const t = useDashT();
+  const shortDate = (date) => t.date(date);
   const max = Math.max(1, ...days.map((day) => day.count));
 
   return (
-    <div className="dash-cols upcoming" role="group" aria-label="Cards coming due, next 7 days">
+    <div className="dash-cols upcoming" role="group" aria-label={t('d.up.aria')}>
       {days.map((day) => {
-        const tip = `${day.isToday ? 'Today' : shortDate(day.date)}: ${plural(day.count, 'card')} due`;
+        const tip = t('d.up.tip', { when: day.isToday ? t('d.today') : shortDate(day.date), cards: t.n('d.card', day.count) });
 
         return (
           <div className={day.isToday ? 'dash-col today' : 'dash-col'} key={day.key}>
-            <span className="dash-col-total">{day.count > 0 ? day.count : ''}</span>
+            <span className="dash-col-total">{day.count > 0 ? t('d.n', { n: day.count }) : ''}</span>
             <div className="dash-col-track">
               <div
                 className="dash-col-stack"
@@ -347,14 +361,14 @@ function Upcoming({ days }) {
               </div>
             </div>
             <span className="dash-col-label">
-              {day.isToday ? 'Today' : day.date.toLocaleDateString(undefined, { weekday: 'short' })}
+              {day.isToday ? t('d.today') : t.date(day.date, { weekday: 'short' })}
             </span>
           </div>
         );
       })}
       <SrTable
-        caption="Cards due, next 7 days"
-        head={['Day', 'Cards due']}
+        caption={t('d.up.caption')}
+        head={[t('d.head.day'), t('d.head.due')]}
         rows={days.map((day) => [shortDate(day.date), day.count])}
       />
     </div>
@@ -363,19 +377,20 @@ function Upcoming({ days }) {
 
 // The proof: each review of one card, with the real gap that came before it.
 function JourneyStrip({ journey }) {
+  const t = useDashT();
   const entries = journey.entries.slice(-8);
 
   return (
     <ol className="journey-strip">
       {entries.map((entry, i) => {
         const previous = entries[i - 1] || journey.entries[journey.entries.length - entries.length - 1];
-        const gap = previous ? formatGap(entry.at - previous.at) : null;
+        const gap = previous ? t.gap(entry.at - previous.at) : null;
 
         return (
           <li key={entry.id} className={entry.recalled ? 'hit' : 'miss'}>
-            <span className="journey-gap">{gap ? `after ${gap}` : 'first try'}</span>
+            <span className="journey-gap">{gap ? t('d.journey.after', { gap }) : t('d.journey.first')}</span>
             <span className="journey-dot" aria-hidden="true" />
-            <span className="journey-result">{entry.recalled ? 'Recalled' : 'Missed'}</span>
+            <span className="journey-result">{entry.recalled ? t('d.journey.hit') : t('d.journey.miss')}</span>
           </li>
         );
       })}
@@ -384,18 +399,16 @@ function JourneyStrip({ journey }) {
 }
 
 function Moments({ data }) {
+  const t = useDashT();
   const { best, toughest, longestMemoryCards, stats } = data;
   const tiles = [];
 
   if (best) {
     tiles.push(
       <article className="moment moment-feature" key="best" style={{ '--subject': subjectAccent(best.card.subject) }}>
-        <p className="eyebrow">YOUR STRONGEST MEMORY</p>
+        <p className="eyebrow">{t('d.m.best')}</p>
         <h4>&ldquo;{best.card.question}&rdquo;</h4>
-        <p>
-          You recalled this correctly <strong>{best.streak} times in a row</strong>, and the gap grew to{' '}
-          <strong>{formatGap(best.longestGap)}</strong>. That is spaced repetition working.
-        </p>
+        <p>{t('d.m.best.body', { n: best.streak, gap: t.gap(best.longestGap) })}</p>
         <JourneyStrip journey={best} />
       </article>
     );
@@ -406,11 +419,9 @@ function Moments({ data }) {
 
     tiles.push(
       <article className="moment" key="long">
-        <p className="eyebrow">LONGEST MEMORY</p>
-        <h4>{formatDays(top.reviewIntervalDays)}</h4>
-        <p>
-          &ldquo;{top.question}&rdquo; now only needs a review every {formatDays(top.reviewIntervalDays)}.
-        </p>
+        <p className="eyebrow">{t('d.m.long')}</p>
+        <h4>{t.days(top.reviewIntervalDays)}</h4>
+        <p>{t('d.m.long.body', { q: top.question, span: t.days(top.reviewIntervalDays) })}</p>
       </article>
     );
   }
@@ -418,20 +429,17 @@ function Moments({ data }) {
   if (stats.turnarounds > 0) {
     tiles.push(
       <article className="moment" key="comeback">
-        <p className="eyebrow">COMEBACKS</p>
-        <h4>{plural(stats.turnarounds, 'card')}</h4>
-        <p>started as a miss and are now answered correctly. That is the whole point.</p>
+        <p className="eyebrow">{t('d.m.comeback')}</p>
+        <h4>{t.n('d.card', stats.turnarounds)}</h4>
+        <p>{t('d.m.comeback.body')}</p>
       </article>
     );
   } else if (stats.mastered > 0) {
     tiles.push(
       <article className="moment" key="mastered">
-        <p className="eyebrow">MISTAKES TURNED INTO KNOWLEDGE</p>
-        <h4>{stats.mastered}</h4>
-        <p>
-          {stats.mastered === 1 ? 'card was' : 'cards were'} saved because you got {stats.mastered === 1 ? 'it' : 'them'} wrong.
-          You now recall {stats.mastered === 1 ? 'it' : 'them'} reliably.
-        </p>
+        <p className="eyebrow">{t('d.m.turned')}</p>
+        <h4>{t('d.n', { n: stats.mastered })}</h4>
+        <p>{t(stats.mastered === 1 ? 'd.m.turned.one' : 'd.m.turned.many')}</p>
       </article>
     );
   }
@@ -439,11 +447,9 @@ function Moments({ data }) {
   if (toughest) {
     tiles.push(
       <article className="moment" key="tough">
-        <p className="eyebrow">HARDEST WIN</p>
-        <h4>Took {toughest.totalMissed + toughest.streak} tries</h4>
-        <p>
-          &ldquo;{toughest.card.question}&rdquo; fought back, and you mastered it anyway.
-        </p>
+        <p className="eyebrow">{t('d.m.tough')}</p>
+        <h4>{t('d.m.tough.title', { n: toughest.totalMissed + toughest.streak })}</h4>
+        <p>{t('d.m.tough.body', { q: toughest.card.question })}</p>
       </article>
     );
   }
@@ -451,21 +457,16 @@ function Moments({ data }) {
   if (stats.bestDay && stats.bestDay.count >= 3) {
     tiles.push(
       <article className="moment" key="day">
-        <p className="eyebrow">BIGGEST DAY</p>
-        <h4>{plural(stats.bestDay.count, 'review')}</h4>
-        <p>
-          on {shortDate(new Date(`${stats.bestDay.key}T00:00:00`))}.
-        </p>
+        <p className="eyebrow">{t('d.m.day')}</p>
+        <h4>{t.n('d.review', stats.bestDay.count)}</h4>
+        <p>{t('d.m.day.body', { date: t.date(new Date(`${stats.bestDay.key}T00:00:00`)) })}</p>
       </article>
     );
   }
 
   if (tiles.length === 0) {
     return (
-      <Empty>
-        Your proud moments show up here: cards you recall again and again, with the gaps getting longer. Finish a
-        few review sessions to see the first one.
-      </Empty>
+      <Empty>{t('d.m.empty')}</Empty>
     );
   }
 
@@ -473,24 +474,25 @@ function Moments({ data }) {
 }
 
 export function Badges({ badges }) {
+  const t = useDashT();
   const earned = badges.filter((badge) => badge.earned).length;
 
   return (
     <>
       <p className="badge-count">
-        {earned} of {badges.length} earned
+        {t('d.badges.count', { n: earned, total: badges.length })}
       </p>
       <ul className="badges">
         {badges.map((badge) => (
           <li key={badge.id} className={badge.earned ? 'badge earned' : 'badge'}>
             <span className="badge-mark" aria-hidden="true">
-              {badge.earned ? '✓' : `${badge.value}/${badge.goal}`}
+              {badge.earned ? '✓' : t('d.n', { n: `${badge.value}/${badge.goal}` })}
             </span>
             <span className="badge-text">
-              <strong>{badge.label}</strong>
-              <small>{badge.desc}</small>
+              <strong>{t(`badge.${badge.id}`, {}, badge.label)}</strong>
+              <small>{t(`badge.${badge.id}.desc`, {}, badge.desc)}</small>
             </span>
-            {badge.earned && <span className="sr-only">Earned</span>}
+            {badge.earned && <span className="sr-only">{t('d.badges.earned')}</span>}
           </li>
         ))}
       </ul>
@@ -501,6 +503,7 @@ export function Badges({ badges }) {
 // details: inside the Memory map's "Details" (src/progress/MemoryMap.jsx):
 // no hero and no streak number (the map shows the one streak).
 export default function Dashboard({ cards, reviews, dueCount, showForm, onToggleAdd, onReview, details = false }) {
+  const t = useDashT();
   const data = useMemo(() => computeAnalytics(cards, reviews, new Date(), { extraDays: streakTimes() }), [cards, reviews]);
   const { stats } = data;
   const message = headline(stats);
@@ -561,7 +564,7 @@ export default function Dashboard({ cards, reviews, dueCount, showForm, onToggle
 
       {stats.totalCards > 0 && (
         <>
-          <section className="dash-kpis" aria-label="Your numbers">
+          <section className="dash-kpis" aria-label={t('d.kpis')}>
             {!details && (
             <Kpi
               label="Streak"
@@ -569,95 +572,85 @@ export default function Dashboard({ cards, reviews, dueCount, showForm, onToggle
               unit={stats.streak.current === 1 ? ' day' : ' days'}
               sub={
                 stats.streak.best > 0
-                  ? `Best: ${plural(stats.streak.best, 'day')}`
+                  ? `Best: ${t.n('d.day', stats.streak.best)}`
                   : 'Review today to start one'
               }
             />
             )}
             <Kpi
-              label="Reviews done"
-              value={stats.reviewsTotal}
-              sub={stats.reviewsTotal > 0 ? 'Each one strengthens memory' : 'Your first is a short session'}
+              label={t('d.k.reviews')}
+              value={t('d.n', { n: stats.reviewsTotal })}
+              sub={stats.reviewsTotal > 0 ? t('d.k.reviews.yes') : t('d.k.reviews.no')}
             />
             <Kpi
-              label="Recall rate"
-              value={stats.recallRate === null ? '-' : percent(stats.recallRate)}
-              sub={
-                stats.recallRate === null
-                  ? 'Shows after a few reviews'
-                  : `${stats.recalledCount} of ${stats.historyCount} answers right`
-              }
+              label={t('d.k.rate')}
+              value={stats.recallRate === null ? '-' : t('d.n', { n: percent(stats.recallRate) })}
+              sub={stats.recallRate === null ? t('d.k.rate.no') : t('d.k.rate.yes', { n: stats.recalledCount, total: stats.historyCount })}
             />
             <Kpi
-              label="Memory span"
-              value={stats.longestIntervalDays > 0 ? formatDays(stats.longestIntervalDays) : '-'}
-              sub={
-                stats.avgIntervalDays > 0
-                  ? `Longest gap. Average ${formatDays(stats.avgIntervalDays)}`
-                  : 'Grows with every recall'
-              }
+              label={t('d.k.span')}
+              value={stats.longestIntervalDays > 0 ? t.days(stats.longestIntervalDays) : '-'}
+              sub={stats.avgIntervalDays > 0 ? t('d.k.span.yes', { avg: t.days(stats.avgIntervalDays) }) : t('d.k.span.no')}
             />
             <Kpi
-              label="Learning for"
-              value={stats.daysLearning}
-              unit={stats.daysLearning === 1 ? ' day' : ' days'}
-              sub={`${plural(stats.totalCards, 'card')} saved`}
+              label={t('d.k.for')}
+              value={t('d.n', { n: stats.daysLearning })}
+              unit={t(stats.daysLearning === 1 ? 'd.unit.day.one' : 'd.unit.day.many')}
+              sub={t('d.k.saved', { cards: t.n('d.card', stats.totalCards) })}
             />
           </section>
 
           {stats.reviewsTotal > 0 && !stats.hasHistory && (
-            <p className="dash-note">
-              Daily activity and recall trends start building from your next review.
-            </p>
+            <p className="dash-note">{t('d.note')}</p>
           )}
 
           <div className="dash-grid">
-            <Panel title="Where your cards stand" note="Cards move right as your gaps grow.">
+            <Panel title={t('d.p.stand')} note={t('d.p.stand.note')}>
               <StageRing stages={data.stages} total={Math.max(stats.totalCards, 1)} masteredPct={stats.masteredPct} />
             </Panel>
 
             <Panel
-              title="Last 14 days"
-              note={recentTotal > 0 ? `${plural(recentTotal, 'review')} in two weeks` : 'Reviews per day'}
+              title={t('d.p.14')}
+              note={recentTotal > 0 ? t('d.p.14.note', { reviews: t.n('d.review', recentTotal) }) : t('d.bars.caption')}
             >
               {recentTotal > 0 ? (
                 <>
                   <ActivityBars days={data.days} />
                   <p className="dash-legend" aria-hidden="true">
-                    <span><i className="swatch hit" /> Recalled</span>
-                    <span><i className="swatch miss" /> Missed</span>
+                    <span><i className="swatch hit" /> {t('d.head.recalled')}</span>
+                    <span><i className="swatch miss" /> {t('d.head.missed')}</span>
                   </p>
                 </>
               ) : (
-                <Empty>Review a few cards and each day shows up here, split into recalled and missed.</Empty>
+                <Empty>{t('d.p.14.empty')}</Empty>
               )}
             </Panel>
 
             <Panel
-              title="Recall rate"
-              note={`Share of answers you got right, ${trendUnit === 'days' ? 'last 30 days' : 'week by week'}.`}
+              title={t('d.k.rate')}
+              note={t(trendUnit === 'days' ? 'd.p.rate.note.days' : 'd.p.rate.note.weeks')}
               action={<TrendToggle unit={trendUnit} onChange={changeTrendUnit} />}
             >
               {hasTrend ? (
                 <RecallTrend buckets={trendBuckets} unit={trendUnit} />
               ) : (
-                <Empty>{trendUnit === 'days' ? 'Your daily recall rate appears after your first review session.' : 'Your weekly recall rate appears after your first review session.'}</Empty>
+                <Empty>{t(trendUnit === 'days' ? 'd.p.rate.empty.days' : 'd.p.rate.empty.weeks')}</Empty>
               )}
             </Panel>
 
-            <Panel title="By subject" note="Mastered cards out of everything you saved.">
+            <Panel title={t('d.p.subj')} note={t('d.p.subj.note')}>
               <SubjectBars subjects={data.subjects} />
             </Panel>
 
-            <Panel title="Coming up" note="Cards due over the next week.">
+            <Panel title={t('d.p.up')} note={t('d.p.up.note')}>
               <Upcoming days={data.upcoming} />
             </Panel>
 
-            <Panel title="Proud moments" note="Proof that it is sticking." wide>
+            <Panel title={t('d.p.proud')} note={t('d.p.proud.note')} wide>
               <Moments data={data} />
             </Panel>
 
-            <Panel title="Milestones" wide>
+            <Panel title={t('d.p.milestones')} wide>
               <Badges badges={data.badges} />
             </Panel>
           </div>
