@@ -47,7 +47,9 @@ export const SNAP_SCHEMA = {
   type: 'OBJECT',
   properties: {
     readable: { type: 'BOOLEAN' },
-    reason: { type: 'STRING', enum: ['', ...REASONS] },
+    // No enum here: Gemini rejects an empty string in an enum with HTTP 400,
+    // which made every photo snap fail. sanitizeSnap maps unknown reasons.
+    reason: { type: 'STRING' },
     question: { type: 'STRING' },
     answer: { type: 'STRING' },
     yourAnswer: { type: 'STRING' },
@@ -227,20 +229,44 @@ export async function askGeminiSnap(env, input, modelOverride) {
 
   if (input.mode === 'photo') parts.unshift({ inlineData: { mimeType: input.mimeType, data: input.image } });
 
-  const res = await fetch(url, {
-    method: 'POST',
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SNAP_PROMPT }] },
-      contents: [{ role: 'user', parts }],
-      // Thinking off: on a thinking model the hidden reasoning counts against
-      // maxOutputTokens and can leave no room for the card itself.
-      generationConfig: { temperature: 0.2, maxOutputTokens: 2048, responseMimeType: 'application/json', responseSchema: SNAP_SCHEMA, thinkingConfig: { thinkingBudget: 0 } },
-    }),
-  });
+  const call = (withThinkingOff) =>
+    fetch(url, {
+      method: 'POST',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SNAP_PROMPT }] },
+        contents: [{ role: 'user', parts }],
+        // Thinking off: on a thinking model the hidden reasoning counts against
+        // maxOutputTokens and can leave no room for the card itself.
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 2048,
+          responseMimeType: 'application/json',
+          responseSchema: SNAP_SCHEMA,
+          ...(withThinkingOff ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+        },
+      }),
+    });
 
-  if (!res.ok) throw new ProviderError(`Gemini ${res.status}`, res.status);
+  let res = await call(true);
+
+  // Some models refuse the thinking setting; try once more without it.
+  if (res.status === 400) res = await call(false);
+
+  if (!res.ok) {
+    // Google's own error text (a field path and a reason), never the image or the student's text.
+    let reason = '';
+
+    try {
+      const body = await res.json();
+      reason = String(body?.error?.message || '').slice(0, 240);
+    } catch {
+      // No readable error body.
+    }
+
+    throw new SnapFailure('http', { model, status: res.status, google: reason });
+  }
 
   const data = await res.json().catch(() => null);
   const candidate = data?.candidates?.[0];
@@ -291,11 +317,12 @@ export async function makeSnap(env, input) {
       logSnapFailure('unusable', { model, mode: input.mode, ...shapeOf(raw) });
     } catch (error) {
       if (error instanceof ProviderError && (error.status === 429 || error.status === 503)) busy = true;
+      if (error instanceof SnapFailure && (error.detail.status === 429 || error.detail.status === 503)) busy = true;
       if (error?.name === 'TimeoutError' || error?.name === 'AbortError') busy = true;
       // Try the next provider. Log why, never the input or the reply text.
       logSnapFailure(error instanceof SnapFailure ? error.stage : error instanceof ProviderError ? 'http' : error?.name === 'TimeoutError' || error?.name === 'AbortError' ? 'timeout' : 'error', {
         mode: input.mode,
-        status: error?.status ?? null,
+        status: error?.status ?? error?.detail?.status ?? null,
         ...(error instanceof SnapFailure ? error.detail : {}),
       });
     }

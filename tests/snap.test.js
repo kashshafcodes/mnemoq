@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import handler, { makeSnap, readSnapInput, sanitizeSnap, scriptOf } from '../api/snap.js';
+import handler, { SNAP_SCHEMA, makeSnap, readSnapInput, sanitizeSnap, scriptOf } from '../api/snap.js';
 import { aiResetsAt, attemptAllowed, attemptCap } from '../api/_aiLimit.js';
 import { base64Bytes, fitWithin, MAX_SIDE } from '../src/snap/resizeImage.js';
 import { snapT, waitText } from '../src/snap/strings.js';
@@ -249,6 +249,15 @@ describe('/api/snap quota paths', () => {
     expect(calls.recorded).toBe(0);
   });
 
+  it('the response schema has no empty enum values (Gemini answers 400 to them)', () => {
+    const walk = (node) => {
+      if (!node || typeof node !== 'object') return;
+      if (Array.isArray(node.enum)) expect(node.enum.every((v) => typeof v === 'string' && v.length > 0)).toBe(true);
+      Object.values(node).forEach(walk);
+    };
+    walk(SNAP_SCHEMA);
+  });
+
   it('turns thinking off and leaves room for the card', async () => {
     const calls = fakeWorld();
     await handler(post({ mode: 'photo', image: JPEG }), fakeRes(), env);
@@ -264,9 +273,11 @@ describe('/api/snap quota paths', () => {
     const res = await handler(post({ mode: 'photo', image: JPEG }), fakeRes(), env);
 
     expect(res.statusCode).toBe(502);
-    expect(calls.gemini.map((c) => c.url.match(/models\/([^:]+)/)[1])).toEqual(['gemini-flash-latest', 'gemini-flash-lite-latest']);
-    expect(calls.gemini[1].body.contents[0].parts[0].inlineData).toBeTruthy();
-    // Each failure is logged with its reason and never with the image or text.
+    // Each model: once with thinking off, once without the setting (a 400 can mean it was refused).
+    expect(calls.gemini.map((c) => c.url.match(/models\/([^:]+)/)[1])).toEqual(['gemini-flash-latest', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-flash-lite-latest']);
+    expect(calls.gemini[1].body.generationConfig.thinkingConfig).toBeUndefined();
+    expect(calls.gemini[2].body.contents[0].parts[0].inlineData).toBeTruthy();
+    // Each failed model is logged with its reason and never with the image or text.
     expect(warn).toHaveBeenCalledTimes(2);
     for (const [, line] of warn.mock.calls) {
       expect(line).toContain('"stage":"http"');
