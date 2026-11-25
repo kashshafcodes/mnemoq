@@ -8,6 +8,8 @@ import { NO_SUGGEST } from '../noSuggest';
 import ReminderSettings from './ReminderSettings';
 import VibrationSetting from './VibrationSetting';
 import SoundSetting from '../sensory/SoundSetting';
+import { feel } from '../sensory';
+import { useNavT } from '../nav/strings';
 
 // The person's own page: who they are, how they're doing, and their settings.
 
@@ -29,6 +31,7 @@ export default function Profile({ user, cards, reviews, onSave, onLogout, onTuto
   const profile = readProfile(user);
   const data = useMemo(() => computeAnalytics(cards, reviews, new Date(), { extraDays: streakTimes() }), [cards, reviews]);
   const { stats } = data;
+  const nt = useNavT();
 
   const [name, setName] = useState(profile.name);
   const [colorId, setColorId] = useState(profile.color.id);
@@ -46,6 +49,7 @@ export default function Profile({ user, cards, reviews, onSave, onLogout, onTuto
 
     if (saving || !changed) return;
 
+    feel('tap.primary');
     setSaving(true);
     setMessage({ text: '', error: false });
 
@@ -54,6 +58,7 @@ export default function Profile({ user, cards, reviews, onSave, onLogout, onTuto
     setSaving(false);
 
     if (result?.error) {
+      feel('error');
       setMessage({ text: `Could not save: ${result.error}`, error: true });
     } else {
       setName(cleanName(name));
@@ -169,10 +174,10 @@ export default function Profile({ user, cards, reviews, onSave, onLogout, onTuto
       <VibrationSetting />
 
       <section className="profile-card">
-        <h3>Settings</h3>
+        <h3>{nt('me.settings')}</h3>
         <div className="profile-settings">
           <div className="profile-row">
-            <span>Language</span>
+            <span>{nt('me.language')}</span>
             <LanguageToggle />
           </div>
           <div className="profile-row">

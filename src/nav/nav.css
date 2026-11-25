@@ -68,7 +68,7 @@
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+    border: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
     animation: mq-snap-pulse 2.6s var(--ease-out) 3;
     pointer-events: none;
   }
@@ -83,8 +83,8 @@
 }
 
 @keyframes mq-snap-pulse {
-  0% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
-  70% { opacity: 0; transform: scale(1.35); box-shadow: 0 0 0 8px transparent; }
+  0% { opacity: 1; transform: scale(1); }
+  70% { opacity: 0; transform: scale(1.35); }
   100% { opacity: 0; transform: scale(1.35); }
 }
 
@@ -201,4 +201,62 @@
   .mq-tab-snap .mq-tab-icon::after {
     animation: none;
   }
+}
+
+/* The sliding tab indicator and icon pop (sensory D6). The pill copies the
+   tab's own layout (padding, icon box, label line) so it sits exactly behind
+   the active icon; it moves with transform only. */
+@media (max-width: 860px) {
+  .mq-tabbar .mq-tab.active .mq-tab-icon {
+    background: transparent;
+  }
+
+  .mq-tab-snap.active .mq-tab-icon,
+  .mq-tabbar .mq-tab-snap.active .mq-tab-icon {
+    background: var(--accent-hover);
+  }
+
+  .mq-tab-pill {
+    position: absolute;
+    top: 6px;
+    bottom: calc(6px + env(safe-area-inset-bottom));
+    left: 6px;
+    width: calc((100% - 12px - 4 * var(--tab-gap, 8px)) / 5);
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 2px;
+    padding: 6px 2px;
+    pointer-events: none;
+    transform: translateX(calc(var(--i) * (100% + var(--tab-gap, 8px))));
+    transition: transform var(--dur-2) var(--ease-out), opacity var(--dur-1) var(--ease-out);
+  }
+
+  .mq-tab-pill i {
+    width: 44px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+  }
+
+  .mq-tab-pill b {
+    height: 17px;
+  }
+
+  .mq-tab-pill.is-off { opacity: 0; }
+
+  .mq-tab { position: relative; }
+
+  .mq-tab.active .mq-tab-icon .nav-icon {
+    animation: mq-tab-pop var(--dur-3) var(--ease-pop);
+  }
+}
+
+@media (min-width: 861px) {
+  .mq-tab-pill { display: none; }
+}
+
+@keyframes mq-tab-pop {
+  0% { transform: scale(var(--scale-pop-from)); }
+  100% { transform: scale(1); }
 }

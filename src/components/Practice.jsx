@@ -8,6 +8,8 @@ import { useI18n } from '../i18n';
 import { freeSetCount, freeTotals, isFreeSet } from '../practice/access';
 import { localizeQuestion } from '../practice/overlay';
 import KeptMisses from '../practice/KeptMisses';
+import { feel } from '../sensory';
+import { CountUp } from '../sensory/celebrate';
 
 // The practice library (#/practice): thousands of questions in 20-question
 // sets, from openly licensed sources (library/SOURCES.md). The first half of
@@ -95,7 +97,10 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
               aria-checked={chosen === i}
               disabled={answered}
               className={`try-option${state}`}
-              onClick={() => setPicked((p) => ({ ...p, [q.id]: i }))}
+              onClick={(event) => {
+                feel(i === q.answer ? 'correct' : 'wrong', { el: event.currentTarget });
+                setPicked((p) => ({ ...p, [q.id]: i }));
+              }}
             >
               <span className="try-letter">{LETTERS[i]}</span>
               <span>
@@ -122,11 +127,27 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
           Back
         </button>
         {last ? (
-          <button type="button" className="mq-btn mq-btn-primary" disabled={!answered} onClick={() => onDone(picked)}>
+          <button
+            type="button"
+            className="mq-btn mq-btn-primary"
+            disabled={!answered}
+            onClick={() => {
+              feel('step.done');
+              onDone(picked);
+            }}
+          >
             See my score
           </button>
         ) : (
-          <button type="button" className="mq-btn mq-btn-primary" disabled={!answered} onClick={() => setIndex(index + 1)}>
+          <button
+            type="button"
+            className="mq-btn mq-btn-primary"
+            disabled={!answered}
+            onClick={(event) => {
+              feel('tap.primary', { el: event.currentTarget });
+              setIndex(index + 1);
+            }}
+          >
             Next
           </button>
         )}
@@ -146,7 +167,7 @@ function Summary({ collection, n, questions, picked, plan, onAddCards, onRemoveC
         {collection.title} · Set {n}
       </p>
       <h2>
-        {score} of {questions.length} correct
+        <CountUp value={score} /> of {questions.length} correct
       </h2>
       {score === questions.length && <p className="pr-muted">A perfect set. Try the next one.</p>}
       <KeptMisses collection={collection} n={n} questions={questions} picked={picked} onAddCards={onAddCards} onRemoveCards={onRemoveCards} />
@@ -179,6 +200,8 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
   }, [view.name, view.n]);
 
   async function open(c, n) {
+    // Locked sets open the Pro hint calmly: the quiet tap, no shake.
+    feel(!isFreeSet(c.sets, n) && !plan.pro ? 'tap.secondary' : 'tap.primary');
     if (!isFreeSet(c.sets, n) && !plan.pro) {
       const free = freeSetCount(c.sets);
 
@@ -199,7 +222,10 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
       setView({ name: 'run', collectionId: c.id, n, questions, run: Date.now() });
     } catch (caught) {
       if (caught.code === 'pro') setPaywall({ feature: 'bank', reason: caught.message });
-      else setError(caught.message);
+      else {
+        feel('error');
+        setError(caught.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -254,7 +280,7 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
     const doneCount = Array.from({ length: collection.sets }, (_, i) => progress[`${collection.id}:${i + 1}`]).filter(Boolean).length;
 
     return (
-      <div className="pr">
+      <div className="pr fx-deeper">
         <button type="button" className="text-link pr-back" onClick={() => setView({ name: 'home' })}>
           ← All collections
         </button>
@@ -268,7 +294,7 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
           </p>
         </header>
         {error && <p className="pro-message">{error}</p>}
-        <ol className="pr-sets">
+        <ol className="pr-sets fx-list">
           {Array.from({ length: collection.sets }, (_, i) => i + 1).map((n) => {
             const p = progress[`${collection.id}:${n}`];
             const free = isFreeSet(collection.sets, n);
@@ -314,7 +340,7 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
           </button>
         ))}
       </div>
-      <div className="pr-grid">
+      <div className="pr-grid fx-list">
         {shown.map((c) => {
           const done = Object.keys(progress).filter((k) => k.startsWith(`${c.id}:`)).length;
 

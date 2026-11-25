@@ -127,11 +127,20 @@ export function MobileBar({ page, me }) {
   );
 }
 
+// Tab switches are silent (sensory spec 1.4): no feel() here. The pill
+// behind the active icon slides between tabs (translateX) and the icon pops
+// once (D6). Snap has its own raised button, so the pill hides there.
 export function TabBar({ page, items }) {
   const nt = useNavT();
+  const at = items.findIndex(([name]) => tabIsActive(page, name));
+  const pill = at >= 0 && items[at][0] !== 'snap';
 
   return (
     <nav className="mq-tabbar" aria-label={nt('nav.main')}>
+      <span className={`mq-tab-pill${pill ? '' : ' is-off'}`} style={{ '--i': Math.max(0, at) }} aria-hidden="true">
+        <i />
+        <b />
+      </span>
       {items.map(([name, NavIcon, label, count]) => (
         <a
           key={name}

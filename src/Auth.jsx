@@ -5,6 +5,10 @@ import { trackEvent } from './googleAnalytics';
 import { trafficSource } from './track';
 import { guestMetadata } from './guestResult';
 import { playedSample, sampleMetadata } from './sample/store';
+import { feel } from './sensory';
+
+// Sensory (spec 5): press feedback only; success is step.done (no
+// celebration for an account), errors are the two soft error notes.
 
 // The sign-up / log-in form. Shown inside the landing page (Landing.jsx).
 export default function Auth({ startWith = 'signup', compact = false, title = '', subtitle = '' }) {
@@ -18,6 +22,7 @@ export default function Auth({ startWith = 'signup', compact = false, title = ''
 
   async function handleSubmit(event) {
     event.preventDefault();
+    feel('tap.primary');
     setMessage({ text: '', ok: false });
     setLoading(true);
 
@@ -39,6 +44,7 @@ export default function Auth({ startWith = 'signup', compact = false, title = ''
           trackEvent('sign_up', { method: 'email', from: playedSample() ? 'sample' : undefined });
         }
 
+        feel('step.done');
         setMessage(
           data.session
             ? { text: 'Account created. Taking you in…', ok: true }
@@ -49,6 +55,7 @@ export default function Auth({ startWith = 'signup', compact = false, title = ''
 
         if (error) throw error;
 
+        feel('step.done');
         trackEvent('login', { method: 'email' });
       }
     } catch (error) {
@@ -58,6 +65,7 @@ export default function Auth({ startWith = 'signup', compact = false, title = ''
           ? 'Too many tries. Please wait a minute and try again.'
           : error.message || 'Something went wrong. Please try again.';
 
+      feel('error');
       setMessage({ text, ok: false });
     } finally {
       setLoading(false);

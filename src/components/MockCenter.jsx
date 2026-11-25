@@ -9,6 +9,7 @@ import EssayMock from './EssayMock';
 import Mock from './Mock';
 import MockReport from './MockReport';
 import MockSession from './MockSession';
+import { feel } from '../sensory';
 
 // The Mock Tests page: prepared mocks for each section (unlocked one by one),
 // your own custom mocks, and every past report.
@@ -198,7 +199,7 @@ export default function MockCenter({ state, cards, reviews, onSaveMock, onAddBan
                   {id === 'essay' ? ' · AI-marked' : ` · ${bank.sections[id][0].questions.length} questions`}
                 </p>
               </header>
-              <ul className="mock-list">
+              <ul className="mock-list fx-list">
                 {list.map((m) => (
                   <li key={m.n} className={`mock-item ${m.status}`}>
                     <div>
@@ -217,7 +218,10 @@ export default function MockCenter({ state, cards, reviews, onSaveMock, onAddBan
                       <button
                         type="button"
                         className={m.status === 'ready' ? 'qa-primary' : 'ghost-button'}
-                        onClick={() => setView({ name: id === 'essay' ? 'essay' : 'prepared', sectionId: id, n: m.n, run: Date.now() })}
+                        onClick={(event) => {
+                          feel('tap.primary', { el: event.currentTarget });
+                          setView({ name: id === 'essay' ? 'essay' : 'prepared', sectionId: id, n: m.n, run: Date.now() });
+                        }}
                       >
                         {m.status === 'ready' ? 'Start' : 'Retake'}
                       </button>
@@ -237,7 +241,14 @@ export default function MockCenter({ state, cards, reviews, onSaveMock, onAddBan
           </h3>
           <p>Choose sections, length and timer, mix in your own questions, or let the AI write a fresh paper.</p>
         </header>
-        <button type="button" className="qa-primary" onClick={() => setView({ name: 'custom' })}>
+        <button
+          type="button"
+          className="qa-primary"
+          onClick={() => {
+            feel('tap.primary');
+            setView({ name: 'custom' });
+          }}
+        >
           Open the mock builder
         </button>
       </section>
@@ -248,7 +259,7 @@ export default function MockCenter({ state, cards, reviews, onSaveMock, onAddBan
           <p>{mocks.length === 0 ? 'Your reports appear here after your first mock.' : 'Open any past result.'}</p>
         </header>
         {mocks.length > 0 && (
-          <ul className="mock-history">
+          <ul className="mock-history fx-list">
             {mocks.slice(0, 12).map((m) => (
               <li key={m.id}>
                 <span>{new Date(m.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span>

@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react';
 import { missedAsCards } from '../diagnosticScore';
 import { LETTERS, formatClock, pctOf } from '../mocks';
+import { feel } from '../sensory';
+import { CountUp } from '../sensory/celebrate';
+
+// Sensory (spec 5, Exam report): the score counts up once, bars grow in a
+// 40 ms stagger (transform only), and the only sound is the tap.
+const stagger = (i) => ({ animationDelay: `${Math.min(i, 5) * 40}ms` });
 
 // The report for one finished mock test (also used to reopen past results).
 
@@ -29,7 +35,8 @@ export default function MockReport({ title, record, before = null, after = null,
   const weak = topics.filter((t) => t.correct < t.total);
   const timedOut = record.limitSeconds && record.seconds >= record.limitSeconds - 1;
 
-  async function addMissed() {
+  async function addMissed(event) {
+    feel('tap.primary', { el: event.currentTarget });
     setAdding(true);
 
     const outcome = await onAddCards(cards);
@@ -44,7 +51,10 @@ export default function MockReport({ title, record, before = null, after = null,
         <p className="eyebrow">REPORT</p>
         <h3>{title}</h3>
         <div className="report-score">
-          <b>{essay ? record.correct : `${record.correct}/${record.total}`}</b>
+          <b>
+            <CountUp value={record.correct} sound={false} />
+            {essay ? '' : `/${record.total}`}
+          </b>
           <span>{essay ? 'out of 100' : `${pct}%`}</span>
         </div>
         <p className="diag-note">
@@ -66,11 +76,11 @@ export default function MockReport({ title, record, before = null, after = null,
         <div className="diag-card">
           <h3>Essay marking</h3>
           <ul className="path-criteria">
-            {CRITERIA.map(([key, label]) => (
+            {CRITERIA.map(([key, label], i) => (
               <li key={key}>
                 <span>{label}</span>
                 <div className="path-meter small" aria-hidden="true">
-                  <span style={{ width: `${(essay.criteria[key] / 25) * 100}%` }} />
+                  <span className="fx-grow-x" style={{ width: `${(essay.criteria[key] / 25) * 100}%`, ...stagger(i) }} />
                 </div>
                 <b>{essay.criteria[key]}/25</b>
               </li>
@@ -108,11 +118,11 @@ export default function MockReport({ title, record, before = null, after = null,
         <div className="diag-card">
           <h3>By topic</h3>
           <ul className="path-criteria report-topics">
-            {topics.map((t) => (
+            {topics.map((t, i) => (
               <li key={`${t.section}-${t.topic}`}>
                 <span>{t.topic}</span>
                 <div className="path-meter small" aria-hidden="true">
-                  <span className={t.correct === t.total ? 'good' : ''} style={{ width: `${(t.correct / t.total) * 100}%` }} />
+                  <span className={`fx-grow-x${t.correct === t.total ? ' good' : ''}`} style={{ width: `${(t.correct / t.total) * 100}%`, ...stagger(i) }} />
                 </div>
                 <b>
                   {t.correct}/{t.total}

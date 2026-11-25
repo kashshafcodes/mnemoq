@@ -8,7 +8,11 @@ import { trackEvent } from '../googleAnalytics';
 import { track } from '../track';
 import { useI18n } from '../i18n';
 import { clearPending, loadPending, parentShareText, payText, savePending, whatsappShareUrl } from '../pro/payCopy';
+import { feel } from '../sensory';
 import '../sat/sat.css';
+
+// Sensory (spec 5, Me/Pro): Pro activation is step.done, never a fanfare
+// (it is a payment, keep it plain); access-code and payment errors are error.
 
 // Mnemoq Pro on screen: the small lock and badge, the upgrade prompt shown
 // when a free account reaches a Pro feature, and the Pro page itself.
@@ -189,6 +193,7 @@ function PayBox({ offer, email, onPlan, lang }) {
 
     if (result.status === 'granted') {
       clearPending();
+      feel('step.done');
       trackEvent('pro_redeemed', { days: result.days, method: 'sms' });
       setState({ phase: 'done', days: result.days, until: result.plan.proUntil });
       if (result.plan.pro) onPlan(result.plan);
@@ -210,6 +215,7 @@ function PayBox({ offer, email, onPlan, lang }) {
       return;
     }
 
+    feel('error');
     setState({ phase: 'error', text: result.status === 'mismatch' ? t('mismatch') : result.error });
   }
 
@@ -375,6 +381,7 @@ function PendingPayment({ email, onPlan, lang }) {
     if (result.status === 'granted') {
       clearPending();
       setPending(null);
+      feel('step.done');
       if (result.plan.pro) onPlan(result.plan);
       setMessage({ ok: true, text: payText(pay, lang, 'pendingDone', { days: result.days }) });
       return;
@@ -386,6 +393,7 @@ function PendingPayment({ email, onPlan, lang }) {
     // Mismatch, used, wrong amount...: say why and stop remembering it.
     clearPending();
     setPending(null);
+    feel('error');
     setMessage({ ok: false, text: result.status === 'mismatch' ? payText(pay, lang, 'mismatch') : result.error });
   }
 
@@ -438,6 +446,7 @@ export default function ProPage({ plan, onPlan, email }) {
 
     if (busy) return;
 
+    feel('tap.primary');
     setBusy(true);
     setMessage(null);
 
@@ -446,10 +455,12 @@ export default function ProPage({ plan, onPlan, email }) {
     setBusy(false);
 
     if (result.error) {
+      feel('error');
       setMessage({ ok: false, text: result.error });
       return;
     }
 
+    feel('step.done');
     trackEvent('pro_redeemed', { days: result.days });
 
     setCode('');
@@ -497,7 +508,10 @@ export default function ProPage({ plan, onPlan, email }) {
                 type="button"
                 className={`${offer.best ? 'pro-offer best' : 'pro-offer'}${chosen === offer.id ? ' chosen' : ''}`}
                 aria-pressed={chosen === offer.id}
-                onClick={() => setChosen(offer.id)}
+                onClick={() => {
+                  feel('select');
+                  setChosen(offer.id);
+                }}
               >
                 {offer.best && <span className="pro-offer-tag">{payText(PRO.payment, lang, 'planTag')}</span>}
                 <strong>{offer.label}</strong>

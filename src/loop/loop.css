@@ -175,3 +175,16 @@
   gap: 10px;
   margin-top: 12px;
 }
+
+/* The done screen's sparks fly from the ring (sensory/celebrate.js). */
+.mq-done-burst {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.mq-done-glow {
+  margin: 0;
+  color: var(--highlight);
+  font-weight: 700;
+}

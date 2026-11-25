@@ -89,6 +89,56 @@
   to { opacity: 0.45; }
 }
 
+/* Bars grow from the left once (transform, never width). */
+.fx-grow-x { transform-origin: left; animation: fx-grow-x var(--dur-3) var(--ease-out) backwards; }
+@keyframes fx-grow-x { from { transform: scaleX(0); } }
+
+/* Celebrations (celebrate.js): lantern sparks fly out from the middle of the
+   element, set per dot in CSS variables; a hero moment adds a ring bloom.
+   Reduced motion gets one soft opacity pulse instead. */
+.fx-sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.fx-sparks i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size, 7px);
+  height: var(--size, 7px);
+  margin: calc(var(--size, 7px) / -2);
+  border-radius: 50%;
+  background: var(--highlight);
+  opacity: 0;
+  animation: fx-spark var(--dur, 900ms) var(--ease-out) var(--delay, 0ms) forwards;
+}
+.fx-sparks b {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--highlight);
+  border-radius: 50%;
+  animation: fx-bloom 600ms var(--ease-out) forwards;
+}
+@keyframes fx-spark {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.6); }
+}
+@keyframes fx-bloom {
+  from { opacity: 0.5; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.6); }
+}
+.fx-pulse-once { animation: fx-pulse-once var(--dur-3) ease-in-out; }
+@keyframes fx-pulse-once { 50% { opacity: 0.6; } }
+
+/* Count-ups never shift the layout. */
+.fx-count {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 /* Empty states: one gentle rise, no looping motion. */
 .fx-empty { animation: fx-toast var(--dur-2) var(--ease-out) backwards; }
 

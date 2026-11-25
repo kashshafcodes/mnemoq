@@ -3,6 +3,7 @@ import { scoreSections } from '../diagnosticScore';
 import { LETTERS, formatClock } from '../mocks';
 import { computeReadiness } from '../readiness';
 import MockReport from './MockReport';
+import { feel } from '../sensory';
 
 // Sitting one mock test: the clock, the questions, then the report.
 //   paper: [{ id, name, passage, questions: [{ id, question, options, answer, topic, explain }] }]
@@ -46,6 +47,8 @@ export default function MockSession({
     if (doneRef.current) return;
 
     doneRef.current = true;
+    // A mock is silent (fairness and focus); only the finish sounds.
+    feel('step.done');
 
     const seconds = Math.round((Date.now() - startedRef.current) / 1000);
     const scored = scoreSections(paper, answersRef.current);
@@ -124,7 +127,7 @@ export default function MockSession({
         </b>
       </div>
 
-      <div className="diag-card">
+      <div className="diag-card fx-tab" key={cur}>
         {item.section.passage && (
           <blockquote className="diag-passage">
             {item.section.passage.split('\n\n').map((para) => (

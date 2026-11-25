@@ -50,6 +50,8 @@ export const SOUNDS = {
   'round.short': { cls: 'reward', notes: [{ m: 74, t: 0, d: 700, lv: -21 }, { m: 78, t: 90, d: 800, lv: -21 }] },
   'streak.kept': { cls: 'reward', notes: [{ m: 83, t: 0, d: 900, lv: -22 }, { m: 86, t: 130, d: 1200, lv: -23 }] },
   'glow.gain': { cls: 'ui', notes: [{ m: 81, t: 0, d: 160, lv: -34 }] },
+  // "+5" or more rings a step higher (B5).
+  'glow.gain.big': { cls: 'ui', notes: [{ m: 83, t: 0, d: 160, lv: -34 }] },
   'level.up': {
     cls: 'hero',
     notes: [74, 76, 78, 81, 83, 86].map((m, i) => ({ m, t: i * 80, d: i === 5 ? 1500 : 600, lv: -21 })).concat(pad(1700, 150)),
@@ -69,6 +71,8 @@ export const SOUNDS = {
   'toggle.on': { cls: 'micro', notes: [{ m: 86, t: 0, d: 60, lv: -34 }] },
   'toggle.off': { cls: 'micro', notes: [{ m: 81, t: 0, d: 60, lv: -36 }] },
   'count.tick': { cls: 'micro', notes: [{ m: 81, t: 0, d: 18, lv: -38 }] },
+  // A count-up climbs the pentatonic from A5: feel('count.tick', { step }).
+  ...Object.fromEntries([81, 83, 86, 88, 90].map((m, i) => [`count.tick.${i}`, { cls: 'micro', notes: [{ m, t: 0, d: 18, lv: -38 }] }])),
 
   // The Daily's four retuned sounds (D8). Its correct, fanfare, start and
   // melody stay exactly as they were (src/daily/audio.js).

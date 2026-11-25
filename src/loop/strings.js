@@ -107,6 +107,7 @@ export const STRINGS = {
     'done.extra': 'Still curious? Browse the practice library.',
     'done.reminder': 'Want Jonaki to tap you tomorrow? Turn on reminders.',
     'done.home': 'Back to Today',
+    'done.glow': '+{n} Glow today',
 
     'empty.noCards.title': 'No cards yet. A clean start.',
     'empty.noCards.body': 'Every mistake you save becomes a card that comes back right before you’d forget it.',
@@ -213,6 +214,7 @@ export const STRINGS = {
     'done.extra': 'আরও পড়তে ইচ্ছে করছে? প্র্যাকটিস লাইব্রেরি দেখুন।',
     'done.reminder': 'কাল জোনাকি মনে করিয়ে দিক? রিমাইন্ডার চালু করুন।',
     'done.home': 'আজকের পাতায় ফিরুন',
+    'done.glow': 'আজ +{n} আভা',
 
     'empty.noCards.title': 'এখনও কোনো কার্ড নেই। একদম নতুন শুরু।',
     'empty.noCards.body': 'যে ভুলটাই রাখবেন, সেটা কার্ড হয়ে ভুলে যাওয়ার ঠিক আগে ফিরে আসবে।',

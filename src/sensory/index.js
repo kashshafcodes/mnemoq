@@ -30,6 +30,24 @@ export function prefersReducedMotion(win) {
   }
 }
 
+// The sound one moment plays. Reduced motion shrinks celebrations (D7);
+// glow.gain rings a step higher for 5 or more and is silent right after a
+// correct (the recall already paid it, spec 1.5); a count-up climbs the scale.
+export const GLOW_AFTER_CORRECT_MS = 600;
+
+export function soundFor(id, opts = {}, { reduced = false, sinceCorrect = Infinity } = {}) {
+  const event = EVENTS[id];
+
+  if (!event) return null;
+  if (reduced && REDUCED_SOUND[id]) return REDUCED_SOUND[id];
+  if (id === 'glow.gain') {
+    if (sinceCorrect < GLOW_AFTER_CORRECT_MS) return null;
+    return Number(opts.n) >= 5 ? 'glow.gain.big' : event.sound;
+  }
+  if (id === 'count.tick' && Number.isInteger(opts.step)) return `count.tick.${opts.step % 5}`;
+  return event.sound;
+}
+
 function isLowEnd(nav) {
   return (Number(nav?.hardwareConcurrency) || 8) <= 4 || (Number(nav?.deviceMemory) || 8) <= 2;
 }
@@ -62,6 +80,8 @@ export function createSensory({ win, doc, nav, store = settings, haptic = playHa
     cancel,
   });
   const log = [];
+  const clock = now || (() => Date.now());
+  let lastCorrect = -Infinity;
 
   function feel(id, opts = {}) {
     try {
@@ -74,7 +94,10 @@ export function createSensory({ win, doc, nav, store = settings, haptic = playHa
       if (doc?.hidden) return;
 
       const reduced = prefersReducedMotion(win);
-      const played = engine.play((reduced && REDUCED_SOUND[id]) || event.sound, opts);
+      const soundId = soundFor(id, opts, { reduced, sinceCorrect: clock() - lastCorrect });
+      const played = soundId ? engine.play(soundId, opts) : 0;
+
+      if (id === 'correct') lastCorrect = clock();
 
       if (event.haptic) haptic(event.haptic, { reduced });
       if (event.motion && opts.el && !reduced) addMotion(opts.el, event.motion, win);

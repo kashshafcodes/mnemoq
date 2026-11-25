@@ -3,7 +3,7 @@ import Jonaki from '../components/Jonaki';
 import QuickAdd from '../components/QuickAdd';
 import { useI18n } from '../i18n';
 import { track } from '../track';
-import { haptic } from '../haptics';
+import { feel } from '../sensory';
 import { PRO } from '../proConfig';
 import { priceOf } from '../pricing';
 import { canonicalCategory, canonicalSubject, getSubjectNames } from '../subjects';
@@ -130,6 +130,7 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
 
     event.target.value = '';
     if (!file) return;
+    feel('snap.shutter', { el: event.target.parentElement });
 
     try {
       const shrunk = await resizeImage(file);
@@ -138,6 +139,7 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
       setProblem(null);
       setView('photo');
     } catch (error) {
+      feel('error');
       setProblem({ key: error?.message === 'too_big' ? 'snap.err.tooBig' : 'snap.err.unreadable', retry: false });
       setView('entry');
     }
@@ -163,8 +165,8 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
     });
 
     if (outcome?.error) {
+      feel('error');
       setProblem({ key: 'snap.err.save', retry: false });
-      haptic.error();
       track('snap_fail', { code: 'failed', mode });
       return null;
     }
@@ -179,6 +181,7 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
   }
 
   async function send(kind) {
+    feel('tap.primary');
     const isPhoto = kind === 'photo';
     const body = isPhoto
       ? { mode: 'photo', image: photo.base64, subjects, language: lang }
@@ -224,19 +227,21 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
 
       if (!data.readable) {
         setProblem({ key: REASON_KEY[data.reason] || 'snap.err.unreadable', retry: false, free: true });
+        feel('error');
         setView('unreadable');
-        haptic.error();
         return;
       }
 
       const card = toCard(data.card);
 
+      // A sure card is made at once; an unsure one waits on "Keep it" (spec
+      // 1.3: Snap "unsure" is the almost note). Loading stays silent.
+      feel(card.sure ? 'snap.made' : 'almost');
       setResult({ card, sure: card.sure, multi: card.multi });
       setEdited(false);
       setView('card');
 
       if (card.sure) {
-        haptic.correct();
         await save(card, true);
       }
 
@@ -257,7 +262,7 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
       }
 
       track('snap_fail', { code: ['network', 'busy', 'config', 'input'].includes(code) ? code : 'failed', mode: inputMode });
-      haptic.error();
+      feel('error');
       setProblem({ key: ERROR_KEY[code] || 'snap.err.failed', retry: code !== 'config' && code !== 'auth', free: true, config: code === 'config' });
       setView('error');
     } finally {
@@ -265,9 +270,13 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
     }
   }
 
-  async function keep() {
+  async function keep(event) {
+    feel('tap.primary', { el: event?.currentTarget });
     const id = await save(result.card, false);
-    if (id) setResult({ ...result, sure: true });
+    if (id) {
+      feel('snap.made');
+      setResult({ ...result, sure: true });
+    }
   }
 
   async function finishEdit(draft) {
@@ -294,6 +303,7 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
 
   async function undo() {
     if (!savedId) return;
+    feel('tap.secondary');
 
     track('snap_undo', { after_ms: Date.now() - savedAt.current });
 
@@ -504,7 +514,7 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
           <p className="snap-status" role="status">
             {mode === 'camera' || mode === 'gallery' ? t('snap.reading') : t('snap.making')}
           </p>
-          <div className="snap-skeleton" aria-hidden="true">
+          <div className="snap-skeleton fx-skeleton" aria-hidden="true">
             <span />
             <span />
             <span />
@@ -582,7 +592,7 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
       )}
 
       {(view === 'unreadable' || view === 'error') && (
-        <div className="snap-failed">
+        <div className="snap-failed fx-empty">
           {problemLine}
           {photo && view === 'unreadable' && <img className="snap-photo-small" src={photo.dataUrl} alt={t('snap.photo.alt')} />}
           <div className="snap-row">

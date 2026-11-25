@@ -2441,7 +2441,8 @@ code {
   height: 100%;
   background: var(--accent);
   border-radius: 999px;
-  transition: width 200ms ease;
+  transform-origin: left;
+  animation: fx-grow-x var(--dur-3) var(--ease-out) backwards;
 }
 
 .try-passage {
@@ -3175,9 +3176,8 @@ code {
 .rp-skeleton i {
   height: 14px;
   border-radius: 7px;
-  background: linear-gradient(90deg, var(--surface-2), var(--surface-3), var(--surface-2));
-  background-size: 200% 100%;
-  animation: rp-shimmer 1.4s ease-in-out infinite;
+  background: var(--surface-3);
+  animation: fx-breathe 1.2s ease-in-out infinite alternate;
 }
 
 .rp-skeleton i:nth-child(2) {
@@ -3188,11 +3188,6 @@ code {
   width: 60%;
 }
 
-@keyframes rp-shimmer {
-  to {
-    background-position: -200% 0;
-  }
-}
 
 .rp-mistakes {
   list-style: none;

@@ -21,7 +21,7 @@
 .jonaki .jk-lantern {
   opacity: calc(0.45 + var(--jk-glow) * 0.55);
   filter: saturate(calc(0.5 + var(--jk-glow) * 0.6));
-  transition: opacity 0.4s ease, filter 0.4s ease;
+  transition: opacity 0.4s ease;
 }
 
 .jonaki .jk-tip {

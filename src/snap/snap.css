@@ -367,9 +367,7 @@
   display: block;
   height: 14px;
   border-radius: 7px;
-  background: linear-gradient(90deg, var(--surface-2), var(--surface-3), var(--surface-2));
-  background-size: 200% 100%;
-  animation: snap-shimmer 1.4s linear infinite;
+  background: var(--surface-3);
 }
 
 .snap-skeleton span:nth-child(1) {
@@ -559,11 +557,6 @@
 @keyframes snap-shake {
   25% { transform: translateX(-4px); }
   75% { transform: translateX(4px); }
-}
-
-@keyframes snap-shimmer {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

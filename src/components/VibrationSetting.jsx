@@ -1,4 +1,5 @@
-import { haptic, hapticsPlatform, useHapticsSetting } from '../haptics';
+import { hapticsPlatform, useHapticsSetting } from '../haptics';
+import { feel } from '../sensory';
 import { useI18n } from '../i18n';
 
 // The "Vibration" card on the profile page, next to Reminders. One switch for
@@ -12,7 +13,7 @@ export default function VibrationSetting() {
   function toggle() {
     setOn(!on);
     // Turning it on plays one tick so you feel it straight away.
-    haptic.select();
+    feel(on ? 'toggle.off' : 'toggle.on');
   }
 
   return (

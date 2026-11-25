@@ -5,6 +5,7 @@ import { pageHref } from '../useRoute';
 import Jonaki from './Jonaki';
 import { dailyStatus } from '../daily/DailyTile';
 import { useLoopT } from '../loop/strings';
+import { feel } from '../sensory';
 
 // How many cards show before "See all".
 export const COLLAPSED_COUNT = 3;
@@ -189,7 +190,7 @@ export default function LibraryPage({
       {filteredMistakes.length === 0 ? (
         <LibraryEmpty noCards={mistakes.length === 0} onTutorial={() => setShowTutorial(true)} />
       ) : (
-        <section className="mistake-list">
+        <section className="mistake-list fx-list">
           {visibleMistakes.map((mistake) => (
             <article className="mistake-card accented" key={mistake.id} style={{ '--subject': subjectAccent(mistake.subject) }}>
               <div className="mistake-card-top">
@@ -224,6 +225,7 @@ export default function LibraryPage({
                 <button
                   className="secondary-button"
                   onClick={() => {
+                    feel('tap.primary');
                     setManualReviewId(mistake.id);
                     go('review');
                   }}
@@ -260,7 +262,7 @@ function LibraryEmpty({ noCards, onTutorial }) {
   const dailyPlayed = Boolean(dailyStatus().today);
 
   return (
-    <section className="empty-state">
+    <section className="empty-state fx-empty">
       <Jonaki mood={noCards ? 'idle' : 'think'} size={72} />
       <h3>{noCards ? t('empty.noCards.title') : 'No cards match this filter yet.'}</h3>
       <p>{noCards ? t('empty.noCards.body') : 'Choose another subject or category, or add a card here.'}</p>
