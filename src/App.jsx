@@ -1,5 +1,5 @@
 
-import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
 import { supabase } from './supabaseClient';
 import Landing from './components/Landing';
@@ -44,6 +44,8 @@ import PageLoading from './components/PageLoading';
 import { computeStreaks } from './analytics';
 import { streakTimes } from './streak/activity';
 import { noteLearning } from './sync/queue';
+import { earn, flushGlowEvents, glowChanged, useGlow } from './glow/store';
+import { recordActivity } from './streak/activity';
 import { pullDays, startSync } from './sync/sync';
 import { dailyStatus } from './daily/DailyTile';
 import PlayButton from './loop/PlayButton';
@@ -69,6 +71,7 @@ const Profile = lazy(() => import('./components/Profile'));
 const SnapSheet = lazy(() => import('./snap/SnapSheet'));
 const Daily = lazy(() => import('./daily/Daily.jsx'));
 const DoneToday = lazy(() => import('./loop/DoneToday'));
+const Celebrations = lazy(() => import('./glow/Celebrations'));
 const Pilot = lazy(() => import('./components/Pilot'));
 const Drill = lazy(() => import('./loop/Drill'));
 
@@ -117,6 +120,9 @@ const [authLoading, setAuthLoading] = useState(true);
   const [reviewSession, setReviewSession] = useState(null);
   // Every rating ever given, newest last. It feeds the dashboard.
   const [reviewLog, setReviewLog] = useState([]);
+  // The review log (and the account's learning days) have loaded: until then
+  // no milestone fires and no streak event is sent.
+  const [historyReady, setHistoryReady] = useState(false);
   const historySavingOk = useRef(true);
   const [manualReviewId, setManualReviewId] = useState(null);
   // Which subject the review section is showing (null = all subjects mixed).
@@ -434,6 +440,8 @@ useEffect(() => startSync(supabase, session?.user?.id), [session?.user?.id]);
 useEffect(() => {
   const userId = session?.user?.id;
 
+  setHistoryReady(false);
+
   if (!userId) {
     setReviewLog([]);
     return undefined;
@@ -475,6 +483,9 @@ useEffect(() => {
         at: new Date(row.created_at),
       }))
     );
+    // Other devices' Glow arrived with the learning days.
+    glowChanged();
+    setHistoryReady(true);
   }
 
   loadReviewLog();
@@ -605,6 +616,8 @@ async function handleReviewRating(rating, result) {
   }
 
   const now = new Date();
+  // Glow pays only for a card that was due (spec §2: no farming from Library).
+  const wasDue = !reviewMistake.nextReviewAt || new Date(reviewMistake.nextReviewAt) <= now;
   const scheduled = scheduleNext(rating, reviewMistake.reviewIntervalDays, now);
 
   if (!scheduled) return;
@@ -655,16 +668,18 @@ async function handleReviewRating(rating, result) {
       recalled: result ? (result === 'correct' || result === 'close') : (rating === 'good' || rating === 'easy'),
     });
 
+    const recalledNow = result ? result === 'correct' || result === 'close' : rating === 'good' || rating === 'easy';
+
     recordReview({
       cardId: reviewMistake.id,
       subject: reviewMistake.subject,
       category: reviewMistake.category,
       rating,
-      recalled: result
-        ? result === 'correct' || result === 'close'
-        : rating === 'good' || rating === 'easy',
+      recalled: recalledNow,
       intervalDays: nextIntervalDays,
     });
+    // A miss still pays 1, silently: no chime right after a wrong answer.
+    earn({ type: 'review', cardId: reviewMistake.id, due: wasDue, recalled: recalledNow }, { quiet: !recalledNow });
 
     if (manualReviewId !== null) {
       setManualReviewId(null);
@@ -865,6 +880,8 @@ async function addCard({
 
   trackEvent('mistake_saved', { method });
   if (mistakes.length === 0) trackEvent('first_mistake_saved', { method });
+  // Snaps pay 5 (first 3 a day), a kept practice miss 1, everything else 0.
+  earn({ type: 'card', method, cardId: row.id, ok: Boolean(row.question && row.correct_answer) });
 
   setMistakes((current) => [
     {
@@ -1163,6 +1180,11 @@ const reviewMistake =
 
   // Today's round (src/loop/): due cards, then the Daily, then the weakest-skill
   // drill. Hooks run before the early returns below.
+  // Glow (src/glow/): the lifetime total and today's, and the one streak for
+  // milestones. Re-read after every award (version).
+  const glow = useGlow();
+  const streakInfo = useMemo(() => computeStreaks(reviewLog, new Date(), streakTimes()), [reviewLog, glow.version]);
+
   const round = useRound({
     userId: session?.user?.id || null,
     cards: mistakes,
@@ -1289,6 +1311,9 @@ if (dataError) {
 
     setPathState((current) => ({ ...current, diagnostic: saved.diagnostic }));
     trackEvent('diagnostic_done', { path: pathState.path.pathId, kind: result.kind });
+    recordActivity('exam');
+    earn({ type: 'diagnostic', path: pathState.path.pathId, kind: result.kind });
+    flushGlowEvents();
 
     return {};
   }
@@ -1383,6 +1408,9 @@ if (dataError) {
 
     setPathState((current) => ({ ...current, mocks: [saved.mock, ...(current.mocks || [])] }));
     trackEvent('mock_done', { path: record.pathId });
+    recordActivity('exam');
+    earn({ type: 'mock', source: record.source, id: saved.mock?.id });
+    flushGlowEvents();
 
     return {};
   }
@@ -1530,6 +1558,9 @@ if (dataError) {
   if (page === 'review' || page === 'drill') {
     return (
       <div className="mq-flow">
+      <Suspense fallback={null}>
+        <Celebrations streak={streakInfo} ready={historyReady} />
+      </Suspense>
         <header className="mq-flow-bar">
           <a className="mq-flow-close" href={pageHref('today')} aria-label={lt('done.home')}>
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -1567,7 +1598,7 @@ if (dataError) {
               ) : round.drill ? (
                 <Drill source={round.drill} onFinish={round.markDrillDone} onDone={continueRound} onLeave={() => go('today')} onAddCards={addPracticeCards} onRemoveCards={removePracticeCards} />
               ) : (
-                <DoneToday cards={mistakes} play={play} onPlay={playNow} userId={session.user.id} plan={roundNow} dueCount={dueMistakes.length} onExtra={anotherRound} />
+                <DoneToday cards={mistakes} play={play} onPlay={playNow} userId={session.user.id} plan={roundNow} dueCount={dueMistakes.length} onExtra={anotherRound} glowToday={glow.today} />
               )}
             </Suspense>
           </PageErrorBoundary>
@@ -1591,6 +1622,9 @@ if (dataError) {
       />
       <MobileBar page={page} me={me} />
       <TabBar page={page} items={nav.tabs} />
+      <Suspense fallback={null}>
+        <Celebrations streak={streakInfo} ready={historyReady} />
+      </Suspense>
 
       {page === 'today' && <PlayButton state={play} onPlay={playNow} />}
 
@@ -1636,7 +1670,7 @@ if (dataError) {
         )}
 
         {page === 'done' && (
-          <DoneToday cards={mistakes} play={play} onPlay={playNow} userId={session.user.id} plan={roundNow} dueCount={dueMistakes.length} onExtra={anotherRound} />
+          <DoneToday cards={mistakes} play={play} onPlay={playNow} userId={session.user.id} plan={roundNow} dueCount={dueMistakes.length} onExtra={anotherRound} glowToday={glow.today} />
         )}
 
         {page === 'progress' && (

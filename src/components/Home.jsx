@@ -9,6 +9,7 @@ import CATALOG from '../../library/catalog.json';
 import { freeTotals } from '../practice/access';
 import DailyTile, { dailyStatus } from '../daily/DailyTile';
 import { streakTimes } from '../streak/activity';
+import GlowLine from '../glow/GlowLine';
 import PlayButton from '../loop/PlayButton';
 
 // The home page: one clear next step, a few numbers, and short links to the
@@ -188,6 +189,8 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
       </section>
       )}
 
+      <GlowLine streak={stats.streak} />
+
       {cards.length > 0 && (
         <dl className="mq-stats">
           <div>
@@ -271,7 +274,7 @@ export default function Home({ cards, reviews, dueCount, onReview, pathInfo = nu
           )
         )}
 
-        <DailyTile />
+        <DailyTile streak={stats.streak.current} />
 
         <a className="mq-tile mq-tile-invite" href={pageHref('practice')}>
           <header>

@@ -56,8 +56,8 @@ describe('sync queue', () => {
     const batch = buildBatch(store);
 
     expect(batch.days).toEqual([
-      { user_id: 'u1', day: '2026-11-25', actions: 4, sources: { review: 2, drill: 1, snap: 1 } },
-      { user_id: 'u1', day: '2026-11-26', actions: 1, sources: { snap: 1 } },
+      { user_id: 'u1', day: '2026-11-25', actions: 4, glow: 0, sources: { review: 2, drill: 1, snap: 1 } },
+      { user_id: 'u1', day: '2026-11-26', actions: 1, glow: 0, sources: { snap: 1 } },
     ]);
   });
 
@@ -96,7 +96,7 @@ describe('sync queue', () => {
 
     noteLearning('review', NOW, store, 'u1'); // arrives before the reply
     markSent(batch, undefined, store);
-    expect(buildBatch(store).days).toEqual([{ user_id: 'u1', day: '2026-11-25', actions: 2, sources: { review: 2 } }]);
+    expect(buildBatch(store).days).toEqual([{ user_id: 'u1', day: '2026-11-25', actions: 2, glow: 0, sources: { review: 2 } }]);
   });
 
   it('idempotent merge: max per source, so replaying a batch changes nothing', () => {

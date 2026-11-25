@@ -5,6 +5,7 @@ import { LanguageToggle, useI18n } from '../i18n';
 import MnemoqLogo from '../components/MnemoqLogo';
 import Jonaki from '../components/Jonaki';
 import { CATEGORY_LABEL } from './questions';
+import { earn, flushGlowEvents } from '../glow/store';
 import { BETS, ROUND_SIZE, dhakaDate, loadHistory, pointsFor, puzzleNumber, questionsFor, saveRound, scoreOf, streakOf } from './puzzle';
 import { bnDigits, makeT } from './strings';
 import { loadSettings, resolveMusic, saveSettings, setMusicOn, setSoundOn, sfx } from './audio';
@@ -164,6 +165,11 @@ export default function Daily({ inApp = null }) {
     setHistory(saved);
     setPhase('done');
     track('daily_finish', { page: 'daily', number, score: scoreOf(marks), lang });
+    // Glow, quietly (the round's own fanfare plays): 2 per lit lantern, 3 if
+    // bet "sure", +2 for finishing. Once per puzzle number.
+    marks.forEach((m, index) => earn({ type: 'daily', puzzle: number, index, correct: m.correct, sure: m.bet === 'sure' }, { quiet: true }));
+    earn({ type: 'daily.finish', puzzle: number }, { quiet: true });
+    flushGlowEvents();
     noteRoundDone('daily');
   }
 

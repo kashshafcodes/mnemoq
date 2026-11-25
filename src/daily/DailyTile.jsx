@@ -12,8 +12,11 @@ export function dailyStatus(now = new Date()) {
   return { number, today: history.plays[number] || null, streak: streakOf(history, number) };
 }
 
-export default function DailyTile() {
-  const { number, today, streak } = dailyStatus();
+// `streak`: the app's one streak (Home passes it); without it, this device's Daily days.
+export default function DailyTile({ streak: appStreak = null }) {
+  const status = dailyStatus();
+  const { number, today } = status;
+  const streak = appStreak ?? status.streak;
 
   return (
     <a className="mq-tile dly-tile" href="#/daily">

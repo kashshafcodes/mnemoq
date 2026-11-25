@@ -94,12 +94,14 @@ describe('daily scoring and sharing', () => {
     expect(shareText({ number: 4, marks, lang: 'bn' }).split('\n')[0]).toBe('Mnemoq ডেইলি #৪ · ৪/১৫');
   });
 
-  it('counts a streak of consecutive days', () => {
+  it('counts the one streak, with 2 free rest days in any 7', () => {
     const history = { plays: { 3: {}, 4: {}, 5: {} } };
 
     expect(streakOf(history, 5)).toBe(3);
     expect(streakOf(history, 6)).toBe(3); // today not played yet
-    expect(streakOf(history, 7)).toBe(0);
+    expect(streakOf(history, 7)).toBe(3); // day 6 is a rest day
+    expect(streakOf(history, 8)).toBe(3); // days 6 and 7: both rest days used
+    expect(streakOf(history, 9)).toBe(0); // a third miss in 7 days ends it
   });
 });
 

@@ -10,6 +10,8 @@ import { localizeQuestion } from '../practice/overlay';
 import KeptMisses from '../practice/KeptMisses';
 import { feel } from '../sensory';
 import { CountUp } from '../sensory/celebrate';
+import { earn, flushGlowEvents } from '../glow/store';
+import { recordActivity } from '../streak/activity';
 
 // The practice library (#/practice): thousands of questions in 20-question
 // sets, from openly licensed sources (library/SOURCES.md). The first half of
@@ -100,6 +102,9 @@ function Runner({ collection, n, questions, onDone, onQuit }) {
               onClick={(event) => {
                 feel(i === q.answer ? 'correct' : 'wrong', { el: event.currentTarget });
                 setPicked((p) => ({ ...p, [q.id]: i }));
+                // An answered practice question is a learning day; a right one pays 2 Glow (once a day).
+                recordActivity('practice');
+                earn({ type: 'practice', questionId: `${collection.id || collection}:${q.id}`, correct: i === q.answer });
               }}
             >
               <span className="try-letter">{LETTERS[i]}</span>
@@ -239,6 +244,7 @@ export default function Practice({ plan, onAddCards, onRemoveCards }) {
     saveProgress(next);
     setProgress(next);
     trackEvent('practice_done', { collection: view.collectionId, set: view.n, score });
+    flushGlowEvents();
     setView({ ...view, name: 'done', picked });
   }
 

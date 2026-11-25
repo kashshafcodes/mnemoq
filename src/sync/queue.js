@@ -4,7 +4,8 @@ import { dhakaDate } from '../daily/calendar';
 // Spec: company/product/phase2-glow-memory-map.md §8. Tables (supabase/account-sync.sql):
 //   learning_days    one row per Dhaka day with any learning: actions, sources {review, daily, drill, snap}
 //   daily_results    one row per Daily puzzle played
-//   learner_profile  the app language (milestones and Glow level arrive in wave 3)
+//                    and glow: { deviceId: that device's Glow for the day } (wave 3a)
+//   learner_profile  the app language, milestones_seen, glow_level_seen
 //
 // Everything waits in localStorage until it is sent, so offline work is never
 // lost; it is replayed on the next flush. Every write is an upsert of absolute
@@ -13,7 +14,7 @@ import { dhakaDate } from '../daily/calendar';
 
 export const QUEUE_KEY = 'mnemoq-sync';
 export const SERVER_KEY = 'mnemoq-sync-server';
-export const LEARNING_SOURCES = ['review', 'daily', 'drill', 'snap'];
+export const LEARNING_SOURCES = ['review', 'daily', 'drill', 'snap', 'practice', 'exam'];
 const KEEP_DAYS = 60; // the device tally only needs days that may still be unsent
 
 function storage() {
@@ -42,7 +43,7 @@ function write(store, key, value) {
   }
 }
 
-const empty = (user = null, lang = null) => ({ user, days: {}, dirty: [], results: {}, lang });
+const empty = (user = null, lang = null) => ({ user, days: {}, dirty: [], results: {}, lang, seen: null });
 
 // ---- who is signed in --------------------------------------------------------
 
@@ -81,6 +82,7 @@ export function loadQueue(store = storage()) {
     dirty: Array.isArray(state.dirty) ? state.dirty : [],
     results: state.results && typeof state.results === 'object' ? state.results : {},
     lang: state.lang === 'bn' || state.lang === 'en' ? state.lang : null,
+    seen: state.seen && typeof state.seen === 'object' ? state.seen : null,
   };
 }
 
@@ -107,6 +109,46 @@ export function noteLearning(kind, at = new Date(), store = storage(), user = ac
   state.dirty = state.dirty.filter((d) => state.days[d]);
   write(store, QUEUE_KEY, state);
   onQueued?.(kind === 'daily' || kind === 'drill' ? 'now' : 'soon');
+}
+
+// This device's Glow for a Dhaka day (an absolute total, not "+n"), kept in
+// that day's sources as glow: { [device]: n }. Each device writes only its
+// own entry, so two phones add up instead of overwriting each other.
+export function noteGlow(day, amount, device, store = storage(), user = activeUser) {
+  if (!user || !day || !device) return;
+
+  const state = loadQueue(store);
+
+  if (state.user !== user) return;
+
+  const sources = { ...(state.days[day] || {}) };
+
+  sources.glow = { ...(sources.glow || {}), [device]: Math.max(0, Math.round(Number(amount) || 0)) };
+  state.days[day] = sources;
+  if (!state.dirty.includes(day)) state.dirty.push(day);
+  write(store, QUEUE_KEY, state);
+  onQueued?.('soon');
+}
+
+// Milestones and the Glow level already celebrated (learner_profile), so
+// they never fire twice on any device. Union and max: never goes back.
+export function queueSeen(seen, store = storage(), user = activeUser) {
+  if (!user) return;
+
+  const state = loadQueue(store);
+
+  if (state.user !== user) return;
+
+  state.seen = mergeSeen(state.seen, seen);
+  write(store, QUEUE_KEY, state);
+  onQueued?.('soon');
+}
+
+export function mergeSeen(a, b) {
+  const milestones = [...new Set([...(a?.milestones || []), ...(b?.milestones || [])])].sort();
+  const level = Math.max(1, Number(a?.level) || 1, Number(b?.level) || 1);
+
+  return { milestones, level };
 }
 
 // One Daily play: { marks, score, at } as saved by the Daily (src/daily/puzzle.js).
@@ -137,10 +179,20 @@ export function queueLang(lang, store = storage()) {
 // Per source, the larger count. Max (not sum) keeps a replayed or repeated
 // write idempotent; a second device's counts may be under-counted, which only
 // affects the "actions" number, never whether a day counts.
+// Glow is per device (sources.glow = { device: n }): the same max per device
+// keeps it idempotent, and the day's Glow is the sum over devices, so two
+// phones add up and a replay counts once.
 export function mergeSources(server = {}, device = {}) {
   const out = {};
 
   for (const source of new Set([...Object.keys(server || {}), ...Object.keys(device || {})])) {
+    if (source === 'glow') {
+      const glow = mergeSources(server?.glow, device?.glow);
+
+      if (Object.keys(glow).length) out.glow = glow;
+      continue;
+    }
+
     const n = Math.max(Number(server?.[source]) || 0, Number(device?.[source]) || 0);
 
     if (n > 0) out[source] = n;
@@ -149,7 +201,10 @@ export function mergeSources(server = {}, device = {}) {
   return out;
 }
 
-const total = (sources) => Object.values(sources).reduce((sum, n) => sum + (Number(n) || 0), 0);
+const total = (sources) => Object.entries(sources || {}).reduce((sum, [key, n]) => (key === 'glow' ? sum : sum + (Number(n) || 0)), 0);
+
+// The day's Glow: every device's entry added up.
+export const glowOf = (sources) => Object.values(sources?.glow || {}).reduce((sum, n) => sum + (Number(n) || 0), 0);
 
 export function loadServer(store = storage()) {
   const cache = read(store, SERVER_KEY, null);
@@ -162,10 +217,37 @@ export function saveServerDays(user, rows, store = storage()) {
   const days = {};
 
   for (const row of rows || []) {
-    if (row?.day) days[String(row.day).slice(0, 10)] = row.sources && typeof row.sources === 'object' ? row.sources : {};
+    if (!row?.day) continue;
+
+    const sources = row.sources && typeof row.sources === 'object' ? { ...row.sources } : {};
+
+    // A row with Glow but no per-device split keeps its total as one entry.
+    if (!sources.glow && Number(row.glow) > 0) sources.glow = { account: Number(row.glow) };
+    days[String(row.day).slice(0, 10)] = sources;
   }
 
-  write(store, SERVER_KEY, { user, days });
+  const old = loadServer(store);
+
+  write(store, SERVER_KEY, { ...(old.user === user ? old : {}), user, days });
+}
+
+// learner_profile as pulled on sign-in: what was already celebrated.
+export function saveServerSeen(user, row, store = storage()) {
+  const old = loadServer(store);
+  const base = old.user === user ? old : { user, days: {} };
+  const seen = { milestones: Array.isArray(row?.milestones_seen) ? row.milestones_seen : [], level: Number(row?.glow_level_seen) || 1 };
+
+  write(store, SERVER_KEY, { ...base, user, seen, seenPulled: true });
+}
+
+// What the account and this device have celebrated, and whether the account's
+// list has arrived (until it has, a signed-in device does not celebrate).
+export function knownSeen(store = storage(), user = activeUser) {
+  const server = loadServer(store);
+  const state = loadQueue(store);
+  const own = Boolean(user) && server.user === user;
+
+  return { seen: mergeSeen(own ? server.seen : null, state.user === user ? state.seen : null), pulled: Boolean(own && server.seenPulled) };
 }
 
 // What one flush sends. -> { user, days: [rows], results: [rows], profile: row | null }
@@ -182,11 +264,25 @@ export function buildBatch(store = storage()) {
     .map((day) => {
       const sources = mergeSources(known[day], state.days[day]);
 
-      return { user_id: user, day, actions: total(sources), sources };
+      return { user_id: user, day, actions: total(sources), glow: glowOf(sources), sources };
     });
   const results = Object.entries(state.results).map(([number, row]) => ({ user_id: user, number: Number(number), ...row }));
 
-  return { user, days, results, profile: state.lang ? { user_id: user, lang: state.lang } : null };
+  let profile = null;
+
+  if (state.lang || state.seen) {
+    profile = { user_id: user };
+    if (state.lang) profile.lang = state.lang;
+    if (state.seen) {
+      // Union with what the account already had, so a write never removes one.
+      const seen = mergeSeen(server.user === user ? server.seen : null, state.seen);
+
+      profile.milestones_seen = seen.milestones;
+      profile.glow_level_seen = seen.level;
+    }
+  }
+
+  return { user, days, results, profile };
 }
 
 // After a part of the batch was saved: drop exactly what was sent (anything
@@ -204,10 +300,10 @@ export function markSent(batch, parts = { days: true, results: true, profile: tr
       days[row.day] = row.sources;
       const now = mergeSources(days[row.day], state.days[row.day]);
       // Still dirty only if something new was queued while this was in flight.
-      if (total(now) === total(row.sources)) state.dirty = state.dirty.filter((d) => d !== row.day);
+      if (total(now) === total(row.sources) && glowOf(now) === glowOf(row.sources)) state.dirty = state.dirty.filter((d) => d !== row.day);
     }
 
-    write(store, SERVER_KEY, { user: state.user, days });
+    write(store, SERVER_KEY, { ...server, user: state.user, days });
   }
 
   if (parts.results) {
@@ -216,7 +312,18 @@ export function markSent(batch, parts = { days: true, results: true, profile: tr
     }
   }
 
-  if (parts.profile && batch.profile && state.lang === batch.profile.lang) state.lang = null;
+  if (parts.profile && batch.profile) {
+    if (state.lang === batch.profile.lang) state.lang = null;
+    if (batch.profile.milestones_seen) {
+      const server = loadServer(store);
+      const sent = { milestones: batch.profile.milestones_seen, level: batch.profile.glow_level_seen };
+
+      if (server.user === state.user) write(store, SERVER_KEY, { ...server, seen: mergeSeen(server.seen, sent) });
+      // Still queued only if something new was celebrated while this was in flight.
+      const left = mergeSeen(state.seen, null);
+      if (left.level <= sent.level && left.milestones.every((m) => sent.milestones.includes(m))) state.seen = null;
+    }
+  }
 
   write(store, QUEUE_KEY, state);
 }
@@ -234,4 +341,13 @@ export function serverDayTimes(store = storage(), user = activeUser) {
   if (!user || server.user !== user) return [];
 
   return Object.keys(server.days).map((day) => `${day}T12:00:00+06:00`);
+}
+
+// The account's Glow per day, per device, for the lifetime total.
+export function serverGlowDays(store = storage(), user = activeUser) {
+  const server = loadServer(store);
+
+  if (!user || server.user !== user) return {};
+
+  return Object.fromEntries(Object.entries(server.days).map(([day, sources]) => [day, sources?.glow || {}]));
 }

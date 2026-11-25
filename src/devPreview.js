@@ -62,11 +62,13 @@ function sampleCards() {
   }));
 }
 
-function sampleReviews(cards) {
+// `?preview=rest`: yesterday has no reviews, to see a rest day (wave 3a).
+function sampleReviews(cards, { skipDay = null } = {}) {
   const out = [];
   let id = 1;
 
   for (let day = 12; day >= 1; day -= 1) {
+    if (day === skipDay) continue;
     for (const card of cards.slice(0, 2 + (day % 4))) {
       out.push({
         id: id++,
@@ -141,7 +143,7 @@ export function createPreviewClient(mode) {
   const cards = mode === 'new' ? [] : sampleCards();
   const db = {
     mistakes: cards,
-    reviews: mode === 'new' ? [] : sampleReviews(cards),
+    reviews: mode === 'new' ? [] : sampleReviews(cards, { skipDay: mode === 'rest' ? 1 : null }),
     user_paths:
       mode === 'sat' || mode === 'nsu' || mode === 'brac'
         ? [{ user_id: 'preview-user', path_id: mode, is_active: true, exam_date: iso(60).slice(0, 10), target_score: mode === 'sat' ? 1400 : 75, updated_at: iso(0) }]

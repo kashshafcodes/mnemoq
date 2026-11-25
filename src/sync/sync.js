@@ -1,5 +1,5 @@
 import { loadHistory } from '../daily/calendar';
-import { batchIsEmpty, buildBatch, markSent, noteLearning, onQueue, queueDailyResult, saveServerDays, setSyncUser, syncUser } from './queue';
+import { batchIsEmpty, buildBatch, markSent, noteLearning, onQueue, queueDailyResult, saveServerDays, saveServerSeen, setSyncUser, syncUser } from './queue';
 
 // Account sync, the network part. App.jsx starts it when someone signs in and
 // stops it when they sign out. It flushes the queue (src/sync/queue.js):
@@ -76,7 +76,8 @@ function dhakaDaysAgo(n) {
   return new Date(Date.now() + 6 * 3600000 - n * 864e5).toISOString().slice(0, 10);
 }
 
-// The account's learning days, saved for the streak. One pull per sign-in;
+// The account's learning days (with each device's Glow) and the celebrated
+// milestones, saved for the streak, Glow and milestones. One pull per sign-in;
 // App.jsx waits for it before the review log, so the first streak shown
 // already includes other devices. Offline it resolves at once with the
 // device record (the last pulled days stay cached).
@@ -88,10 +89,15 @@ export function pullDays(user) {
     if (!online()) return false;
 
     try {
-      const { data, error } = await client.from('learning_days').select('day, sources').eq('user_id', user).gte('day', dhakaDaysAgo(PULL_DAYS)).limit(1000);
+      const [days, profile] = await Promise.all([
+        client.from('learning_days').select('day, sources, glow').eq('user_id', user).gte('day', dhakaDaysAgo(PULL_DAYS)).limit(1000),
+        client.from('learner_profile').select('milestones_seen, glow_level_seen').eq('user_id', user).maybeSingle(),
+      ]);
 
-      if (error) return false;
-      saveServerDays(user, data);
+      if (days.error) return false;
+      saveServerDays(user, days.data);
+      // What was already celebrated on any device (no row yet = nothing).
+      if (!profile.error) saveServerSeen(user, profile.data);
       return true;
     } catch {
       return false;

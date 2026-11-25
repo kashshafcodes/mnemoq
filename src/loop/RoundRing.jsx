@@ -1,5 +1,7 @@
 import Jonaki from '../components/Jonaki';
 import { useLoopT } from './strings';
+import { useGlow } from '../glow/store';
+import { jonakiGlow } from '../glow/glow';
 import './round.css';
 
 // The progress ring of Today's round: one segment per step, filled only by
@@ -35,7 +37,9 @@ export default function RoundRing({ plan, size = 168, skeleton = false }) {
   const seg = slice - gap;
   const left = skeleton ? 0 : plan.steps.filter((s) => !s.done && !s.skipped).length;
   const mood = skeleton ? 'idle' : plan.allDone ? 'sleep' : plan.doneCount > 0 ? 'happy' : 'idle';
-  const glow = skeleton || plan.total === 0 ? 0.4 : 0.35 + 0.6 * (plan.doneCount / plan.total);
+  // Jonaki's brightness is lifetime Glow (spec §2), so it only ever grows.
+  const { total } = useGlow();
+  const glow = jonakiGlow(total);
   const label = skeleton ? t('round.loading.aria') : t('round.ring.aria', { done: plan.doneCount, total: plan.total });
 
   return (

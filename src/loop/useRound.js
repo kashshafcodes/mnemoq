@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { dhakaDate } from '../daily/calendar';
 import { dailyStatus } from '../daily/DailyTile';
+import { earn, flushGlowEvents } from '../glow/store';
 import { feel, roundMusic } from '../sensory';
 import { track } from '../track';
 import { cardsProgress, newRecord, playFromRound, roundPlan } from './roundPlan';
@@ -119,6 +120,9 @@ export function useRound({ userId, cards, dueCards, reviews, weakest, ready, pro
       // The round's music resolves to the home chord under the fanfare.
       feel('round.done');
       roundMusic.resolve();
+      // +10 Glow once a Dhaka day; quiet, the round's fanfare is the reward.
+      earn({ type: 'round' }, { quiet: true });
+      flushGlowEvents();
       track('round_done', { steps_done: plan.doneCount, total: plan.total, skipped: plan.steps.filter((s) => s.skipped).length, extra_rounds: live.extra || 0 });
     } else {
       feel('step.done');

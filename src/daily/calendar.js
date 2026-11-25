@@ -1,3 +1,5 @@
+import { streakFromNumbers } from '../glow/streak';
+
 // The Daily's calendar and this device's play history, without the question
 // pool. Home, the Play button and the streak need only this, so the 150
 // questions stay out of the app's first download (puzzle.js re-exports it all).
@@ -40,18 +42,14 @@ export function loadHistory() {
   }
 }
 
-// Days in a row ending today (or yesterday, if today is not played yet).
+// The Daily's streak on /daily (no account there): the one streak rule
+// (src/glow/streak.js, 2 free rest days in any 7) on puzzle numbers, which are
+// Dhaka days. Inside the app the Daily shows computeStreaks, the same rule
+// with every kind of learning.
 export function streakOf(history, today) {
-  const played = (n) => Boolean(history.plays?.[n]);
-  let day = played(today) ? today : today - 1;
-  let streak = 0;
+  const played = Object.keys(history.plays || {}).filter((n) => history.plays[n]).map(Number);
 
-  while (day >= 1 && played(day)) {
-    streak += 1;
-    day -= 1;
-  }
-
-  return streak;
+  return streakFromNumbers(played, today).current;
 }
 
 // When each Daily round was finished (ISO times), for the shared streak.

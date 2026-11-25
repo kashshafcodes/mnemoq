@@ -5,6 +5,7 @@ import { trackEvent } from '../googleAnalytics';
 import { track } from '../track';
 import { feel } from '../sensory';
 import { recordActivity } from '../streak/activity';
+import { earn, flushGlowEvents } from '../glow/store';
 import RichText from '../components/RichText';
 import Jonaki from '../components/Jonaki';
 import { useLoopT } from './strings';
@@ -119,6 +120,7 @@ export default function Drill({ source, onFinish, onDone, onLeave, onAddCards, o
 
     feel(i === q.answer ? 'correct' : 'wrong');
     setPicked((p) => ({ ...p, [q.id]: i }));
+    earn({ type: 'practice', questionId: `${source.collection}:${q.id}`, correct: i === q.answer });
   }
 
   function next() {
@@ -133,6 +135,7 @@ export default function Drill({ source, onFinish, onDone, onLeave, onAddCards, o
     trackEvent('practice_done', { collection: source.collection, set: source.set, score: finalScore, from: 'drill' });
     track('drill_finish', { skill: source.skill, n: questions.length, correct: finalScore, ms });
     recordActivity('drill');
+    flushGlowEvents();
     onFinish?.();
     setIndex(questions.length);
   }

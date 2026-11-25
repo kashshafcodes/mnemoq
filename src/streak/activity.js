@@ -6,6 +6,8 @@ import { noteLearning, serverDayTimes } from '../sync/queue';
 //   Daily rounds   (src/daily/calendar.js)
 //   drills         a finished 5-question drill in Today's round
 //   snaps          a card made with Snap a mistake
+//   practice       a practice-library question answered
+//   exam           a mock test or diagnostic finished
 // Drills and snaps are kept on this device, like Daily plays. When signed in,
 // the days saved to the account (learning_days, src/sync/) join the list, so
 // the streak matches across devices; signed out or offline, the device record
@@ -14,7 +16,7 @@ import { noteLearning, serverDayTimes } from '../sync/queue';
 const KEY = 'mnemoq-activity';
 const KEEP = 400; // about a year of days, more than any streak needs
 
-export const SOURCES = ['drill', 'snap'];
+export const SOURCES = ['drill', 'snap', 'practice', 'exam'];
 
 function storage() {
   try {

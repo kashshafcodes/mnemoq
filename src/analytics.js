@@ -5,6 +5,7 @@
 // Pure functions (no React, no network), so they are easy to test.
 
 import { getSubjectNames, sameName } from './subjects';
+import { streakFromTimes } from './glow/streak';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -70,41 +71,12 @@ export function formatDays(days) {
   return `${Math.round(n / 30)} months`;
 }
 
-// Whole days with at least one review -> { current, best }.
-// The current streak stays alive until the end of the day after the last review.
-// `extraDays` are other moments that count as a day of study, such as finished
-// Daily rounds (dates or ISO times). They come from this device for now; days
-// saved to the account can be added to the same list later.
+// The one streak (src/glow/streak.js): Dhaka days with any learning, up to 2
+// free rest days in any 7. -> { current, best, reviewedToday, restUsed, atRisk, days }
+// `extraDays` are other moments that count as a day of study: Daily rounds,
+// drills, snaps and the account's learning days (src/streak/activity.js).
 export function computeStreaks(reviews, now = new Date(), extraDays = []) {
-  const days = new Set([...reviews.map((entry) => dayKey(entry.at)), ...extraDays.filter(Boolean).map((at) => dayKey(at))]);
-
-  if (days.size === 0) return { current: 0, best: 0, reviewedToday: false };
-
-  const reviewedToday = days.has(dayKey(now));
-  let cursor = reviewedToday ? startOfDay(now) : addDays(now, -1);
-  let current = 0;
-
-  while (days.has(dayKey(cursor))) {
-    current += 1;
-    cursor = addDays(cursor, -1);
-  }
-
-  const sorted = [...days].sort();
-  let best = 0;
-  let run = 0;
-  let previous = null;
-
-  for (const key of sorted) {
-    const date = new Date(`${key}T00:00:00`);
-
-    if (previous && Math.round((date - previous) / DAY) === 1) run += 1;
-    else run = 1;
-
-    best = Math.max(best, run);
-    previous = date;
-  }
-
-  return { current, best, reviewedToday };
+  return streakFromTimes([...reviews.map((entry) => entry.at), ...extraDays.filter(Boolean)], now);
 }
 
 // One entry per day for the last `count` days (oldest first).
@@ -313,8 +285,6 @@ export function computeBadges(stats) {
     badge('reviews-50', 'Getting serious', 'Complete 50 reviews', stats.reviewsTotal, 50),
     badge('first-mastered', 'Locked in', 'Master your first card', stats.mastered, 1),
     badge('five-mastered', 'High five', 'Master 5 cards', stats.mastered, 5),
-    badge('streak-3', 'Three in a row', 'Review 3 days in a row', stats.streak.best, 3),
-    badge('streak-7', 'A full week', 'Review 7 days in a row', stats.streak.best, 7),
     badge('long-memory', 'Long memory', 'Hold a card for 14+ days between reviews', stats.longestIntervalDays, 14),
     badge('comeback', 'Comeback', 'Turn a missed card into a correct one', stats.turnarounds, 1),
   ];

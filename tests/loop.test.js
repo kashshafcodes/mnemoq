@@ -95,7 +95,7 @@ describe('one streak: reviews and Daily rounds', () => {
   it('works with Daily rounds alone, and computeAnalytics passes them through', () => {
     const plays = [day(-1).toISOString(), day(0).toISOString()];
 
-    expect(computeStreaks([], now, plays)).toEqual({ current: 2, best: 2, reviewedToday: true });
+    expect(computeStreaks([], now, plays)).toMatchObject({ current: 2, best: 2, reviewedToday: true, restUsed: 0, atRisk: false });
     expect(computeAnalytics([], [], now, { extraDays: plays }).stats.streak.current).toBe(2);
     expect(computeAnalytics([], [], now).stats.streak.current).toBe(0);
   });
