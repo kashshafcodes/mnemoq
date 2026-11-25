@@ -43,6 +43,8 @@ import './polish.css';
 import PageLoading from './components/PageLoading';
 import { computeStreaks } from './analytics';
 import { streakTimes } from './streak/activity';
+import { noteLearning } from './sync/queue';
+import { pullDays, startSync } from './sync/sync';
 import { dailyStatus } from './daily/DailyTile';
 import PlayButton from './loop/PlayButton';
 import TodayRound from './loop/TodayRound';
@@ -413,6 +415,11 @@ useEffect(() => {
 }, [session?.user?.id]);
 
 
+// Account sync (src/sync/): learning days, Daily results and the app
+// language, while signed in. Declared before the review log so its pull of
+// the account's days has started when the log loads.
+useEffect(() => startSync(supabase, session?.user?.id), [session?.user?.id]);
+
 // Review history for the dashboard. If the table isn't set up yet, the
 // dashboard still works from the cards themselves.
 useEffect(() => {
@@ -426,12 +433,17 @@ useEffect(() => {
   let cancelled = false;
 
   async function loadReviewLog() {
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('id, mistake_id, subject, category, rating, recalled, interval_days, created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: true })
-      .limit(5000);
+    // The account's learning days arrive with the log, so the first streak
+    // shown already counts other devices.
+    const [{ data, error }] = await Promise.all([
+      supabase
+        .from('reviews')
+        .select('id, mistake_id, subject, category, rating, recalled, interval_days, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true })
+        .limit(5000),
+      pullDays(userId),
+    ]);
 
     if (cancelled) return;
 
@@ -553,6 +565,7 @@ async function recordReview(entry) {
     ...current,
     { ...entry, id: `local-${at.getTime()}-${current.length}`, at },
   ]);
+  noteLearning('review', at);
 
   if (!historySavingOk.current) return;
 

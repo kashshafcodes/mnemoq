@@ -4,6 +4,7 @@
 
 import { CATEGORIES, QUESTIONS } from './questions';
 
+import { noteLearning, queueDailyResult } from '../sync/queue';
 import { HISTORY_KEY, MAX_SCORE, ROUND_SIZE, dhakaDate, loadHistory, msUntilNext, puzzleNumber, streakOf } from './calendar';
 
 export { MAX_SCORE, ROUND_SIZE, dhakaDate, loadHistory, msUntilNext, puzzleNumber, streakOf };
@@ -141,6 +142,10 @@ export function saveRound(number, marks) {
   } catch {
     // Private mode: the round still shows, it just is not remembered.
   }
+
+  // The account copy (signed in only; guest play stays on this device).
+  queueDailyResult(number, history.plays[number]);
+  noteLearning('daily', history.plays[number].at);
 
   return history;
 }

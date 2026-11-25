@@ -90,3 +90,48 @@ export async function aiResetsAt(cfg, token, now = Date.now()) {
 
   return times.length > 0 ? new Date(Math.min(...times) + 24 * 60 * 60 * 1000).toISOString() : null;
 }
+
+// ---- Snap attempt cap ------------------------------------------------------
+// An unreadable, failed or busy read costs the student no snap, so without a
+// second counter one account could make unlimited Gemini calls and use up the
+// free-tier rate limit for everyone. Every Snap call (card or not) adds a row
+// to snap_attempts (supabase/snap-attempts.sql: read and add own rows only, so
+// the owner of the rows cannot reset it). The cap is ATTEMPT_FACTOR x the
+// person's snap allowance in the last 24 hours.
+//
+// Until that table exists the count reads as null and the cap is skipped
+// (fail open), so Snap keeps working; the shared allowance and the site budget
+// still apply.
+
+export const ATTEMPT_FACTOR = 3;
+
+export function attemptCap(limit) {
+  return Math.max(1, Number(limit) || 1) * ATTEMPT_FACTOR;
+}
+
+// true when this person may make one more Snap call. attempts null = unknown.
+export function attemptAllowed(attempts, limit) {
+  if (attempts === null || attempts === undefined || !Number.isFinite(limit)) return true;
+
+  return attempts < attemptCap(limit);
+}
+
+export async function snapAttempts(cfg, token, now = Date.now()) {
+  const since = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+
+  return countSince(cfg, token, 'snap_attempts', since).catch(() => null);
+}
+
+export async function recordSnapAttempt(cfg, token) {
+  try {
+    const res = await fetch(`${cfg.url}/rest/v1/snap_attempts`, {
+      method: 'POST',
+      headers: { apikey: cfg.key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: '{}',
+    });
+
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

@@ -1,12 +1,15 @@
 import { playTimes } from '../daily/calendar';
+import { noteLearning, serverDayTimes } from '../sync/queue';
 
 // The one streak counts every kind of learning, not just card reviews:
 //   reviews        (the review log, passed to computeStreaks directly)
 //   Daily rounds   (src/daily/calendar.js)
 //   drills         a finished 5-question drill in Today's round
 //   snaps          a card made with Snap a mistake
-// Drills and snaps are kept on this device, like Daily plays. Days saved to
-// the account join this list in wave 2b (learning_days).
+// Drills and snaps are kept on this device, like Daily plays. When signed in,
+// the days saved to the account (learning_days, src/sync/) join the list, so
+// the streak matches across devices; signed out or offline, the device record
+// is the fallback.
 
 const KEY = 'mnemoq-activity';
 const KEEP = 400; // about a year of days, more than any streak needs
@@ -46,10 +49,12 @@ export function recordActivity(kind, at = new Date(), store = storage()) {
   } catch {
     // Storage full or blocked: the streak just misses this one.
   }
+
+  noteLearning(kind, at);
 }
 
 // Every non-review moment that counts as a day of study, for computeStreaks'
 // `extraDays`.
-export function streakTimes({ plays = playTimes(), activity = loadActivity() } = {}) {
-  return [...plays, ...activity.map((item) => item.at)];
+export function streakTimes({ plays = playTimes(), activity = loadActivity(), account = serverDayTimes() } = {}) {
+  return [...plays, ...activity.map((item) => item.at), ...account];
 }

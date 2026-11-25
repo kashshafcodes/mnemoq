@@ -2,7 +2,7 @@ import { supabase } from '../supabaseClient';
 import { AiError } from '../aiSuggest';
 import { previewMode } from '../devPreview';
 
-export { tomorrowMorningDhaka } from './due';
+export { firstReviewAt } from './due';
 
 // Talks to api/snap.js. Throws AiError with a short `code` the sheet turns
 // into text: auth, limit, busy, failed, config, input, too_long, too_big,

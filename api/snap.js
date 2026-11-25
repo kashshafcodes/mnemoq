@@ -13,7 +13,7 @@
 //   GEMINI_MODEL         optional, default "gemini-flash-lite-latest" (typed snaps)
 //   GROQ_API_KEY         optional, text-only fallback for typed snaps (photos have none)
 
-import { PRO_DAILY, aiAllowance, aiResetsAt, limitMessage } from './_aiLimit.js';
+import { PRO_DAILY, aiAllowance, aiResetsAt, attemptAllowed, limitMessage, recordSnapAttempt, snapAttempts } from './_aiLimit.js';
 import { BUDGET_MESSAGE, globalAiBudgetOk } from './_guard.js';
 import { ProviderError, askGroq, clean, getUser, hasUnlimitedAi, norm, recordUse, supabaseConfig } from './suggest.js';
 
@@ -337,6 +337,17 @@ export default async function handler(req, res, env = process.env) {
   }
 
   if (!env.GEMINI_API_KEY && !env.GROQ_API_KEY) return send(res, 503, { error: MESSAGES.config, code: 'config' });
+
+  // The attempt cap (api/_aiLimit.js): reads that cost no snap are still
+  // counted here, so one account cannot make unlimited AI calls. Past it the
+  // student sees the usual "busy" copy.
+  if (!unlimited) {
+    if (!attemptAllowed(await snapAttempts(cfg, token), limit)) {
+      return send(res, 429, { error: BUDGET_MESSAGE, code: 'busy', remaining: left });
+    }
+
+    await recordSnapAttempt(cfg, token);
+  }
 
   const outcome = await makeSnap(env, input);
 

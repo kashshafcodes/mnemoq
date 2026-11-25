@@ -10,7 +10,7 @@ import { canonicalCategory, canonicalSubject, getSubjectNames } from '../subject
 import { useOnline } from '../loop/useRound';
 import { recordActivity } from '../streak/activity';
 import { MAX_BYTES, resizeImage } from './resizeImage';
-import { requestSnap, snapAllowance, tomorrowMorningDhaka } from './snapClient';
+import { requestSnap, snapAllowance, firstReviewAt } from './snapClient';
 import SnapCard from './SnapCard';
 import ImportPanel from './ImportPanel';
 import { useSnapT, waitText } from './strings';
@@ -158,7 +158,7 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
       yourAnswer: card.yourAnswer || '',
       explanation: card.hook || '',
       distractors: card.distractors || [],
-      nextReviewAt: tomorrowMorningDhaka().toISOString(),
+      nextReviewAt: firstReviewAt(),
       method: 'snap',
     });
 
@@ -319,7 +319,7 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
       correctAnswer: card.answer,
       yourAnswer: '',
       explanation: '',
-      nextReviewAt: tomorrowMorningDhaka().toISOString(),
+      nextReviewAt: firstReviewAt(),
       method: 'snap_offline',
     });
 
@@ -331,6 +331,7 @@ export default function SnapSheet({ cards = [], from = 'tab', onSave, onUpdate, 
     setText('');
     setOfflineAnswer('');
     setToast(t('snap.saved'));
+    recordActivity('snap');
   }
 
   function limitChoice(choice) {

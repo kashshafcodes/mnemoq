@@ -6,6 +6,7 @@
 // are not translated yet keep working.
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { queueLang } from './sync/queue';
 
 const LANG_KEY = 'mnemoq-lang';
 
@@ -471,6 +472,7 @@ export function I18nProvider({ children }) {
   // Reminders are sent in the app language: save it on open and on every switch.
   useEffect(() => {
     import('./reminders').then((m) => m.syncReminderLang(lang)).catch(() => {});
+    queueLang(lang); // learner_profile.lang (src/sync/)
   }, [lang]);
 
   const value = useMemo(() => {

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import handler, { makeSnap, readSnapInput, sanitizeSnap, scriptOf } from '../api/snap.js';
-import { aiResetsAt } from '../api/_aiLimit.js';
+import { aiResetsAt, attemptAllowed, attemptCap } from '../api/_aiLimit.js';
 import { base64Bytes, fitWithin, MAX_SIDE } from '../src/snap/resizeImage.js';
 import { snapT, waitText } from '../src/snap/strings.js';
 import { computeStreaks } from '../src/analytics.js';
@@ -115,8 +115,8 @@ describe('resizeImage bounds', () => {
 
 const env = { VITE_SUPABASE_URL: 'https://db', VITE_SUPABASE_PUBLISHABLE_KEY: 'anon', GEMINI_API_KEY: 'k' };
 
-function fakeWorld({ used = 0, pro = false, gemini = good, geminiStatus = 200, oldest = null } = {}) {
-  const calls = { recorded: 0, gemini: [] };
+function fakeWorld({ used = 0, pro = false, gemini = good, geminiStatus = 200, oldest = null, attempts = null } = {}) {
+  const calls = { recorded: 0, gemini: [], attempts: 0 };
 
   vi.stubGlobal(
     'fetch',
@@ -130,6 +130,12 @@ function fakeWorld({ used = 0, pro = false, gemini = good, geminiStatus = 200, o
         calls.recorded += 1;
         return { ok: true };
       }
+      if (u.includes('/snap_attempts') && attempts === null) return { ok: false, status: 404 };
+      if (u.includes('/snap_attempts') && init.method === 'POST') {
+        calls.attempts += 1;
+        return { ok: true };
+      }
+      if (u.includes('/snap_attempts')) return counted(attempts);
       if (u.includes('order=created_at.asc')) return { ok: true, json: async () => (oldest && u.includes('/ai_usage') ? [{ created_at: oldest }] : []) };
       if (u.includes('/ai_usage')) return counted(used);
       if (u.includes('/coach_usage')) return counted(0);
@@ -247,6 +253,50 @@ describe('/api/snap quota paths', () => {
     expect(await makeSnap({}, { mode: 'text', text: 'q' })).toEqual({ notConfigured: true });
   });
 
+  it('counts every call as an attempt, card or not', async () => {
+    const calls = fakeWorld({ attempts: 3, gemini: { readable: false, reason: 'blurry', question: '', answer: '', sure: false } });
+    const res = await handler(post({ mode: 'photo', image: JPEG }), fakeRes(), env);
+
+    expect(res.body.readable).toBe(false);
+    expect(calls.attempts).toBe(1);
+    expect(calls.recorded).toBe(0);
+  });
+
+  it('past 3 x the snap limit of attempts in 24 h, says busy before any AI call', async () => {
+    const calls = fakeWorld({ attempts: 15 });
+    const res = await handler(post({ mode: 'text', text: 'q?' }), fakeRes(), env);
+
+    expect(res.statusCode).toBe(429);
+    expect(res.body).toMatchObject({ code: 'busy', remaining: 5 });
+    expect(calls.gemini).toHaveLength(0);
+    expect(calls.attempts).toBe(0);
+  });
+
+  it('Pro gets a bigger attempt cap (150)', async () => {
+    const calls = fakeWorld({ attempts: 100, pro: true });
+    const res = await handler(post({ mode: 'text', text: 'q?' }), fakeRes(), env);
+
+    expect(res.body.readable).toBe(true);
+    expect(calls.gemini).toHaveLength(1);
+  });
+
+  it('skips the attempt cap while the counter table is missing (fail open)', async () => {
+    const calls = fakeWorld({ attempts: null });
+    const res = await handler(post({ mode: 'text', text: 'q?' }), fakeRes(), env);
+
+    expect(res.statusCode).toBe(200);
+    expect(calls.gemini).toHaveLength(1);
+  });
+
+  it('attemptCap and attemptAllowed', () => {
+    expect(attemptCap(5)).toBe(15);
+    expect(attemptCap(50)).toBe(150);
+    expect(attemptAllowed(14, 5)).toBe(true);
+    expect(attemptAllowed(15, 5)).toBe(false);
+    expect(attemptAllowed(null, 5)).toBe(true);
+    expect(attemptAllowed(999, Infinity)).toBe(true);
+  });
+
   it('aiResetsAt is null when nothing was used', async () => {
     fakeWorld({});
     expect(await aiResetsAt({ url: 'https://db', key: 'anon' }, 't')).toBeNull();
@@ -320,13 +370,10 @@ describe('streak sources', () => {
   });
 });
 
-describe('snapped cards are due tomorrow 07:00 Dhaka', () => {
-  it('works late at night and early in the morning, Dhaka time', async () => {
-    const { tomorrowMorningDhaka } = await import('../src/snap/due.js');
+describe('new snapped cards are due right away', () => {
+  it('saves with no review date, which the app reads as due now (like Quick add)', async () => {
+    const { firstReviewAt } = await import('../src/snap/due.js');
 
-    // 23:30 Dhaka on 25 Nov (17:30 UTC) -> 07:00 Dhaka on 26 Nov (01:00 UTC)
-    expect(tomorrowMorningDhaka(new Date('2026-11-25T17:30:00Z')).toISOString()).toBe('2026-11-26T01:00:00.000Z');
-    // 00:30 Dhaka on 26 Nov (18:30 UTC on 25 Nov) -> 07:00 Dhaka on 27 Nov
-    expect(tomorrowMorningDhaka(new Date('2026-11-25T18:30:00Z')).toISOString()).toBe('2026-11-27T01:00:00.000Z');
+    expect(firstReviewAt()).toBeNull();
   });
 });

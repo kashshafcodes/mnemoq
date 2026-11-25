@@ -3,7 +3,7 @@ import RichText from '../components/RichText';
 import { useSnapT } from './strings';
 
 // The card Jonaki made: subject chip, question, right answer, "you answered",
-// the memory hook and the "back tomorrow" line. Edit turns it into a small
+// the memory hook and the "ready now" line. Edit turns it into a small
 // form in place. Only text: the photo is never part of a card.
 
 const FIELDS = ['question', 'answer', 'yourAnswer', 'hook', 'subject'];
