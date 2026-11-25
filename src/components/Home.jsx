@@ -7,7 +7,7 @@ import AiBadge from './AiBadge';
 import RichText, { inlinePreview } from './RichText';
 import CATALOG from '../../library/catalog.json';
 import DailyTile, { dailyStatus } from '../daily/DailyTile';
-import { playTimes } from '../daily/calendar';
+import { streakTimes } from '../streak/activity';
 import PlayButton from '../loop/PlayButton';
 
 // The home page: one clear next step, a few numbers, and short links to the
@@ -136,7 +136,7 @@ function ReminderNudge({ userId }) {
 
 export default function Home({ cards, reviews, dueCount, onReview, pathInfo = null, pathLoading = false, userId = null, play, onPlay }) {
   // One streak: a day counts if you reviewed or finished the Daily.
-  const data = useMemo(() => computeAnalytics(cards, reviews, new Date(), { extraDays: playTimes() }), [cards, reviews]);
+  const data = useMemo(() => computeAnalytics(cards, reviews, new Date(), { extraDays: streakTimes() }), [cards, reviews]);
   const { stats } = data;
   const message = headline(stats);
   const dailyPlayed = Boolean(dailyStatus().today);

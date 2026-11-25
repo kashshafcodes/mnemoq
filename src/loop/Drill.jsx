@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 import { trackEvent } from '../googleAnalytics';
 import { track } from '../track';
 import { haptic } from '../haptics';
+import { recordActivity } from '../streak/activity';
 import RichText from '../components/RichText';
 import Jonaki from '../components/Jonaki';
 import { useLoopT } from './strings';
@@ -163,6 +164,7 @@ export default function Drill({ source, onFinish, onDone, onLeave, onAddCards })
 
     trackEvent('practice_done', { collection: source.collection, set: source.set, score: finalScore, from: 'drill' });
     track('drill_finish', { skill: source.skill, n: questions.length, correct: finalScore, ms });
+    recordActivity('drill');
     onFinish?.();
     setIndex(questions.length);
   }

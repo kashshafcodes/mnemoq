@@ -62,3 +62,31 @@ export async function usedFreeAnalysis(cfg, token) {
 
   return Array.isArray(rows) && rows.length > 0;
 }
+
+async function oldestSince(cfg, token, table, since) {
+  const res = await fetch(
+    `${cfg.url}/rest/v1/${table}?select=created_at&created_at=gte.${encodeURIComponent(since)}&order=created_at.asc&limit=1`,
+    { headers: { apikey: cfg.key, Authorization: `Bearer ${token}` } }
+  );
+
+  if (!res.ok) return null;
+
+  const rows = await res.json().catch(() => []);
+  const at = Array.isArray(rows) ? Date.parse(rows[0]?.created_at) : NaN;
+
+  return Number.isFinite(at) ? at : null;
+}
+
+// When the next AI use comes back: the oldest use inside the 24-hour window,
+// plus 24 hours. ISO string, or null when it cannot be read. Only asked for
+// when someone has run out, so normal calls cost no extra query.
+export async function aiResetsAt(cfg, token, now = Date.now()) {
+  const since = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+  const [ai, coach] = await Promise.all([
+    oldestSince(cfg, token, 'ai_usage', since).catch(() => null),
+    oldestSince(cfg, token, 'coach_usage', since).catch(() => null),
+  ]);
+  const times = [ai, coach].filter((at) => at !== null);
+
+  return times.length > 0 ? new Date(Math.min(...times) + 24 * 60 * 60 * 1000).toISOString() : null;
+}

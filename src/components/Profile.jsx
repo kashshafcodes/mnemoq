@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { playTimes } from '../daily/calendar';
+import { streakTimes } from '../streak/activity';
 import { computeAnalytics } from '../analytics';
 import { AVATAR_COLORS, NAME_MAX, cleanName, readProfile } from '../profile';
 import { LanguageToggle } from '../i18n';
@@ -26,7 +26,7 @@ export function Avatar({ profile, size = 40 }) {
 
 export default function Profile({ user, cards, reviews, onSave, onLogout, onTutorial }) {
   const profile = readProfile(user);
-  const data = useMemo(() => computeAnalytics(cards, reviews, new Date(), { extraDays: playTimes() }), [cards, reviews]);
+  const data = useMemo(() => computeAnalytics(cards, reviews, new Date(), { extraDays: streakTimes() }), [cards, reviews]);
   const { stats } = data;
 
   const [name, setName] = useState(profile.name);

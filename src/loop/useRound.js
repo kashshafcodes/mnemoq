@@ -12,7 +12,7 @@ import { dayIndex } from './playState';
 // the few actions that change the day's record. The record lives on this
 // device (roundStore.js); everything "done" is derived from real data.
 
-function useOnline() {
+export function useOnline() {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine !== false));
 
   useEffect(() => {

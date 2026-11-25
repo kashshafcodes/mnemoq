@@ -343,7 +343,7 @@ async function askGemini(env, system, user, schema, maxTokens) {
   return JSON.parse(text);
 }
 
-async function askGroq(env, system, user, _schema, maxTokens) {
+export async function askGroq(env, system, user, _schema, maxTokens) {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     signal: AbortSignal.timeout(9000),

@@ -25,7 +25,6 @@ import ReviewPage from './components/ReviewPage';
 import { ExamSegments, MobileBar, Sidebar, TabBar, navItems } from './components/AppNav';
 import { pageHref, useRoute } from './useRoute';
 import { SESSION_SIZE, pickSessionCards, scheduleNext } from './quiz';
-import QuickAdd from './components/QuickAdd';
 import { RecoveryPlan } from './components/RecoveryPlan';
 import { useI18n } from './i18n';
 import { loadPilot, savePilot } from './pilot';
@@ -43,7 +42,7 @@ import {
 import './polish.css';
 import PageLoading from './components/PageLoading';
 import { computeStreaks } from './analytics';
-import { playTimes } from './daily/calendar';
+import { streakTimes } from './streak/activity';
 import { dailyStatus } from './daily/DailyTile';
 import PlayButton from './loop/PlayButton';
 import TodayRound from './loop/TodayRound';
@@ -63,6 +62,7 @@ const MockCenter = lazy(() => import('./components/MockCenter'));
 const PathPage = lazy(() => import('./components/PathPage'));
 const ProPage = lazy(() => import('./components/Pro'));
 const Profile = lazy(() => import('./components/Profile'));
+const SnapSheet = lazy(() => import('./snap/SnapSheet'));
 const Daily = lazy(() => import('./daily/Daily.jsx'));
 const DoneToday = lazy(() => import('./loop/DoneToday'));
 const Pilot = lazy(() => import('./components/Pilot'));
@@ -805,6 +805,8 @@ async function addCard({
   yourAnswer,
   explanation,
   distractors = [],
+  nextReviewAt = null,
+  method = 'quick_add',
 }) {
   const userId = session?.user?.id;
 
@@ -822,7 +824,7 @@ async function addCard({
     correct_answer: correctAnswer.trim(),
     explanation: explanation.trim(),
     created_at: new Date().toISOString(),
-    next_review_at: null,
+    next_review_at: nextReviewAt,
     review_count: 0,
     review_interval_days: 0,
     mastered: false,
@@ -839,8 +841,8 @@ async function addCard({
     return { error: error.message };
   }
 
-  trackEvent('mistake_saved', { method: 'quick_add' });
-  if (mistakes.length === 0) trackEvent('first_mistake_saved', { method: 'quick_add' });
+  trackEvent('mistake_saved', { method });
+  if (mistakes.length === 0) trackEvent('first_mistake_saved', { method });
 
   setMistakes((current) => [
     {
@@ -862,6 +864,53 @@ async function addCard({
   ]);
 
   return { error: '', id: row.id };
+}
+
+// Used by Snap: change a card it just saved (Edit), or take it back (Undo,
+// no confirm: the person pressed Undo a moment after saving).
+async function updateCard(id, { subject, category, question, correctAnswer, yourAnswer, explanation, distractors }) {
+  const userId = session?.user?.id;
+
+  if (!userId) return { error: 'Please log in first.' };
+
+  const row = {
+    subject,
+    category,
+    question: question.trim(),
+    your_answer: yourAnswer.trim(),
+    correct_answer: correctAnswer.trim(),
+    explanation: explanation.trim(),
+  };
+
+  if (distractors?.length > 0) row.distractors = distractors;
+
+  const { error } = await supabase.from('mistakes').update(row).eq('id', id).eq('user_id', userId);
+
+  if (error) return { error: error.message };
+
+  setMistakes((current) =>
+    current.map((item) =>
+      item.id === id
+        ? { ...item, subject, category, question: row.question, yourAnswer: row.your_answer, correctAnswer: row.correct_answer, explanation: row.explanation, distractors: row.distractors || item.distractors }
+        : item
+    )
+  );
+
+  return { error: '' };
+}
+
+async function removeCard(id) {
+  const userId = session?.user?.id;
+
+  if (!userId) return { error: 'Please log in first.' };
+
+  const { error } = await supabase.from('mistakes').delete().eq('id', id).eq('user_id', userId);
+
+  if (error) return { error: error.message };
+
+  setMistakes((current) => current.filter((item) => item.id !== id));
+
+  return { error: '' };
 }
 
 
@@ -1413,7 +1462,7 @@ if (dataError) {
           <Daily
             inApp={{
               onBack: () => go('today'),
-              streakNow: () => computeStreaks(reviewLog, new Date(), playTimes()).current,
+              streakNow: () => computeStreaks(reviewLog, new Date(), streakTimes()).current,
               dueCount: dueMistakes.length,
               onReview: goToReview,
               onDone: backToRound,
@@ -1550,10 +1599,18 @@ if (dataError) {
         )}
 
         {page === 'snap' && (
-          <QuickAdd
+          <SnapSheet
             cards={mistakes}
+            from={roundNow.current === 'snap' ? 'today' : mistakes.length === 0 ? 'empty' : 'tab'}
             onSave={addCard}
+            onUpdate={updateCard}
+            onRemove={removeCard}
+            onTryNow={(id) => {
+              setManualReviewId(id);
+              go('review');
+            }}
             onClose={() => go('today')}
+            onPro={() => go('me/pro')}
             onReviewNow={goToReview}
           />
         )}
