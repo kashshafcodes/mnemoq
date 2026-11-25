@@ -1,0 +1,140 @@
+/* The invite card and the owner's referral list (src/referral/). Tokens only. */
+.ref-invite {
+  display: grid;
+  gap: 10px;
+}
+
+.ref-invite-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ref-invite-head h3 {
+  margin: 0;
+}
+
+.ref-invite-jonaki {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+}
+
+.ref-invite-body,
+.ref-invite-muted,
+.ref-invite-fine,
+.ref-invite-error {
+  margin: 0;
+}
+
+.ref-invite-muted,
+.ref-invite-fine {
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+.ref-invite-fine {
+  font-size: 0.8rem;
+}
+
+.ref-invite-error {
+  color: var(--danger-ink);
+  font-size: 0.9rem;
+}
+
+.ref-invite-earned {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--highlight-soft);
+  color: var(--highlight-ink);
+  font-weight: 600;
+}
+
+.ref-invite-link {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+}
+
+.ref-invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ref-invite-actions .mq-btn {
+  flex: 1 1 140px;
+}
+
+.ref-invite-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.ref-invite-list li {
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.ref-invite-list li.is-held {
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+
+.ref-invite-list li.is-done {
+  background: var(--success-soft);
+  color: var(--success-ink);
+}
+
+.ref-invite-pro {
+  margin-top: 16px;
+}
+
+/* Owner review (AdminStats) */
+.ref-admin-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.ref-admin-scroll td {
+  overflow-wrap: anywhere;
+}
+
+.ref-admin-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ref-admin-actions .mq-btn {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+.ref-admin-status {
+  font-weight: 600;
+}
+
+.ref-admin-status.is-held {
+  color: var(--warn-ink);
+}
+
+.ref-admin-status.is-granted {
+  color: var(--success-ink);
+}
+
+.ref-admin-status.is-revoked {
+  color: var(--danger-ink);
+}

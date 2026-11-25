@@ -141,7 +141,11 @@ export function startSync(supabase, user) {
   setSyncUser(user);
   onQueue(flushSoon);
   uploadGuestHistory(user);
-  pullDays(user);
+  // Friend-opened Glow joins the pulled days (at most every 6 hours).
+  pullDays(user)
+    .then(() => import('../referral/friends'))
+    .then((m) => m.syncFriends(supabase, user))
+    .catch(() => {});
   sendClaim(supabase, user);
 
   const onVisible = () => flush();

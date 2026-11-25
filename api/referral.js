@@ -12,10 +12,17 @@
 //
 // Privacy: the reply never carries the other person's id, email or code.
 //   -> { status: 'none' | 'pending' | 'held' | 'granted' | 'rejected', days?, reward? }
+//
+// Wave 3d-2 adds actions in the JSON body (one function: Hobby allows 12):
+//   { action: 'invite' }   the invite card (src/referral/server.js invite)
+//   { action: 'friends' }  friend-opened Glow, written to learning_days
+//   { action: 'admin' }    the owner's list            (site_admins only)
+//   { action: 'release' | 'revoke', friend }  owner review (site_admins only)
 
 import { adminConfig, rest } from './_push.js';
 import { getUser, supabaseConfig } from './suggest.js';
 import { REWARD_DAYS, decide, learningWindow, validRefcode } from '../src/referral/rules.js';
+import { adminList, friends, invite, isAdmin, review } from '../src/referral/server.js';
 
 export const config = { maxDuration: 15 };
 
@@ -67,7 +74,7 @@ export async function checkReferral(admin, friend, now = new Date()) {
   const { from, to } = learningWindow(friend.created_at);
   const days = await rest(
     admin,
-    `learning_days?select=day&user_id=eq.${enc(friend.id)}&day=gte.${from}&day=lt.${to}&limit=60`
+    `learning_days?select=day&user_id=eq.${enc(friend.id)}&day=gte.${from}&day=lt.${to}&actions=gt.0&limit=60`
   );
 
   // Not enough days yet: answer without looking up the referrer at all.
@@ -86,7 +93,7 @@ export async function checkReferral(admin, friend, now = new Date()) {
     const since = new Date(Date.parse(claim.created_at) - 24 * 60 * 60 * 1000).toISOString();
 
     [rewards, burst, referrerEmail] = await Promise.all([
-      rest(admin, `referral_rewards?select=status,qualified_at&referrer_id=eq.${enc(referrer.user_id)}&status=in.(granted,revoked)&limit=100`),
+      rest(admin, `referral_rewards?select=status,qualified_at,days_referrer&referrer_id=eq.${enc(referrer.user_id)}&status=in.(granted,revoked)&limit=100`),
       rest(
         admin,
         `referral_claims?select=friend_id&refcode=eq.${enc(claim.refcode)}&created_at=gte.${enc(since)}&created_at=lte.${enc(claim.created_at)}&limit=50`
@@ -136,9 +143,39 @@ export default async function handler(req, res, env = process.env) {
 
   if (!user) return send(res, 401, { status: 'auth' });
 
+  let body = req.body;
+
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch {
+      body = null;
+    }
+  }
+
   try {
-    return send(res, 200, await checkReferral(admin, user));
-  } catch {
+    return send(res, 200, await act(admin, user, body || {}));
+  } catch (err) {
+    if (err?.status === 403) return send(res, 403, { status: 'forbidden' });
     return send(res, 500, { status: 'failed' });
   }
+}
+
+// One place that picks the action; the admin ones are checked here, on the
+// server, against site_admins (hiding the list in the app is not enough).
+export async function act(admin, user, body = {}) {
+  const action = String(body.action || '');
+
+  if (!action) return checkReferral(admin, user);
+  if (action === 'invite') return invite(rest, admin, user);
+  if (action === 'friends') return friends(rest, admin, user);
+
+  if (['admin', 'release', 'revoke'].includes(action)) {
+    if (!(await isAdmin(rest, admin, user))) throw Object.assign(new Error('forbidden'), { status: 403 });
+    if (action === 'admin') return adminList(rest, admin);
+
+    return review(rest, admin, action, body.friend);
+  }
+
+  return { status: 'invalid' };
 }

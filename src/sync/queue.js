@@ -340,7 +340,43 @@ export function serverDayTimes(store = storage(), user = activeUser) {
 
   if (!user || server.user !== user) return [];
 
-  return Object.keys(server.days).map((day) => `${day}T12:00:00+06:00`);
+  // A day whose only entry is friend-opened Glow (written by the server) is
+  // not a learning day: a friend playing does not light your streak.
+  return Object.entries(server.days)
+    .filter(([, sources]) => !friendOnly(sources))
+    .map(([day]) => `${day}T12:00:00+06:00`);
+}
+
+function friendOnly(sources) {
+  const keys = Object.keys(sources || {});
+  const glow = Object.keys(sources?.glow || {});
+
+  return keys.length === 1 && keys[0] === 'glow' && glow.length > 0 && glow.every((id) => id === 'friend');
+}
+
+// Friend-opened Glow the server wrote (api/referral.js action 'friends'):
+// { day: glow } into the pulled account days as the "friend" device, so the
+// lifetime total includes it and the next upload of that day keeps it.
+export function saveServerFriendGlow(user, days, store = storage()) {
+  const server = loadServer(store);
+
+  if (!user || server.user !== user || !days || typeof days !== 'object') return false;
+
+  let changed = false;
+
+  for (const [day, n] of Object.entries(days)) {
+    const value = Math.max(0, Math.round(Number(n) || 0));
+    const sources = { ...(server.days[day] || {}) };
+
+    if ((Number(sources.glow?.friend) || 0) >= value) continue;
+    sources.glow = { ...(sources.glow || {}), friend: value };
+    server.days[day] = sources;
+    changed = true;
+  }
+
+  if (changed) write(store, SERVER_KEY, server);
+
+  return changed;
 }
 
 // The account's Glow per day, per device, for the lifetime total.

@@ -151,7 +151,7 @@ describe('caps: 3 a Dhaka month, 10 in total', () => {
     const rewards = [granted('2026-11-30T19:00:00Z'), granted('2026-12-05T10:00:00+06:00'), granted('2026-12-06T10:00:00+06:00')];
 
     expect(capState(rewards, NOW).monthFull).toBe(true);
-    expect(decide({ ...base, rewards }, NOW)).toMatchObject({ status: 'rejected', reason: 'cap_month' });
+    expect(decide({ ...base, rewards }, NOW)).toMatchObject({ status: 'granted', reason: 'cap_month' });
     expect(capState(rewards, new Date('2027-01-01T00:30:00+06:00')).monthFull).toBe(false);
   });
 
@@ -159,7 +159,7 @@ describe('caps: 3 a Dhaka month, 10 in total', () => {
     const old = Array.from({ length: 10 }, (_, i) => granted(`2026-0${(i % 9) + 1}-10T10:00:00+06:00`));
 
     expect(capState(old.slice(0, 9), NOW).totalFull).toBe(false);
-    expect(decide({ ...base, rewards: old }, NOW)).toMatchObject({ status: 'rejected', reason: 'cap_total' });
+    expect(decide({ ...base, rewards: old }, NOW)).toMatchObject({ status: 'granted', reason: 'cap_total' });
   });
 });
 

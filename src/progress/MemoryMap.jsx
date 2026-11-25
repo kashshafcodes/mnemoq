@@ -8,6 +8,8 @@ import { shareT } from '../share/strings';
 import { useOnline } from '../loop/useRound';
 import { feel } from '../sensory';
 import { streakTimes } from '../streak/activity';
+import { hasCharm } from '../referral/charm';
+import { syncUser } from '../sync/queue';
 import { track } from '../track';
 import { grownNodes, memoryMapData, snapshot } from './mapData';
 import { useMapT } from './strings';
@@ -190,7 +192,7 @@ export default function MemoryMap({
   return (
     <div className="mm fx-list">
       <section className={`${cls('glow')} mm-head`} ref={ref('glow')} aria-label={t('mm.title')}>
-        <Jonaki mood={empty ? 'idle' : streak?.reviewedToday ? 'happy' : 'idle'} glow={jonakiGlow(glow?.total ?? 0)} size={64} />
+        <Jonaki mood={empty ? 'idle' : streak?.reviewedToday ? 'happy' : 'idle'} glow={jonakiGlow(glow?.total ?? 0)} size={64} charm={hasCharm(syncUser())} />
         <div className="mm-head-text">
           <p className="mm-eyebrow">
             {t('mm.title')}

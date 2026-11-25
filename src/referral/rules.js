@@ -95,7 +95,12 @@ export function countLearningDays(days, signupAt) {
 // revoked reward was fraud and must not free a slot). Held and rejected don't.
 export function capState(rewards, now = new Date()) {
   const month = dhakaMonth(now);
-  const used = (rewards || []).filter((r) => r && (r.status === 'granted' || r.status === 'revoked'));
+  // Only rows that paid the referrer count (days_referrer > 0; older rows
+  // without the column did). Over a cap the friend is still paid, with 0 for
+  // the referrer (Ops decision 26 Nov), and that row frees nothing.
+  const used = (rewards || []).filter(
+    (r) => r && (r.status === 'granted' || r.status === 'revoked') && (r.days_referrer === undefined || r.days_referrer === null || Number(r.days_referrer) > 0)
+  );
   const thisMonth = used.filter((r) => r.qualified_at && dhakaMonth(r.qualified_at) === month).length;
 
   return {
@@ -149,14 +154,16 @@ export function decide(facts, now = new Date()) {
   if (!Number.isFinite(created) || !Number.isFinite(clicked) || created <= clicked) return final('rejected', 'before_click');
   if (Number.isFinite(claimed) && claimed - created > LATE_CLAIM_DAYS * DAY_MS) return final('rejected', 'late_claim');
 
-  const caps = capState(rewards, now);
-
-  if (caps.totalFull) return final('rejected', 'cap_total');
-  if (caps.monthFull) return final('rejected', 'cap_month');
-
   // Two accounts produce the same 6-character code: the owner decides who it is.
   if (referrer.shared) return final('held', 'shared_code');
   if (burst > BURST_LIMIT) return final('held', 'burst');
+
+  // Over a cap: the friend still gets their days, the referrer gets 0
+  // (referral_settle in supabase/referrals-2.sql does the same under a lock).
+  const caps = capState(rewards, now);
+
+  if (caps.totalFull) return final('granted', 'cap_total');
+  if (caps.monthFull) return final('granted', 'cap_month');
 
   return final('granted');
 }

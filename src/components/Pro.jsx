@@ -9,6 +9,7 @@ import { track } from '../track';
 import { useI18n } from '../i18n';
 import { clearPending, loadPending, parentShareText, payText, savePending, whatsappShareUrl } from '../pro/payCopy';
 import { feel } from '../sensory';
+import InviteCard from '../referral/InviteCard';
 import '../sat/sat.css';
 
 // Sensory (spec 5, Me/Pro): Pro activation is step.done, never a fanfare
@@ -597,6 +598,10 @@ export default function ProPage({ plan, onPlan, email }) {
           Your cards, reviews and everything outside the SAT path stay free. If Pro ends, your results and cards are kept.
         </p>
       </section>
+
+      <div className="ref-invite-pro">
+        <InviteCard where="pro" />
+      </div>
     </div>
   );
 }

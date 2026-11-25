@@ -35,6 +35,9 @@ export const STRINGS = {
     'streak.m30': 'A month of light. That is real work.',
     'streak.m60': 'Sixty days lit.',
     'streak.m100': 'A hundred days lit.',
+    // Perks spec §3 (friend-opened Glow, the Light-passer charm).
+    'perk.friend.opened': 'A friend opened your link. +5 Glow.',
+    'perk.charm.earned': 'Light-passer: three friends have opened your links. Jonaki has a new charm.',
   },
   bn: {
     'glow.label': 'আভা',
@@ -63,6 +66,8 @@ export const STRINGS = {
     'streak.m30': 'এক মাসের আলো। এটা সত্যিকারের পরিশ্রম।',
     'streak.m60': 'ষাট দিন আলো জ্বলেছে।',
     'streak.m100': 'একশো দিন আলো জ্বলেছে।',
+    'perk.friend.opened': 'একজন বন্ধু আপনার লিংক খুলেছে। +৫ আভা।',
+    'perk.charm.earned': 'আলো-বাহক: তিনজন বন্ধু আপনার লিংক খুলেছে। জোনাকির নতুন একটি চার্ম।',
   },
 };
 

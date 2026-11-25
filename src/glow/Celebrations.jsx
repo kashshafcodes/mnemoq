@@ -9,6 +9,7 @@ import { dhakaKey } from './streak';
 import { dueCelebrations, milestoneId } from './milestones';
 import { ledgerSeen, saveLedgerSeen, takeCapNotice, useGlow } from './store';
 import { useGlowT } from './strings';
+import { knownFriends, takeFriendNotice } from '../referral/friends';
 import './glow.css';
 
 // Milestones, level-ups and the calm cap line, app-wide (mounted once in
@@ -84,10 +85,19 @@ export default function Celebrations({ streak, ready }) {
     if (user && !account.pulled) return; // the account's list has not arrived
 
     const seen = mergeSeen(account.seen, ledgerSeen());
-    const due = dueCelebrations({ streak: streak.current, glow: total, seen });
+    const due = dueCelebrations({ streak: streak.current, glow: total, seen, friends: user ? knownFriends(user)?.friends || 0 : 0 });
+    const friendGlow = takeFriendNotice();
 
-    if (!due.milestone && !due.levelUp) {
-      if (takeCapNotice()) setBanner({ calm: true, lines: [t('glow.capped')], key: Date.now() });
+    if (friendGlow) {
+      track('glow_earned', { source: 'friend', glow: friendGlow * 5 });
+      trackEvent('glow_earned', { source: 'friend' });
+    }
+
+    if (!due.milestone && !due.levelUp && !due.charm) {
+      if (friendGlow) {
+        feel('glow.gain');
+        setBanner({ calm: false, lines: [t('perk.friend.opened')], key: Date.now() });
+      } else if (takeCapNotice()) setBanner({ calm: true, lines: [t('glow.capped')], key: Date.now() });
       return;
     }
 
@@ -110,6 +120,15 @@ export default function Celebrations({ streak, ready }) {
       track('glow_level_up', { level: due.levelUp });
       trackEvent('glow_level_up', { level: due.levelUp });
     }
+
+    if (due.charm) {
+      lines.push(t('perk.charm.earned'));
+      ids.push('milestone');
+      track('charm_earned', { charm: 'light_passer' });
+      trackEvent('charm_earned', { charm: 'light_passer' });
+    }
+
+    if (friendGlow) lines.push(t('perk.friend.opened'));
 
     // A milestone and a level-up on the same action: one celebration, both lines.
     feel(pickReward(ids));

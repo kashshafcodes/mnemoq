@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { mergePages, pageNameNow } from '../nav/routes';
+import AdminReferrals from '../referral/AdminReferrals';
 
 // The owner's Stats page (#/admin): who is landing on the site, where they came
 // from, what they do, and whether reminders are running. Data comes from
@@ -482,6 +483,9 @@ export default function AdminStats() {
           </section>
         </>
       )}
+
+      {/* Its own server call (api/referral.js), so it shows even when the stats above don't. */}
+      <AdminReferrals />
     </div>
   );
 }

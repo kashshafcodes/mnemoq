@@ -99,11 +99,13 @@ export async function runReminders({ env, now = new Date(), webpush, cfg }) {
     const [devices, recent, learned] = await Promise.all([
       rest(cfg, `push_subscriptions?select=*&user_id=in.${idList}&limit=5000`),
       rest(cfg, `reviews?select=user_id,created_at&user_id=in.${idList}&created_at=gte.${encodeURIComponent(since)}&limit=20000`),
-      rest(cfg, `learning_days?select=user_id,day&user_id=in.${idList}&day=gte.${daysSince}&limit=5000`).catch(() => []),
+      rest(cfg, `learning_days?select=user_id,day,sources&user_id=in.${idList}&day=gte.${daysSince}&limit=5000`).catch(() => []),
     ]);
 
     for (const row of Array.isArray(learned) ? learned : []) {
       if (!settingsById.has(row.user_id) || !row.day) continue;
+      // Only friend-opened Glow (server-written) is not a learning day.
+      if (friendOnlyDay(row.sources)) continue;
 
       const set = reviewDates.get(row.user_id) || new Set();
 
@@ -244,4 +246,14 @@ export default async function handler(req, res, env = process.env, deps = {}) {
 
     return send(res, 500, { error: 'The reminder job failed.', detail });
   }
+}
+
+// A learning_days row whose only entry is friend-opened Glow (api/referral.js
+// writes sources.glow.friend): not a day the person learned. Same rule as
+// serverDayTimes in src/sync/queue.js.
+export function friendOnlyDay(sources) {
+  const keys = Object.keys(sources || {});
+  const glow = Object.keys(sources?.glow || {});
+
+  return keys.length === 1 && keys[0] === 'glow' && glow.length > 0 && glow.every((id) => id === 'friend');
 }

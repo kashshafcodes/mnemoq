@@ -78,7 +78,9 @@ function Mouth({ mood }) {
   );
 }
 
-export default function Jonaki({ mood = 'idle', glow, size = 96, className = '', title }) {
+// charm: the Light-passer charm (a tiny lantern on a thread), earned once
+// when 3 friends have opened your links (src/referral/friendGlow.js).
+export default function Jonaki({ mood = 'idle', glow, size = 96, className = '', title, charm = false }) {
   const id = useId().replace(/:/g, '');
   const level = Math.max(0, Math.min(1, glow ?? DEFAULT_GLOW[mood] ?? 0.5));
 
@@ -151,6 +153,13 @@ export default function Jonaki({ mood = 'idle', glow, size = 96, className = '',
           <text x="86" y="30" className="jk-z" fill="#fff7e0" fontSize="12" fontWeight="700">
             z
           </text>
+        )}
+        {charm && (
+          <g className="jk-charm">
+            <line x1="30" y1="62" x2="22" y2="80" stroke="#fff7e0" strokeWidth="1.5" strokeLinecap="round" />
+            <rect x="15" y="80" width="13" height="16" rx="4" fill="#ffb321" stroke="#fff7e0" strokeWidth="1.5" />
+            <rect x="18.5" y="84" width="6" height="8" rx="2" fill="#fff7e0" opacity="0.85" />
+          </g>
         )}
       </g>
     </svg>

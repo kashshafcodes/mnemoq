@@ -1,6 +1,10 @@
+import { lazy, Suspense } from 'react';
 import { ProIcon, StatsIcon } from '../components/NavIcons';
 import { pageHref } from '../useRoute';
 import { useNavT } from './strings';
+
+// The invite card loads on its own (it is not needed for the first screen).
+const InviteCard = lazy(() => import('../referral/InviteCard'));
 
 // The bottom of Me (the avatar page): Mnemoq Pro, three short help lines
 // (in place of the old "How it works") and, for admins, the Stats page.
@@ -18,6 +22,10 @@ export default function MeExtras({ plan, isAdmin }) {
         </span>
         <span aria-hidden="true">→</span>
       </a>
+
+      <Suspense fallback={null}>
+        <InviteCard where="me" />
+      </Suspense>
 
       <section className="profile-card mq-me-help">
         <h3>{t('me.help.title')}</h3>
