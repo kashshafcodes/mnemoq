@@ -3,7 +3,7 @@ import CATALOG from '../../library/catalog.json';
 import { supabase } from '../supabaseClient';
 import { trackEvent } from '../googleAnalytics';
 import { track } from '../track';
-import { haptic } from '../haptics';
+import { feel } from '../sensory';
 import { recordActivity } from '../streak/activity';
 import RichText from '../components/RichText';
 import Jonaki from '../components/Jonaki';
@@ -98,7 +98,7 @@ export default function Drill({ source, onFinish, onDone, onLeave, onAddCards, o
             type="button"
             className="mq-btn mq-btn-primary"
             onClick={() => {
-              haptic.tap();
+              feel('tap.primary');
               onDone();
             }}
           >
@@ -117,10 +117,8 @@ export default function Drill({ source, onFinish, onDone, onLeave, onAddCards, o
   function choose(i) {
     if (answered) return;
 
+    feel(i === q.answer ? 'correct' : 'wrong');
     setPicked((p) => ({ ...p, [q.id]: i }));
-
-    if (i === q.answer) haptic.correct();
-    else haptic.wrong();
   }
 
   function next() {

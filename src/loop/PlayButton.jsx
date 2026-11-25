@@ -1,5 +1,5 @@
 import { SESSION_SIZE } from '../quiz';
-import { haptic } from '../haptics';
+import { feel } from '../sensory';
 import { useLoopT } from './strings';
 import './loop.css';
 
@@ -27,8 +27,7 @@ export default function PlayButton({ state, onPlay, floating = true, className =
   const done = kind === 'done';
 
   function play(event) {
-    if (kind === 'offline') haptic.error();
-    else haptic.tap();
+    feel(kind === 'offline' ? 'error' : 'tap.primary');
     onPlay?.(event);
   }
 

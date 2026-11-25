@@ -47,6 +47,7 @@ import { noteLearning } from './sync/queue';
 import { pullDays, startSync } from './sync/sync';
 import { dailyStatus } from './daily/DailyTile';
 import PlayButton from './loop/PlayButton';
+import { roundMusic } from './sensory';
 import TodayRound from './loop/TodayRound';
 import { stepLabelKey, useRound } from './loop/useRound';
 import { loopT } from './loop/strings';
@@ -88,6 +89,13 @@ function App() {
   const [dataError, setDataError] = useState('');
   const formRef = useRef(null);
   const { page, sub, go } = useRoute();
+  // Music lives only inside Today's round (review, drill, the Daily, done).
+  // Any other page ends it (a fade, never a cut); review is pad only.
+  useEffect(() => {
+    if (page === 'done') roundMusic.resolve(); // the home chord, a 3 s fade
+    else if (!['review', 'drill', 'daily'].includes(page)) roundMusic.stop();
+    else roundMusic.setMode(page === 'review' ? 'review' : 'play');
+  }, [page]);
   // mnemoq.../sat or .../nsu: the diagnostic anyone can take before signing up.
   const [tryExam] = useState(() => {
     const match = /^\/(sat|nsu|brac)\/?$/i.exec(window.location.pathname);
@@ -1456,6 +1464,8 @@ if (dataError) {
 
   function playNow() {
     if (play.action === 'none') return;
+    // Today's round has begun: the quiet music bed may play (Music switch).
+    if (play.action !== 'done') roundMusic.start({ mode: play.action === 'review' ? 'review' : 'play' });
     if (play.action !== 'done') track('round_step_start', { step: roundNow.current, n: play.n, from: 'play' });
 
     if (play.action === 'review') goToReview();

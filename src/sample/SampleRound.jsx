@@ -8,6 +8,7 @@ import { NightSky, Sparks } from '../daily/Stage';
 import ChargeLantern from '../daily/ChargeLantern';
 import { haptic } from '../haptics';
 import { sfx } from '../daily/audio';
+import { feel } from '../sensory';
 import { SAMPLE, resultKeys, shareUrl } from './strings';
 import { SAMPLE_QUESTIONS } from './questions';
 import { saveSampleMisses } from './store';
@@ -125,15 +126,13 @@ export default function SampleRound({ onClose, onSignup, onLogin, via = 'landing
       const box = optionRefs.current[picked]?.getBoundingClientRect();
       if (box) sparks.current?.burst(box.left + box.width / 2, box.top + box.height / 2, { count: 20, spread: 0.8 });
     } else {
-      sfx.wrong(1);
-      haptic.wrong();
+      feel('wrong');
     }
   }
 
   function next() {
-    sfx.next();
     if (step + 1 < SIZE) {
-      haptic.tap();
+      feel('tap.primary');
       setStep(step + 1);
       setPicked(null);
       setBet(null);
@@ -158,7 +157,7 @@ export default function SampleRound({ onClose, onSignup, onLogin, via = 'landing
       });
 
     // Round done: celebrate inside this tap (iPhones only tick during a tap).
-    haptic.celebrate();
+    feel('round.done');
     saveSampleMisses(missed);
     track('sample_finish', {
       page: 'landing',

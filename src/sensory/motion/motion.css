@@ -1,0 +1,141 @@
+/* Motion patterns (sensory spec section 4.2). Tokens live in index.css.
+   Only transform and opacity move. feel() adds the fx-* moment classes and
+   removes them on animationend. Reduced motion: the global backstop in
+   index.css ends every animation at once; the rules below also drop the
+   movement itself. */
+
+/* ── Moments, added by feel() ─────────────────────────────── */
+.fx-press { animation: fx-press var(--dur-1) var(--ease-out); }
+.fx-pop { animation: fx-pop var(--dur-3) var(--ease-pop); }
+.fx-hold { animation: fx-hold var(--dur-3) var(--ease-in-out); }
+.fx-soft-shake { animation: fx-soft-shake var(--dur-2) var(--ease-out); }
+.fx-flip { animation: fx-flip var(--dur-3) var(--ease-in-out); }
+.fx-ring { animation: fx-pop var(--dur-3) var(--ease-pop); }
+.fx-celebrate { animation: fx-celebrate var(--dur-4) var(--ease-pop); }
+.fx-ember { animation: fx-ember var(--dur-4) var(--ease-out); }
+.fx-spark1 { animation: fx-spark1 var(--dur-3) var(--ease-out); }
+
+@keyframes fx-press { 50% { transform: scale(var(--scale-press)); } }
+@keyframes fx-pop {
+  0% { transform: scale(var(--scale-pop-from)); }
+  100% { transform: scale(1); }
+}
+@keyframes fx-hold { 50% { opacity: 0.8; transform: scale(0.99); } }
+@keyframes fx-soft-shake {
+  25% { transform: translateX(calc(var(--move-1) * -1)); }
+  60% { transform: translateX(var(--move-1)); }
+}
+@keyframes fx-flip {
+  50% { transform: perspective(800px) rotateY(90deg); opacity: 0.6; }
+}
+@keyframes fx-celebrate {
+  0% { transform: scale(var(--scale-pop-from)); opacity: 0.6; }
+  60% { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes fx-ember { 40% { opacity: 0.7; transform: scale(1.06); } }
+@keyframes fx-spark1 {
+  from { opacity: 0; transform: translateY(var(--move-2)); }
+}
+
+/* ── Shells ───────────────────────────────────────────────── */
+
+/* A full-screen flow (review, drill) rises 24 px with a fade. */
+.fx-flow,
+.mq-flow-body {
+  animation: fx-flow-in var(--dur-2) var(--ease-out) backwards;
+}
+@keyframes fx-flow-in {
+  from { opacity: 0; transform: translateY(var(--move-4)); }
+}
+
+/* Going deeper (list to detail) enters from the right; .fx-back from the left. */
+.fx-deeper { animation: fx-deeper var(--dur-2) var(--ease-out) backwards; }
+.fx-back { animation: fx-back var(--dur-2) var(--ease-out) backwards; }
+@keyframes fx-deeper { from { opacity: 0; transform: translateX(var(--move-3)); } }
+@keyframes fx-back { from { opacity: 0; transform: translateX(calc(var(--move-3) * -1)); } }
+
+/* Tabs crossfade (D6). The tab content itself fades via .mq-main > * in
+   index.css; .fx-tab is the same for any other tabbed panel. */
+.fx-tab { animation: fx-fade var(--dur-2) var(--ease-out) backwards; }
+@keyframes fx-fade { from { opacity: 0; } }
+
+/* Sheets and modals rise from the bottom; the scrim fades. */
+.fx-sheet,
+.snap-sheet {
+  animation: fx-sheet var(--dur-2) var(--ease-out) backwards;
+}
+.fx-scrim { animation: fx-fade var(--dur-2) var(--ease-out) backwards; }
+@keyframes fx-sheet { from { opacity: 0; transform: translateY(var(--move-4)); } }
+
+/* Toasts rise 8 px with a fade. */
+.fx-toast,
+.snap-toast {
+  animation: fx-toast var(--dur-2) var(--ease-out) backwards;
+}
+@keyframes fx-toast { from { opacity: 0; transform: translateY(var(--move-2)); } }
+
+/* Skeletons breathe (opacity), never a repainting shimmer; they appear only
+   if loading passes 300 ms, so a quick load never flashes. */
+.fx-skeleton {
+  opacity: 0;
+  animation:
+    fx-fade-to-1 var(--dur-1) linear 300ms forwards,
+    fx-breathe 1.2s ease-in-out 450ms infinite alternate;
+}
+@keyframes fx-fade-to-1 { to { opacity: 1; } }
+@keyframes fx-breathe {
+  from { opacity: 1; }
+  to { opacity: 0.45; }
+}
+
+/* Empty states: one gentle rise, no looping motion. */
+.fx-empty { animation: fx-toast var(--dur-2) var(--ease-out) backwards; }
+
+/* Lists: each item rises 8 px, 40 ms apart, at most 6 (the rest together). */
+.fx-list > * { animation: fx-toast var(--dur-2) var(--ease-out) backwards; }
+.fx-list > :nth-child(2) { animation-delay: calc(var(--stagger) * 1); }
+.fx-list > :nth-child(3) { animation-delay: calc(var(--stagger) * 2); }
+.fx-list > :nth-child(4) { animation-delay: calc(var(--stagger) * 3); }
+.fx-list > :nth-child(5) { animation-delay: calc(var(--stagger) * 4); }
+.fx-list > :nth-child(n + 6) { animation-delay: calc(var(--stagger) * 5); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-press,
+  .fx-pop,
+  .fx-hold,
+  .fx-soft-shake,
+  .fx-flip,
+  .fx-ring,
+  .fx-celebrate,
+  .fx-ember,
+  .fx-spark1 {
+    animation: none;
+  }
+
+  .fx-flow,
+  .mq-flow-body,
+  .fx-deeper,
+  .fx-back,
+  .fx-sheet,
+  .snap-sheet,
+  .fx-toast,
+  .snap-toast,
+  .fx-empty,
+  .fx-list > * {
+    animation-name: fx-fade;
+  }
+
+  .fx-skeleton {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* The Sound card's Music row (Me). */
+.snd-music {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.snd-music.is-off { opacity: 0.55; }

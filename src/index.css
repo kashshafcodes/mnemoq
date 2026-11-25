@@ -69,6 +69,18 @@
   --dur-3: 400ms; /* larger entrances */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  /* Motion v2 (sensory spec section 4.1): enter with --ease-out, leave with
+     --ease-in at 150 ms, spring (--ease-pop) only when something succeeds. */
+  --dur-4: 700ms; /* count-ups and the ring fill on the done screen */
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --move-1: 4px; /* press lift */
+  --move-2: 8px; /* list rise, toasts */
+  --move-3: 14px; /* page slide */
+  --move-4: 24px; /* flows rising, sparks */
+  --scale-press: 0.97;
+  --scale-pop-from: 0.92;
+  --stagger: 40ms;
 
   color-scheme: light;
   font-family: var(--font-body);
@@ -214,14 +226,16 @@ body {
 .mq-tab:active,
 .mcq-option:active:not(:disabled),
 .lp-try-exam:active {
-  transform: scale(0.97);
+  transform: scale(var(--scale-press));
 }
 
 .mq-tile:active {
   transform: scale(0.99);
 }
 
-/* Pages slide in: each page remounts under its own key in App.jsx. */
+/* Tabs are peers, so a tab switch crossfades (D6): no slide from the right,
+   which would say "deeper". Each page remounts under its own key in App.jsx.
+   Going deeper uses .fx-deeper (src/sensory/motion/motion.css). */
 .mq-main > * {
   animation: mq-page-in var(--dur-2) var(--ease-out) backwards;
 }
@@ -229,7 +243,6 @@ body {
 @keyframes mq-page-in {
   from {
     opacity: 0;
-    transform: translateX(14px);
   }
 }
 
@@ -274,5 +287,18 @@ body {
   .lp-try-exam:active,
   .mq-tile:active {
     transform: none;
+  }
+}
+
+/* The global reduced-motion backstop (spec 4.3 rule 6): whatever a new
+   keyframe forgets, motion here ends at once. Sound is not affected (D7). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
   }
 }

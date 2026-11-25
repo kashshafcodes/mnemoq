@@ -7,7 +7,7 @@ import Jonaki from '../components/Jonaki';
 import { CATEGORY_LABEL } from './questions';
 import { BETS, ROUND_SIZE, dhakaDate, loadHistory, pointsFor, puzzleNumber, questionsFor, saveRound, scoreOf, streakOf } from './puzzle';
 import { bnDigits, makeT } from './strings';
-import { loadSettings, saveSettings, setMusicOn, setSoundOn, sfx } from './audio';
+import { loadSettings, resolveMusic, saveSettings, setMusicOn, setSoundOn, sfx } from './audio';
 import { haptic, useHapticsSetting } from '../haptics';
 import { NightSky, Sparks } from './Stage';
 import ChargeLantern from './ChargeLantern';
@@ -70,6 +70,9 @@ export default function Daily({ inApp = null }) {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [step, phase]);
 
+  // Leaving the Daily ends its music (fades, never cuts).
+  useEffect(() => () => setMusicOn(false), []);
+
   useEffect(() => {
     setSoundOn(settings.sound);
     saveSettings(settings);
@@ -86,7 +89,7 @@ export default function Daily({ inApp = null }) {
     setSettings((s) => {
       const next = { ...s, [key]: !s[key] };
 
-      if (key === 'music') setMusicOn(next.music);
+      // Music: the shared store; the engine starts or fades the bed itself.
       if (key === 'sound' && next.sound) setTimeout(() => sfx.select(2), 0);
 
       return next;
@@ -96,7 +99,8 @@ export default function Daily({ inApp = null }) {
   function start() {
     sfx.start();
     haptic.select();
-    if (settings.music) setMusicOn(true);
+    // The round has begun: the music bed may play (if the Music switch is on).
+    setMusicOn(true);
     track('daily_start', { page: 'daily', number, lang });
     setPhase('play');
   }
@@ -154,6 +158,7 @@ export default function Daily({ inApp = null }) {
 
     // Round done: celebrate inside this tap (iPhones only tick during a tap).
     haptic.celebrate();
+    resolveMusic();
     const saved = saveRound(number, marks);
 
     setHistory(saved);

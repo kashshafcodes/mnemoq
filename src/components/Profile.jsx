@@ -7,6 +7,7 @@ import { Badges } from './Dashboard';
 import { NO_SUGGEST } from '../noSuggest';
 import ReminderSettings from './ReminderSettings';
 import VibrationSetting from './VibrationSetting';
+import SoundSetting from '../sensory/SoundSetting';
 
 // The person's own page: who they are, how they're doing, and their settings.
 
@@ -164,6 +165,7 @@ export default function Profile({ user, cards, reviews, onSave, onLogout, onTuto
       </section>
 
       <ReminderSettings userId={user.id} />
+      <SoundSetting />
       <VibrationSetting />
 
       <section className="profile-card">

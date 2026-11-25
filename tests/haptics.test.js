@@ -78,10 +78,12 @@ describe('haptic events', () => {
     expect(nav.vibrate).toHaveBeenCalledWith(PATTERNS.charged.android);
   });
 
-  it('keeps Android patterns short', () => {
+  it('keeps Android patterns short: at most 450 ms and 4 pulses (sensory spec 3)', () => {
     for (const { android: p } of Object.values(PATTERNS)) {
-      const total = [].concat(p).reduce((a, b) => a + b, 0);
-      expect(total).toBeLessThanOrEqual(220);
+      const list = [].concat(p);
+      const total = list.reduce((a, b) => a + b, 0);
+      expect(total).toBeLessThanOrEqual(450);
+      expect(Math.ceil(list.length / 2)).toBeLessThanOrEqual(4);
     }
   });
 

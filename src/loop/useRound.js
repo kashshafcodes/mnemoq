@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { dhakaDate } from '../daily/calendar';
 import { dailyStatus } from '../daily/DailyTile';
-import { haptic } from '../haptics';
+import { feel, roundMusic } from '../sensory';
 import { track } from '../track';
 import { cardsProgress, newRecord, playFromRound, roundPlan } from './roundPlan';
 import { loadRound, pruneRounds, saveRound } from './roundStore';
@@ -116,10 +116,12 @@ export function useRound({ userId, cards, dueCards, reviews, weakest, ready, pro
     for (const step of newly) track('round_step_done', { step: step.id, n: step.target });
 
     if (celebrate) {
-      haptic.celebrate();
+      // The round's music resolves to the home chord under the fanfare.
+      feel('round.done');
+      roundMusic.resolve();
       track('round_done', { steps_done: plan.doneCount, total: plan.total, skipped: plan.steps.filter((s) => s.skipped).length, extra_rounds: live.extra || 0 });
     } else {
-      haptic.tap();
+      feel('step.done');
     }
 
     setRecord(saveRound({ ...live, lit: [...lit, ...newly.map((step) => step.id)], celebrated: live.celebrated || celebrate }));
