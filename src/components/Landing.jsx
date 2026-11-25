@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import Auth from '../Auth';
+import { guestOn, startGuest } from '../guest/guest';
 import { LanguageToggle, useI18n } from '../i18n';
 import { PRO } from '../proConfig';
 import { launchActive, priceOf, taka } from '../pricing';
@@ -32,6 +33,7 @@ const COPY = {
       ['brac', 'BRAC admission', '24 questions · 20 min · readiness score'],
     ],
     orAccount: 'Or create a free account',
+    guest: 'Just look around, no account',
     ctaTry: 'Take the free check',
     tryFree: 'Try it free, no sign-up',
     trust: ['Free plan, no card needed', 'Works on your phone', 'English and বাংলা'],
@@ -84,6 +86,7 @@ const COPY = {
       ['brac', 'BRAC ভর্তি', '২৪টি প্রশ্ন · ২০ মিনিট · রেডিনেস স্কোর'],
     ],
     orAccount: 'অথবা ফ্রি অ্যাকাউন্ট খুলুন',
+    guest: 'অ্যাকাউন্ট ছাড়াই ঘুরে দেখুন',
     ctaTry: 'ফ্রি চেক দিন',
     tryFree: 'সাইন আপ ছাড়াই ফ্রি চেষ্টা করুন',
     trust: ['ফ্রি প্ল্যান, কার্ড লাগবে না', 'ফোনেই চলে', 'English ও বাংলা'],
@@ -190,6 +193,23 @@ export default function Landing() {
     if (isSampleLink()) window.history.replaceState(null, '', '/');
   }
 
+  // Into the app with no account (src/guest/guest.js). App.jsx picks up the
+  // new session; if guest accounts are off, jump to the sign-up form instead.
+  const [guestBusy, setGuestBusy] = useState(false);
+
+  async function enterAsGuest() {
+    track('cta_click', { page: 'landing', where: 'guest' });
+    setGuestBusy(true);
+    guestOn();
+    if (isSampleLink()) window.history.replaceState(null, '', '/');
+    const result = await startGuest('landing');
+
+    if (result.error) {
+      setGuestBusy(false);
+      goSignup(null);
+    }
+  }
+
   // where = null: already counted by the caller (the sample's save button).
   function goSignup(where) {
     if (where) track('cta_click', { page: 'landing', where });
@@ -254,6 +274,9 @@ export default function Landing() {
             </div>
             <button type="button" className="lp-try-account" onClick={() => goSignup('hero')}>
               {c.orAccount}
+            </button>
+            <button type="button" className="lp-try-account" onClick={enterAsGuest} disabled={guestBusy}>
+              {c.guest} →
             </button>
           </div>
           <ul className="lp-trust">

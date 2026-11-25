@@ -7,7 +7,7 @@
 
 import { settleClaim } from './_payments.js';
 import { adminConfig } from './_push.js';
-import { getUser, supabaseConfig } from './suggest.js';
+import { getUser, supabaseConfig, isGuestUser, GUEST_MESSAGE } from './suggest.js';
 
 export const config = { maxDuration: 20 };
 
@@ -38,6 +38,8 @@ export default async function handler(req, res, env = process.env) {
   const user = token ? await getUser(publicCfg, token).catch(() => null) : null;
 
   if (!user) return send(res, 401, { error: 'Please log in again.', status: 'auth' });
+
+  if (isGuestUser(user)) return send(res, 403, { error: GUEST_MESSAGE, status: 'guest' });
 
   const body = typeof req.body === 'object' && req.body ? req.body : {};
   const trxId = String(body.trxId || '').toUpperCase().replace(/[^A-Z0-9]/g, '');

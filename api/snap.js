@@ -15,7 +15,7 @@
 
 import { PRO_DAILY, aiAllowance, aiResetsAt, attemptAllowed, limitMessage, recordSnapAttempt, snapAttempts } from './_aiLimit.js';
 import { BUDGET_MESSAGE, globalAiBudgetOk } from './_guard.js';
-import { ProviderError, askGroq, clean, getUser, hasUnlimitedAi, norm, recordUse, supabaseConfig } from './suggest.js';
+import { ProviderError, askGroq, clean, getUser, hasUnlimitedAi, norm, recordUse, supabaseConfig, isGuestUser, GUEST_MESSAGE } from './suggest.js';
 
 export const config = { maxDuration: 30 };
 
@@ -386,6 +386,8 @@ export default async function handler(req, res, env = process.env) {
   const user = await getUser(cfg, token).catch(() => null);
 
   if (!user) return send(res, 401, { error: MESSAGES.auth, code: 'auth' });
+
+  if (isGuestUser(user)) return send(res, 403, { error: GUEST_MESSAGE, code: 'guest' });
 
   // Unlimited accounts get Infinity, which JSON sends as null (counter hidden).
   const unlimited = hasUnlimitedAi(env, user);

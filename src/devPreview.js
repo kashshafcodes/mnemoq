@@ -8,6 +8,7 @@
 //   ?preview=admin  as above, and the Stats page is unlocked
 //   ?preview=sat    as ?preview, following the Digital SAT path (=nsu for NSU)
 //   ?preview=out    signed out (the landing page)
+//   ?preview=guest  a first visit: opens straight in as a guest (src/guest/)
 //   ?preview=off    leave preview mode
 
 const KEY = 'mnemoq-dev-preview';
@@ -139,8 +140,9 @@ function builder(db, table) {
 }
 
 export function createPreviewClient(mode) {
-  const signedIn = mode !== 'out';
-  const cards = mode === 'new' ? [] : sampleCards();
+  const guestMode = mode.startsWith('guest'); // =guest-off: guest accounts switched off
+  const signedIn = mode !== 'out' && !guestMode;
+  const cards = mode === 'new' || guestMode ? [] : sampleCards();
   const db = {
     mistakes: cards,
     reviews: mode === 'new' ? [] : sampleReviews(cards, { skipDay: mode === 'rest' ? 1 : null }),
@@ -149,15 +151,27 @@ export function createPreviewClient(mode) {
         ? [{ user_id: 'preview-user', path_id: mode, is_active: true, exam_date: iso(60).slice(0, 10), target_score: mode === 'sat' ? 1400 : 75, updated_at: iso(0) }]
         : [],
   };
-  const user = { id: 'preview-user', email: 'preview@mnemoq.test', user_metadata: { name: 'Preview' } };
-  const session = signedIn ? { user, access_token: 'preview' } : null;
+  let user = { id: 'preview-user', email: 'preview@mnemoq.test', user_metadata: { name: 'Preview' } };
+  let session = signedIn ? { user, access_token: 'preview' } : null;
+  const listeners = new Set();
+  const emit = (event) => listeners.forEach((fn) => fn(event, session));
 
   return {
     preview: true,
     auth: {
       getSession: async () => ({ data: { session }, error: null }),
       getUser: async () => ({ data: { user: session ? user : null }, error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      onAuthStateChange: (fn) => {
+        listeners.add(fn);
+        return { data: { subscription: { unsubscribe: () => listeners.delete(fn) } } };
+      },
+      signInAnonymously: async () => {
+        if (sessionStorage.getItem(KEY) === 'guest-off') return { data: {}, error: { message: 'Anonymous sign-ins are disabled' } };
+        user = { id: 'preview-guest', email: '', is_anonymous: true, user_metadata: { guest: true } };
+        session = { user, access_token: 'preview' };
+        emit('SIGNED_IN');
+        return { data: { user, session }, error: null };
+      },
       signUp: async () => ({ data: { user, session: null }, error: null }),
       signInWithPassword: async () => ({ data: {}, error: { message: 'Preview mode: sign-in is disabled.' } }),
       signOut: async () => {
@@ -165,7 +179,11 @@ export function createPreviewClient(mode) {
         window.location.reload();
         return { error: null };
       },
-      updateUser: async () => ({ data: { user }, error: null }),
+      updateUser: async (changes = {}) => {
+        if (changes.email) user = { ...user, new_email: changes.email, user_metadata: { ...user.user_metadata, ...changes.data } };
+        if (session) session = { ...session, user };
+        return { data: { user }, error: null };
+      },
     },
     from: (table) => builder(db, table),
     rpc: async (name) => {

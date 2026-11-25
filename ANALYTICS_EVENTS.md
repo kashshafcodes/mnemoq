@@ -12,6 +12,8 @@ Added 2026-11-15: `landing_view`, `cta_click` (`where`), `page_view` (`page`), `
 |---|---|---|
 | `sign_up` | Supabase accepts a new email signup | `method: email` |
 | `login` | Supabase email/password login succeeds | `method: email` |
+| `guest_start` | A visitor enters the app as a guest (no account) | `where: auto` (main link) or `landing` |
+| `guest_save` | A guest saves their progress | `step: email` (link sent) or `password` (finished) |
 | `mistake_saved` | A new card is saved successfully | `method: library_form` or `quick_add` |
 | `first_mistake_saved` | The user's first card is saved successfully | same method parameter |
 | `review_completed` | A card's review rating is saved successfully | `review_mode`, `rating`, `recalled` |

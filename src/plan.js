@@ -50,6 +50,11 @@ export async function redeemCode(code) {
 
   if (cleaned.replace(/[^a-z0-9]/gi, '').length < 8) return { error: 'Enter the full code you were given.' };
 
+  // A guest account can be lost with the browser, so Pro waits for a saved one.
+  const { data: auth } = await supabase.auth.getSession();
+
+  if (auth?.session?.user?.is_anonymous) return { error: 'Save your progress first (free, at the top of the app), then enter your code.' };
+
   const { data, error } = await supabase.rpc('redeem_pro_code', { p_code: cleaned });
 
   if (error) {

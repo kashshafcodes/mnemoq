@@ -4,6 +4,8 @@ import './App.css';
 import { supabase } from './supabaseClient';
 import Landing from './components/Landing';
 import { clearGuestResult, pendingGuestResult } from './guestResult';
+import { guestLeaveText, guestOff, isGuest, shouldAutoGuest, startGuest } from './guest/guest';
+import GuestBar from './guest/GuestBar';
 import { clearSampleMisses, pendingSampleCards, readSampleMisses } from './sample/store';
 import { trackEvent } from './googleAnalytics';
 
@@ -504,6 +506,7 @@ useEffect(() => {
   
 useEffect(() => {
   let isMounted = true;
+  let startingGuest = false;
 
   async function loadSession() {
     const { data, error } = await supabase.auth.getSession();
@@ -514,7 +517,21 @@ useEffect(() => {
       console.error('Could not load session:', error.message);
     }
 
-    setSession(data?.session ?? null);
+    let current = data?.session ?? null;
+
+    // No account yet: open the app as a guest instead of the landing page
+    // (src/guest/guest.js). If guest accounts are off, the landing page shows.
+    if (!current && shouldAutoGuest()) {
+      startingGuest = true;
+      const guest = await startGuest('auto');
+
+      startingGuest = false;
+
+      if (!isMounted) return;
+      current = guest.session || null;
+    }
+
+    setSession(current);
     setAuthLoading(false);
   }
 
@@ -523,6 +540,9 @@ useEffect(() => {
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    // While the guest account is being made, skip the first "no session"
+    // so the landing page does not flash.
+    if (!newSession && startingGuest) return;
     setSession(newSession);
     setAuthLoading(false);
   });
@@ -1243,7 +1263,12 @@ if (dataError) {
 }
 
 
-  async function logOut() {
+  // confirmGuest = false when the guest strip already asked.
+  async function logOut({ confirmGuest = true } = {}) {
+    if (confirmGuest && isGuest(session?.user) && !window.confirm(guestLeaveText(lang))) return;
+
+    // Chose to leave: show the landing page (with log in), not a new guest.
+    guestOff();
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -1637,6 +1662,11 @@ if (dataError) {
       {page === 'today' && <PlayButton state={play} onPlay={playNow} />}
 
       <main className="mq-main">
+        <GuestBar
+          user={session.user}
+          onUser={(user) => setSession((current) => (current ? { ...current, user } : current))}
+          onLogin={() => logOut({ confirmGuest: false })}
+        />
         <PageErrorBoundary key={page} page={page}>
         <Suspense fallback={<PageLoading />}>
         {page === 'today' && (

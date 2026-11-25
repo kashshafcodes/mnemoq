@@ -20,7 +20,7 @@
 //   { action: 'release' | 'revoke', friend }  owner review (site_admins only)
 
 import { adminConfig, rest } from './_push.js';
-import { getUser, supabaseConfig } from './suggest.js';
+import { getUser, supabaseConfig, isGuestUser } from './suggest.js';
 import { REWARD_DAYS, decide, learningWindow, validRefcode } from '../src/referral/rules.js';
 import { adminList, friends, invite, isAdmin, review } from '../src/referral/server.js';
 
@@ -142,6 +142,9 @@ export default async function handler(req, res, env = process.env) {
   const user = token ? await getUser(publicCfg, token).catch(() => null) : null;
 
   if (!user) return send(res, 401, { status: 'auth' });
+
+  // Guests earn nothing yet; the client asks again on a later day.
+  if (isGuestUser(user)) return send(res, 200, { status: 'guest' });
 
   let body = req.body;
 

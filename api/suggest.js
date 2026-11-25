@@ -240,6 +240,12 @@ export async function getUser(cfg, token) {
   return user?.id ? user : null;
 }
 
+// Guests (Supabase anonymous accounts, src/guest/guest.js) can use the app but
+// not the paid or reward features: AI, payments and referral rewards. One
+// browser can make many guest accounts, so these would be easy to farm.
+export const isGuestUser = (user) => Boolean(user?.is_anonymous);
+export const GUEST_MESSAGE = 'Save your progress (free) to use this. Tap "Save my progress" at the top of the app.';
+
 // Accounts listed in AI_UNLIMITED_EMAILS (comma-separated) skip the daily AI
 // limits. Only verified emails count, so nobody can claim one by signing up.
 export function hasUnlimitedAi(env, user) {
@@ -439,6 +445,8 @@ export default async function handler(req, res, env = process.env) {
   const user = await getUser(cfg, token).catch(() => null);
 
   if (!user) return send(res, 401, { error: 'Please log in again.', code: 'auth' });
+
+  if (isGuestUser(user)) return send(res, 403, { error: GUEST_MESSAGE, code: 'guest' });
 
   // Unlimited accounts get Infinity, which JSON sends as null (counter hidden).
   const unlimited = hasUnlimitedAi(env, user);

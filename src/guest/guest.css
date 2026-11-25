@@ -1,0 +1,81 @@
+/* Guest strip (GuestBar.jsx): quiet, one line on wide screens, stacked on phones. */
+.mq-guest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.mq-guest-pw {
+  border-color: var(--highlight);
+  background: var(--highlight-soft);
+}
+
+.mq-guest-text {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.mq-guest-text span {
+  opacity: 0.8;
+}
+
+.mq-guest-actions,
+.mq-guest-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.mq-guest-form input {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.mq-guest-link {
+  padding: 4px 2px;
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.mq-guest-text .mq-guest-link {
+  align-self: flex-start;
+}
+
+.mq-guest-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--danger-ink);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 560px) {
+  .mq-guest-actions,
+  .mq-guest-form {
+    flex-basis: 100%;
+  }
+}

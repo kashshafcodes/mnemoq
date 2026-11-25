@@ -24,7 +24,7 @@
 
 import { aiAllowance, limitMessage, usedFreeAnalysis } from './_aiLimit.js';
 import { BUDGET_MESSAGE, globalAiBudgetOk } from './_guard.js';
-import { ProviderError, clean, getUser, hasUnlimitedAi, norm, supabaseConfig } from './suggest.js';
+import { ProviderError, clean, getUser, hasUnlimitedAi, norm, supabaseConfig, isGuestUser, GUEST_MESSAGE } from './suggest.js';
 
 export const config = { maxDuration: 60 };
 
@@ -864,6 +864,8 @@ export default async function handler(req, res, env = process.env) {
   const user = await getUser(cfg, token).catch(() => null);
 
   if (!user) return send(res, 401, { error: 'Please log in again.', code: 'auth' });
+
+  if (isGuestUser(user)) return send(res, 403, { error: GUEST_MESSAGE, code: 'guest' });
 
   const unlimited = hasUnlimitedAi(env, user);
   const allowance = await aiAllowance(env, cfg, token, user, { unlimited });
