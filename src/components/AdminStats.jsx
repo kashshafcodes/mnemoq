@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { mergePages, pageNameNow } from '../nav/routes';
 import AdminReferrals from '../referral/AdminReferrals';
+import { slugTag, trackedLink } from '../links';
 
 // The owner's Stats page (#/admin): who is landing on the site, where they came
 // from, what they do, and whether reminders are running. Data comes from
@@ -83,9 +84,10 @@ function DailyChart({ days }) {
 function LinkBuilder() {
   const [source, setSource] = useState('facebook');
   const [campaign, setCampaign] = useState('');
+  const [group, setGroup] = useState('');
+  const [tester, setTester] = useState(false);
   const [copied, setCopied] = useState(false);
-  const slug = (v) => v.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const url = `${SITE}/?utm_source=${slug(source) || 'social'}${campaign.trim() ? `&utm_campaign=${slug(campaign)}` : ''}`;
+  const url = trackedLink('', { source: slugTag(source) || 'social', medium: tester ? 'feedback' : '', campaign, content: group }, SITE);
 
   async function copy() {
     try {
@@ -105,7 +107,7 @@ function LinkBuilder() {
         <label>
           Where you post it
           <select value={source} onChange={(e) => setSource(e.target.value)}>
-            {['facebook', 'instagram', 'whatsapp', 'messenger', 'youtube', 'tiktok', 'linkedin', 'x', 'reddit', 'email', 'poster'].map((s) => (
+            {['facebook', 'instagram', 'whatsapp', 'messenger', 'youtube', 'tiktok', 'linkedin', 'x', 'reddit', 'discord', 'club', 'friends', 'email', 'poster'].map((s) => (
               <option key={s} value={s}>
                 {s}
               </option>
@@ -113,8 +115,16 @@ function LinkBuilder() {
           </select>
         </label>
         <label>
-          Name of the post or group (optional)
+          Name of the post (optional)
           <input value={campaign} onChange={(e) => setCampaign(e.target.value)} placeholder="sat-group-nov" maxLength={40} />
+        </label>
+        <label>
+          Group, subreddit or club (optional)
+          <input value={group} onChange={(e) => setGroup(e.target.value)} placeholder="r_dhaka" maxLength={40} />
+        </label>
+        <label className="st-check">
+          <input type="checkbox" checked={tester} onChange={(e) => setTester(e.target.checked)} />
+          Tester invite (soft launch)
         </label>
       </div>
       <div className="st-link">

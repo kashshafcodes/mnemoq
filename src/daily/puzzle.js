@@ -126,7 +126,11 @@ export function shareText({ number, marks, lang = 'en', url = 'https://mnemoq-tw
   const score = scoreOf(marks);
   const grid = marks.map(squareFor).join('');
   const n = (value) => (lang === 'bn' ? value.toLocaleString('bn-BD') : String(value));
-  const title = lang === 'bn' ? `Mnemoq ডেইলি #${n(number)} · ${n(score)}/${n(MAX_SCORE)}` : `Mnemoq Daily #${number} · ${score}/${MAX_SCORE}`;
+  // D3 (marketing/daily-launch-plan.md): the challenge line after the score.
+  const title =
+    lang === 'bn'
+      ? `Mnemoq ডেইলি #${n(number)} · ${n(score)}/${n(MAX_SCORE)} · পারবেন হারাতে?`
+      : `Mnemoq Daily #${number} · ${score}/${MAX_SCORE} · Can you beat it?`;
 
   return `${title}\n${grid}\n${url}`;
 }

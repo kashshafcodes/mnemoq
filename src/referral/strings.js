@@ -5,6 +5,7 @@
 import { useMemo } from 'react';
 import { useI18n } from '../i18n';
 import { bnDigits } from '../daily/strings';
+import { trackedLink } from '../links';
 
 export const STRINGS = {
   en: {
@@ -75,4 +76,4 @@ export function useRefT() {
 
 // The invite link with the account's stored code (fallback codes start with x).
 export const inviteLink = (site, refcode) =>
-  `${site}/sample?${new URLSearchParams({ utm_source: 'friend', utm_medium: 'invite', utm_campaign: 'invite', utm_content: refcode })}`;
+  trackedLink('sample', { source: 'friend', medium: 'invite', campaign: 'invite', content: refcode }, site);

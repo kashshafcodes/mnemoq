@@ -56,9 +56,11 @@ export function loadLedger(store = storage(), user = syncUser()) {
   return { days: {}, ever: [], seen: null };
 }
 
-function saveLedger(ledger, store, user) {
+function saveLedger(ledger, store, user, now = new Date()) {
   // Keys only matter today (once per card per day); older days keep totals.
-  const today = dhakaKey(new Date());
+  // "Today" is the earning's own day, so an earning stamped earlier still
+  // keeps its once-per-card keys.
+  const today = dhakaKey(now);
   const days = Object.fromEntries(
     Object.entries(ledger.days).map(([day, rec]) => [day, day >= today ? rec : { glow: rec.glow || 0, extra: rec.extra || 0, ...(rec.shares ? { shares: rec.shares } : {}) }]),
   );
@@ -216,7 +218,7 @@ export function earn(action, { at = new Date(), store = storage(), user = syncUs
   else if (rec.capped) next.capped = true;
   ledger.days[day] = next;
   if (result.once && result.key && !ledger.ever.includes(result.key)) ledger.ever.push(result.key);
-  saveLedger(ledger, store, user);
+  saveLedger(ledger, store, user, at);
 
   if (result.amount > 0) {
     noteGlow(day, dayTotal(next), deviceId(store), store, user);

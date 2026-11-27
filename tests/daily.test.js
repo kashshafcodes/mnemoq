@@ -90,8 +90,8 @@ describe('daily scoring and sharing', () => {
       { correct: true, bet: 'guess' },
     ];
 
-    expect(shareText({ number: 4, marks })).toBe('Mnemoq Daily #4 · 4/15\n🟩🟨🟥⬜🟨\nhttps://mnemoq-two.vercel.app/daily');
-    expect(shareText({ number: 4, marks, lang: 'bn' }).split('\n')[0]).toBe('Mnemoq ডেইলি #৪ · ৪/১৫');
+    expect(shareText({ number: 4, marks })).toBe('Mnemoq Daily #4 · 4/15 · Can you beat it?\n🟩🟨🟥⬜🟨\nhttps://mnemoq-two.vercel.app/daily');
+    expect(shareText({ number: 4, marks, lang: 'bn' }).split('\n')[0]).toBe('Mnemoq ডেইলি #৪ · ৪/১৫ · পারবেন হারাতে?');
   });
 
   it('counts the one streak, with 2 free rest days in any 7', () => {

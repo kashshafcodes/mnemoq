@@ -1,8 +1,9 @@
 import react from '@vitejs/plugin-react'
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { defineConfig } from 'vite'
 import { applyOverlay } from './src/practice/overlay.js'
+import { pageWithMeta, DAILY_META } from './scripts/pageMeta.js'
 
 // On the development server only: answer /api/library from the files in
 // library/, so the practice page works without Vercel. (Every set is sent
@@ -65,9 +66,30 @@ function devLibrary() {
   }
 }
 
+// On build only: write dist/daily.html, the same app with the Daily's own link
+// preview (title, description, image), so a shared /daily link shows the
+// lanterns on Facebook, WhatsApp and Messenger. vercel.json serves it at /daily.
+// No api/ function needed (11 of 12 used). Phase 3 wave 3-A, D1.
+function pageMetaFiles() {
+  let outDir = 'dist'
+
+  return {
+    name: 'mnemoq-page-meta',
+    apply: 'build',
+    configResolved(config) {
+      outDir = config.build.outDir
+    },
+    closeBundle() {
+      const html = readFileSync(join(outDir, 'index.html'), 'utf8')
+
+      writeFileSync(join(outDir, 'daily.html'), pageWithMeta(html, DAILY_META))
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), devLibrary()],
+  plugins: [react(), devLibrary(), pageMetaFiles()],
   // Tests cover pure logic only; these stand in for the real Supabase settings.
   test: {
     env: { VITE_SUPABASE_URL: 'http://localhost:54321', VITE_SUPABASE_PUBLISHABLE_KEY: 'test-key' },

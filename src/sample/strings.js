@@ -4,6 +4,8 @@
 // "About a minute", never "60 seconds", until sample_finish.ms shows a median
 // of about 75 s or less.
 
+import { trackedLink } from '../links';
+
 export const SAMPLE = {
   en: {
     open: 'Try a sample round',
@@ -86,7 +88,7 @@ export function resultKeys(right, total) {
 
 // The link a friend opens: straight to screen 1, credited to the share.
 export function shareUrl(origin) {
-  return `${origin}/sample?utm_source=friend&utm_medium=sample_result&utm_campaign=sample_share`;
+  return trackedLink('sample', { source: 'friend', medium: 'sample_result', campaign: 'sample_share' }, origin);
 }
 
 // Opened through the /sample deep link (vercel.json rewrite, main.jsx route).

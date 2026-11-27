@@ -1836,6 +1836,19 @@ code {
   padding: 8px 10px;
 }
 
+.st-builder .st-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.st-builder .st-check input {
+  min-height: 0;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+}
+
 .st-link {
   display: flex;
   gap: 10px;

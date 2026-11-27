@@ -7,7 +7,9 @@
 // The refcode is a short hash of the account id: stable for that person, and it
 // reveals nothing. Old links (utm_campaign=f-<code>) stay readable.
 
-export const SITE = 'https://mnemoq-two.vercel.app';
+import { SITE, trackedLink } from './links';
+
+export { SITE };
 
 // Exams that have a free, no-sign-up check a friend can take.
 const TRY_PATHS = { sat: 'sat', nsu: 'nsu', brac: 'brac' };
@@ -32,14 +34,12 @@ export function cardPath(variant, pathId) {
 }
 
 export function shareLink(variant, pathId, userId) {
-  const params = new URLSearchParams({
-    utm_source: 'friend',
-    utm_medium: 'share_card',
-    utm_campaign: `card_${VARIANTS.includes(variant) ? variant : 'diag'}`,
-    utm_content: refCode(userId),
+  return trackedLink(cardPath(variant, pathId), {
+    source: 'friend',
+    medium: 'share_card',
+    campaign: `card_${VARIANTS.includes(variant) ? variant : 'diag'}`,
+    content: refCode(userId),
   });
-
-  return `${SITE}/${cardPath(variant, pathId)}?${params}`;
 }
 
 // What the link looks like printed on the card (no tracking tags).

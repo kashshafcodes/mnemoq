@@ -8,6 +8,7 @@ import { loopT } from '../loop/strings';
 import { bnDigits, rankOf } from './strings';
 import { sfx } from './audio';
 import { haptic } from '../haptics';
+import { trackedLink } from '../links';
 
 // The end of the night: the lanterns light up one by one (each plays a note,
 // so every round has its own little tune), then the score, rank, sharing and
@@ -347,7 +348,7 @@ function Misses({ missed, t, lang }) {
           <div>
             <h3>{t('signupTitle')}</h3>
             <p>{t('signupBody')}</p>
-            <a className="dly-play dly-block" href="/?utm_source=daily&utm_medium=result">
+            <a className="dly-play dly-block" href={trackedLink('', { source: 'daily', medium: 'result' }, '')}>
               {t('signup')}
             </a>
           </div>
